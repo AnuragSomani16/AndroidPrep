@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Glossary — definitions with context · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Glossary — definitions with context</h1>
+<p class="lead">Every term is described with the same shape: <strong>what it is → what it replaces / when to use → why</strong>. Skim this if a topic page uses a word that suddenly seems unfamiliar.</p>
+
+<div class="callout tip">
+  <span class="label">Reading guide</span>
+  <p>If you come from XML / LiveData / Java background, focus on the "replaces" and "why" parts — they map old concepts to new ones. The cards are designed for skimming; if you want depth, the topic pages are linked from the sidebar.</p>
+</div>
+
+<h2>Kotlin & language</h2>
+<div class="glossary">
+  <div class="term"><h4>val / var</h4><p><strong>What:</strong> <code>val</code> is read-only after init; <code>var</code> is reassignable. <strong>Replaces:</strong> Java's <code>final</code> vs non-final fields. <strong>Why:</strong> immutability is the default; reassignment is opt-in. Reading the keyword tells you whether the variable can change after this line.</p></div>
+
+  <div class="term"><h4>const val</h4><p><strong>What:</strong> compile-time constant inlined at the call site. Only at top-level / object / companion. Only primitives + <code>String</code>. <strong>Replaces:</strong> <code>public static final</code> in Java. <strong>Why:</strong> no getter call at runtime; the value is baked into the bytecode of every consumer.</p></div>
+
+  <div class="term"><h4>nullable type (<code>String?</code>)</h4><p><strong>What:</strong> a type that may hold null. <strong>Replaces:</strong> "every Java reference might be null with no compiler warning." <strong>Why:</strong> compile-time enforcement of null checks before access — eliminates most NullPointerExceptions.</p></div>
+
+  <div class="term"><h4>safe call (<code>?.</code>)</h4><p><strong>What:</strong> calls a method only if receiver is non-null; returns null otherwise. <strong>Replaces:</strong> <code>if (x != null) x.foo() else null</code>. <strong>Why:</strong> compact, chainable, and works inline in expressions.</p></div>
+
+  <div class="term"><h4>Elvis operator (<code>?:</code>)</h4><p><strong>What:</strong> provides a fallback value when the left side is null. <strong>Replaces:</strong> ternary <code>x != null ? x : default</code>. <strong>Why:</strong> reads naturally with safe calls — <code>name?.length ?: 0</code> means "length if non-null, else 0."</p></div>
+
+  <div class="term"><h4><code>!!</code></h4><p><strong>What:</strong> asserts non-null; throws NullPointerException if null. <strong>Replaces:</strong> nothing; it's a code smell. <strong>Why use:</strong> only in tests, or when truly impossible to be null and you've justified that comment-wise. Production code should use <code>checkNotNull(x) { "..." }</code> instead so the failure has a message.</p></div>
+
+  <div class="term"><h4>smart cast</h4><p><strong>What:</strong> after <code>if (x is String)</code>, the compiler auto-treats <code>x</code> as <code>String</code> in that branch. <strong>Replaces:</strong> Java's manual cast after <code>instanceof</code>. <strong>Why:</strong> less ceremony, no risk of forgetting the cast.</p></div>
+
+  <div class="term"><h4>data class</h4><p><strong>What:</strong> auto-generates <code>equals/hashCode/toString/copy/componentN</code>. <strong>Replaces:</strong> Java POJO with hand-written equals/hashCode (or Lombok). <strong>Why:</strong> eliminates ~50 lines of boilerplate per type. Use for value-bearing types — DTOs, domain models, UI state.</p></div>
+
+  <div class="term"><h4>sealed class / sealed interface</h4><p><strong>What:</strong> a type whose subclasses are all known at compile time. <strong>Replaces:</strong> "enum but each value can have different fields" — Java doesn't have a clean equivalent. <strong>Why:</strong> exhaustive <code>when</code> at compile time. Adding a new subclass forces every consumer to handle it. Foundation of MVI state.</p></div>
+
+  <div class="term"><h4>object (singleton)</h4><p><strong>What:</strong> a singleton declaration. Lazily initialized, thread-safe. <strong>Replaces:</strong> Java's hand-written private-constructor + getInstance() pattern. <strong>Why:</strong> 1 line vs 10. Use when you genuinely need exactly one instance app-wide (rare; prefer DI).</p></div>
+
+  <div class="term"><h4>companion object</h4><p><strong>What:</strong> singleton tied to a class. <strong>Replaces:</strong> Java's <code>static</code> members. <strong>Why:</strong> namespace for class-level constants and factory functions. Add <code>@JvmStatic</code> for true Java-static interop.</p></div>
+
+  <div class="term"><h4>extension function</h4><p><strong>What:</strong> a function added to a type from outside. <strong>Replaces:</strong> Java utility classes like <code>StringUtils.isEmail(s)</code>. <strong>Why:</strong> calls become <code>s.isEmail()</code> — reads as if the type owned the method. Statically dispatched (resolved at compile time on declared type).</p></div>
+
+  <div class="term"><h4>inline function</h4><p><strong>What:</strong> compiler copies the body to each call site. <strong>Replaces:</strong> nothing equivalent in Java. <strong>Why:</strong> avoids object allocation for lambda parameters; supports non-local <code>return</code>. Use for high-frequency higher-order functions (<code>forEach</code>, <code>let</code>).</p></div>
+
+  <div class="term"><h4>reified</h4><p><strong>What:</strong> type parameter accessible at runtime as <code>T::class</code>. Only inside <code>inline</code> functions. <strong>Replaces:</strong> passing <code>Class&lt;T&gt;</code> param manually like <code>gson.fromJson(json, User::class.java)</code>. <strong>Why:</strong> cleaner call sites — <code>fromJson&lt;User&gt;(json)</code>.</p></div>
+
+  <div class="term"><h4>scope function (let/run/with/apply/also)</h4><p><strong>What:</strong> helpers that scope a block to an object. <strong>Replaces:</strong> intermediate variables and chained method calls. <strong>Why:</strong> compact, readable composition. <code>apply</code>/<code>also</code> return the receiver (chain-friendly); <code>let</code>/<code>run</code>/<code>with</code> return the lambda result.</p></div>
+
+  <div class="term"><h4>lateinit var</h4><p><strong>What:</strong> non-null reference whose value will be set later. <strong>Replaces:</strong> nullable field that's "really" non-null but set in onCreate. <strong>Why:</strong> avoids <code>!!</code> everywhere it's accessed. Use for DI fields, view binding, test setup.</p></div>
+
+  <div class="term"><h4>by lazy</h4><p><strong>What:</strong> read-only property computed once on first access, thread-safe. <strong>Replaces:</strong> manual double-checked locking. <strong>Why:</strong> defer expensive init until actually needed.</p></div>
+
+  <div class="term"><h4>delegation (<code>by</code>)</h4><p><strong>What:</strong> forward calls to another object — for class delegation (composition) or property delegation (custom get/set). <strong>Replaces:</strong> hand-written forwarding methods. <strong>Why:</strong> <code>class Cached(impl: Repo) : Repo by impl</code> = "Cached IS-A Repo, forwards everything to impl, override only what you customize." Powerful for decorators.</p></div>
+
+  <div class="term"><h4>variance (<code>out</code> / <code>in</code>)</h4><p><strong>What:</strong> declares whether a generic type is covariant (<code>out T</code> — producer) or contravariant (<code>in T</code> — consumer). <strong>Replaces:</strong> Java's <code>? extends T</code> / <code>? super T</code> at use site. <strong>Why:</strong> Kotlin lets you declare variance once at the type, not at every use. <code>List&lt;Dog&gt;</code> IS-A <code>List&lt;Animal&gt;</code> because <code>List</code> is <code>out</code>.</p></div>
+
+  <div class="term"><h4>value class</h4><p><strong>What:</strong> wraps a single value with no runtime overhead in most cases. <strong>Replaces:</strong> primitives passed everywhere with no type safety (<code>String</code> for both userId and email). <strong>Why:</strong> compile-time prevents <code>fetch(email, userId)</code> from being called with args swapped — but at runtime there's no boxing on direct calls.</p></div>
+
+  <div class="term"><h4>typealias</h4><p><strong>What:</strong> an alias for an existing type. <strong>Replaces:</strong> nothing — pure readability aid. <strong>Why:</strong> <code>typealias OnUserSelected = (User) -&gt; Unit</code> reads better than <code>(User) -&gt; Unit</code> sprinkled everywhere. Doesn't create a distinct type — for that, use <code>value class</code>.</p></div>
+
+  <div class="term"><h4>Result&lt;T&gt;</h4><p><strong>What:</strong> wrapper for "succeeded or failed" with a value or throwable. <strong>Replaces:</strong> try/catch when you want to convert to a typed result. <strong>Why use:</strong> <code>runCatching { ... }.onSuccess { }.onFailure { }</code> reads cleanly. <strong>Don't return Result from public APIs</strong> — Kotlin official guidance is to use a sealed class instead.</p></div>
+
+  <div class="term"><h4>Nothing</h4><p><strong>What:</strong> a type that's a subtype of every type — used for "this never returns." <strong>Replaces:</strong> nothing equivalent in Java. <strong>Why use:</strong> <code>throw</code>, <code>error()</code>, <code>TODO()</code> all return <code>Nothing</code>. Lets you write <code>val x = nullable ?: error("missing")</code> — the compiler knows <code>x</code> is non-null after this line.</p></div>
+</div>
+
+<h2>Coroutines</h2>
+<div class="glossary">
+  <div class="term"><h4>coroutine</h4><p><strong>What:</strong> a "lightweight thread" — a unit of async work that pauses/resumes without blocking a real thread. <strong>Replaces:</strong> <code>AsyncTask</code> (deprecated), <code>Thread</code> + <code>Handler</code>, RxJava chains. <strong>Why:</strong> sequential code style for async work; thousands of coroutines run on a few threads; structured concurrency prevents leaks.</p></div>
+
+  <div class="term"><h4>suspend function</h4><p><strong>What:</strong> a function that can pause/resume; only callable from another suspend or a coroutine builder. <strong>Replaces:</strong> callbacks, RxJava <code>Single&lt;T&gt;</code>, futures. <strong>Why:</strong> async code reads top-to-bottom like sync code; exceptions propagate via <code>try/catch</code>; no callback hell.</p></div>
+
+  <div class="term"><h4>coroutine builder (launch / async / runBlocking)</h4><p><strong>What:</strong> functions that <em>start</em> a coroutine. <code>launch</code> = fire-and-forget (Job); <code>async</code> = produces a result (Deferred); <code>runBlocking</code> = blocks the calling thread. <strong>Replaces:</strong> <code>new Thread().start()</code>, <code>ExecutorService.submit()</code>. <strong>Why use:</strong> these are the entry points from non-suspend code into the coroutine world.</p></div>
+
+  <div class="term"><h4>CoroutineScope</h4><p><strong>What:</strong> a scope that ties coroutines to a lifetime. Cancelling the scope cancels its coroutines. <strong>Replaces:</strong> manual <code>onDestroy { thread.interrupt() }</code> bookkeeping. <strong>Why:</strong> structured concurrency — no orphan coroutines outliving their owner. Use <code>viewModelScope</code>, <code>lifecycleScope</code>, or build a custom one.</p></div>
+
+  <div class="term"><h4>Job</h4><p><strong>What:</strong> handle for a coroutine's lifecycle — <code>cancel()</code>, <code>join()</code>, isActive. <strong>Replaces:</strong> <code>Future</code> in Java land. <strong>Why use:</strong> sometimes you need to cancel a specific coroutine without tearing down the whole scope.</p></div>
+
+  <div class="term"><h4>Deferred&lt;T&gt;</h4><p><strong>What:</strong> a Job that produces a value; call <code>await()</code> for the result. <strong>Replaces:</strong> Java's <code>Future&lt;T&gt;</code> / RxJava <code>Single</code>. <strong>Why use:</strong> for parallel work where you need both calls in flight, then collect results.</p></div>
+
+  <div class="term"><h4>Dispatcher</h4><p><strong>What:</strong> decides which thread(s) a coroutine runs on. Main / Default / IO / Unconfined. <strong>Replaces:</strong> hand-managed <code>ExecutorService</code> for different work types. <strong>Why:</strong> declarative — <code>withContext(Dispatchers.IO) { ... }</code> just works. Inject dispatchers for testability.</p></div>
+
+  <div class="term"><h4>structured concurrency</h4><p><strong>What:</strong> coroutines have parent-child relationships; cancellation and failures propagate. A coroutine cannot outlive its scope. <strong>Replaces:</strong> the "fire a thread, hope it cleans up" model. <strong>Why:</strong> eliminates the leak class of "forgot to cancel that background work."</p></div>
+
+  <div class="term"><h4>SupervisorJob</h4><p><strong>What:</strong> a Job where one child's failure does NOT cancel siblings or parent. <strong>Replaces:</strong> nothing — the regular Job is the default; SupervisorJob is the exception. <strong>Why use:</strong> when independent children should keep going if one fails — think "parallel partial-success fetch."</p></div>
+
+  <div class="term"><h4>cooperative cancellation</h4><p><strong>What:</strong> cancellation is a flag that suspending functions check. <strong>Replaces:</strong> <code>Thread.interrupt()</code> + checked InterruptedException. <strong>Why:</strong> safer — your code only stops at well-defined points (suspend calls, <code>ensureActive()</code>). CPU loops must opt in by calling <code>ensureActive()</code> or <code>yield()</code>.</p></div>
+
+  <div class="term"><h4>CoroutineExceptionHandler</h4><p><strong>What:</strong> handler for uncaught exceptions in <code>launch</code>. <strong>Replaces:</strong> <code>Thread.UncaughtExceptionHandler</code>. <strong>Why use:</strong> last-resort safety net for telemetry. Note: does NOT catch <code>async</code> exceptions until <code>await()</code> is called.</p></div>
+
+  <div class="term"><h4>viewModelScope</h4><p><strong>What:</strong> a built-in CoroutineScope tied to ViewModel lifecycle. Cancelled in <code>onCleared()</code>. <strong>Replaces:</strong> manually creating + cancelling scopes. <strong>Why use:</strong> the default for VM business logic. Survives configuration change but not process death.</p></div>
+
+  <div class="term"><h4>lifecycleScope</h4><p><strong>What:</strong> a built-in scope tied to a Lifecycle (Activity / Fragment view). Cancelled at DESTROYED. <strong>Replaces:</strong> manual onDestroy cleanup. <strong>Why use:</strong> view-bound work. In Fragments use <code>viewLifecycleOwner.lifecycleScope</code> not <code>this.lifecycleScope</code> to avoid leaks across view recreate.</p></div>
+
+  <div class="term"><h4>Mutex</h4><p><strong>What:</strong> a coroutine-friendly lock. <code>mutex.withLock { }</code> serializes access without blocking the thread. <strong>Replaces:</strong> <code>synchronized</code> blocks (which block the thread — bad for coroutines on Main). <strong>Why:</strong> when waiting, the coroutine yields the thread to others.</p></div>
+
+  <div class="term"><h4>Channel</h4><p><strong>What:</strong> coroutine-safe queue with <code>send</code>/<code>receive</code>. <strong>Replaces:</strong> <code>BlockingQueue</code>. <strong>Why use:</strong> producer/consumer with fan-out / fan-in. For most state and event needs, prefer Flow over Channel.</p></div>
+</div>
+
+<h2>Flows</h2>
+<div class="glossary">
+  <div class="term"><h4>Flow&lt;T&gt;</h4><p><strong>What:</strong> a cold async stream of values. The producer block runs <em>per collector</em>. <strong>Replaces:</strong> RxJava's <code>Observable</code>, callback APIs that emit multiple values. <strong>Why:</strong> sequential composition (map/filter/etc.), backpressure, integrates with coroutines and structured concurrency.</p></div>
+
+  <div class="term"><h4>cold vs hot</h4><p><strong>What:</strong> Cold (Flow): producer runs per collector — no collector → no work. Hot (StateFlow / SharedFlow): emit independently of collectors. <strong>Replaces:</strong> RxJava's "Observable vs Subject" distinction. <strong>Why use:</strong> Cold for one-off computations (a network call); Hot for ambient state shared by many.</p></div>
+
+  <div class="term"><h4>StateFlow</h4><p><strong>What:</strong> a hot, conflated Flow that always has a current value, replays exactly 1 to new collectors, dedupes by equality. <strong>Replaces:</strong> <code>LiveData</code> for new code. <strong>Why use:</strong> ViewModel exposes UI state via <code>StateFlow&lt;UiState&gt;</code>; the View collects and renders. Compose-friendly via <code>collectAsStateWithLifecycle()</code>; works in pure Kotlin (KMP-ready); composes with all Flow operators (combine, flatMapLatest, debounce). LiveData is Android-only and limited to map/switchMap.</p></div>
+
+  <div class="term"><h4>SharedFlow</h4><p><strong>What:</strong> a hot Flow with configurable replay/buffer, no equality dedupe. <strong>Replaces:</strong> RxJava <code>PublishSubject</code> / <code>ReplaySubject</code>. <strong>Why use:</strong> for events (navigation, snackbar) — set <code>replay = 0</code> so a screen rotation doesn't replay yesterday's events.</p></div>
+
+  <div class="term"><h4>conflation</h4><p><strong>What:</strong> drop intermediate values; consumers always see only the latest. <strong>Replaces:</strong> manual debounce-like throttling. <strong>Why use:</strong> for fast-changing state where you only care about the current value (e.g., scroll position). StateFlow is conflated by default.</p></div>
+
+  <div class="term"><h4>backpressure</h4><p><strong>What:</strong> what to do when the producer is faster than the consumer. <code>buffer(n)</code>, <code>conflate()</code>, <code>collectLatest { }</code>. <strong>Replaces:</strong> RxJava's <code>onBackpressureBuffer/Drop/Latest</code>. <strong>Why:</strong> prevents OOM when a fast producer drowns a slow consumer.</p></div>
+
+  <div class="term"><h4>flowOn(dispatcher)</h4><p><strong>What:</strong> sets the dispatcher for upstream operators. Doesn't affect downstream. <strong>Replaces:</strong> RxJava's <code>subscribeOn</code>. <strong>Why use:</strong> shift the producer's work off Main: <code>flow.map { heavy() }.flowOn(Default).collect { renderOnMain(it) }</code>.</p></div>
+
+  <div class="term"><h4>stateIn / shareIn</h4><p><strong>What:</strong> convert a cold Flow to a hot StateFlow / SharedFlow. <strong>Replaces:</strong> RxJava's <code>publish().refCount()</code>. <strong>Why use:</strong> share the upstream computation across multiple collectors instead of running it per-collector.</p></div>
+
+  <div class="term"><h4>SharingStarted.WhileSubscribed(5000)</h4><p><strong>What:</strong> a sharing strategy that keeps the upstream alive 5s after the last collector unsubscribes. <strong>Replaces:</strong> manually managing subscription refcounts. <strong>Why:</strong> handles configuration change (rotation) without re-fetching — the new collector arrives within the timeout and reuses the existing flow. The standard for VM exposure.</p></div>
+
+  <div class="term"><h4>flatMapLatest</h4><p><strong>What:</strong> for each upstream emission, cancels the previous inner Flow and starts a new one. <strong>Replaces:</strong> RxJava's <code>switchMap</code>. <strong>Why use:</strong> search-as-you-type — each new query cancels the in-flight search.</p></div>
+
+  <div class="term"><h4>combine(a, b) { x, y -&gt; ... }</h4><p><strong>What:</strong> emits whenever any source emits, using the latest from each. <strong>Replaces:</strong> RxJava's <code>combineLatest</code>. <strong>Why use:</strong> derive screen state from multiple flows: query + filter + selection → ScreenState.</p></div>
+
+  <div class="term"><h4>callbackFlow</h4><p><strong>What:</strong> wraps a callback API as a Flow. <code>awaitClose { }</code> unregisters when collection stops. <strong>Replaces:</strong> RxJava's <code>Observable.create</code>. <strong>Why use:</strong> bridge old listener APIs (LocationManager, ContentResolver) into the Flow world.</p></div>
+
+  <div class="term"><h4>collectAsStateWithLifecycle()</h4><p><strong>What:</strong> Compose helper that collects a Flow only while the host is at least STARTED. <strong>Replaces:</strong> bare <code>collectAsState</code> which keeps collecting in the background. <strong>Why use:</strong> save battery + avoid stale-data risks when the screen is hidden.</p></div>
+
+  <div class="term"><h4>repeatOnLifecycle(STARTED)</h4><p><strong>What:</strong> Activity/Fragment helper that re-collects when lifecycle reaches STARTED, cancels when below. <strong>Replaces:</strong> bare <code>lifecycleScope.launch { collect { } }</code> which doesn't stop off-screen. <strong>Why use:</strong> XML equivalent of <code>collectAsStateWithLifecycle</code>.</p></div>
+</div>
+
+<h2>Compose</h2>
+<div class="glossary">
+  <div class="term"><h4>@Composable</h4><p><strong>What:</strong> a function that emits UI when called inside the composition. <strong>Replaces:</strong> XML layouts + custom <code>View</code> classes. <strong>Why:</strong> declarative, plain Kotlin, testable, previewable, less boilerplate than findViewById + adapters + ViewHolders.</p></div>
+
+  <div class="term"><h4>composition</h4><p><strong>What:</strong> the tree of @Composable calls that describes UI for a given state. <strong>Replaces:</strong> the View hierarchy in XML. <strong>Why:</strong> Compose diffs and updates underlying nodes — you describe what should be on screen, not how to mutate the existing tree.</p></div>
+
+  <div class="term"><h4>recomposition</h4><p><strong>What:</strong> re-running composable functions when state inputs change. <strong>Replaces:</strong> manual <code>view.setText(...)</code>, <code>adapter.notifyDataSetChanged()</code>. <strong>Why:</strong> UI follows state automatically; eliminates "stale view" bugs.</p></div>
+
+  <div class="term"><h4>slot table</h4><p><strong>What:</strong> the runtime data structure tracking where each composable lives. <strong>Replaces:</strong> nothing direct — internal mechanism. <strong>Why it matters:</strong> Compose uses positional memoization — <code>remember</code> values are keyed by call-site position, not by name. That's why two <code>remember { 0 }</code> calls produce two independent values.</p></div>
+
+  <div class="term"><h4>stable (@Stable / @Immutable)</h4><p><strong>What:</strong> a type Compose can trust: equality means rendered-output equivalence. <strong>Replaces:</strong> nothing — Compose-specific. <strong>Why use:</strong> stable parameters enable <span class="signal">recomposition skipping</span> — unchanged children don't re-run. Mark data classes <code>@Immutable</code> when they have List/Map fields you guarantee won't mutate.</p></div>
+
+  <div class="term"><h4>state hoisting</h4><p><strong>What:</strong> push state up to the lowest common parent; pass <code>state</code> + <code>onEvent</code> down. <strong>Replaces:</strong> stateful custom Views. <strong>Why:</strong> stateless leaves are easier to preview, test, and reuse — and the parent is where state should logically live (often the ViewModel).</p></div>
+
+  <div class="term"><h4>remember</h4><p><strong>What:</strong> stores a value across recompositions, keyed by call-site location. <strong>Replaces:</strong> <code>Activity</code> field. <strong>Why use:</strong> survive recomposition without putting it in ViewModel. Lost on configuration change — use <code>rememberSaveable</code> for that.</p></div>
+
+  <div class="term"><h4>rememberSaveable</h4><p><strong>What:</strong> like <code>remember</code> but also survives configuration changes and process death (Bundle-backed). <strong>Replaces:</strong> manual <code>onSaveInstanceState</code> / <code>onRestoreInstanceState</code>. <strong>Why use:</strong> small UI state you'd be sad to lose (text input, scroll position).</p></div>
+
+  <div class="term"><h4>LaunchedEffect(key)</h4><p><strong>What:</strong> launches a coroutine when its key changes; cancels and restarts on key change. <strong>Replaces:</strong> <code>onResume</code>-tied API calls. <strong>Why use:</strong> trigger side effects from the composition lifecycle.</p></div>
+
+  <div class="term"><h4>DisposableEffect</h4><p><strong>What:</strong> side effect with a required <code>onDispose { }</code> cleanup. <strong>Replaces:</strong> register/unregister patterns in Activity onCreate/onDestroy. <strong>Why use:</strong> resource that needs cleanup — listeners, observers, ExoPlayer.</p></div>
+
+  <div class="term"><h4>derivedStateOf</h4><p><strong>What:</strong> wraps a derivation so dependents recompose only when the derived <em>result</em> changes. <strong>Replaces:</strong> nothing equivalent in XML. <strong>Why use:</strong> <code>val showFab by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }</code> — the boolean only flips when scroll crosses the threshold, not on every pixel.</p></div>
+
+  <div class="term"><h4>rememberUpdatedState</h4><p><strong>What:</strong> stores the latest value of a parameter; long-running effects can read the latest without restarting. <strong>Replaces:</strong> nothing equivalent. <strong>Why use:</strong> fix the stale-closure bug where a <code>LaunchedEffect(Unit)</code> captures an old version of a callback that the parent has since re-passed.</p></div>
+
+  <div class="term"><h4>snapshotFlow</h4><p><strong>What:</strong> turns Compose State reads into a Flow. <strong>Replaces:</strong> manually wiring up callbacks + your own Flow producer. <strong>Why use:</strong> bridge Compose state to non-Compose code — analytics, coroutine pipelines.</p></div>
+
+  <div class="term"><h4>CompositionLocal</h4><p><strong>What:</strong> implicitly passes values down the tree. <strong>Replaces:</strong> prop-drilling shared dependencies through every composable. <strong>Why use:</strong> cross-cutting concerns (theme, density, snackbar host). Don't overuse — params are clearer for normal data.</p></div>
+
+  <div class="term"><h4>Modifier</h4><p><strong>What:</strong> decorates a composable: padding, background, click, size. Order matters (left-to-right, outside-to-inside). <strong>Replaces:</strong> XML attributes (<code>android:padding</code>, etc.). <strong>Why:</strong> composable, type-safe, plain Kotlin.</p></div>
+</div>
+
+<h2>Architecture</h2>
+<div class="glossary">
+  <div class="term"><h4>MVVM</h4><p><strong>What:</strong> ViewModel exposes UI state via observable streams; View observes; events flow back via methods. <strong>Replaces:</strong> "fat Activity" MVC where Activity owns everything. <strong>Why use:</strong> separation of UI logic from view, lifecycle-safe state container, easier to test. The default for most Android apps.</p></div>
+
+  <div class="term"><h4>MVI</h4><p><strong>What:</strong> stricter MVVM — single State object, sealed Intents, Effects on a separate channel. <strong>Replaces:</strong> MVVM's scattered "multiple flows" pattern when state grows complex. <strong>Why use:</strong> state-heavy screens (player, multi-step forms, search). Single source of truth for what the screen is showing means easy testing and reproduction.</p></div>
+
+  <div class="term"><h4>Clean Architecture</h4><p><strong>What:</strong> a layering pattern (presentation / domain / data) where inner layers know nothing about outer. <strong>Replaces:</strong> "everything in one module" monoliths. <strong>Why use:</strong> testable domain layer (no Android = JVM unit tests), swappable data implementations, enforced boundaries.</p></div>
+
+  <div class="term"><h4>UDF (Unidirectional Data Flow)</h4><p><strong>What:</strong> state flows one way (down to UI), events flow back (up to VM). <strong>Replaces:</strong> two-way data binding tangles. <strong>Why use:</strong> predictable — at any moment you know what flows where; debugging is following the wire.</p></div>
+
+  <div class="term"><h4>UseCase</h4><p><strong>What:</strong> a class encapsulating one piece of business logic, often with <code>operator fun invoke</code>. <strong>Replaces:</strong> business logic inside ViewModel. <strong>Why use:</strong> reusable across VMs, composable (one use case calls another), easy to unit-test in isolation. Skip when it's a passthrough to the repo.</p></div>
+
+  <div class="term"><h4>Repository</h4><p><strong>What:</strong> single source of truth for a data type. Coordinates network + DB + cache; returns domain models. <strong>Replaces:</strong> ad-hoc API calls scattered across VMs. <strong>Why use:</strong> centralizes caching and offline-first logic; UI never sees DTOs or entities.</p></div>
+
+  <div class="term"><h4>SDUI (Server-Driven UI)</h4><p><strong>What:</strong> server returns layout descriptors; client renders generically. <strong>Replaces:</strong> hard-coded screen layouts that need an app release to change. <strong>Why use:</strong> product can iterate without ship cycles. Tradeoff: client must support all module types in advance.</p></div>
+
+  <div class="term"><h4>multi-module</h4><p><strong>What:</strong> splitting the app into Gradle modules. <strong>Replaces:</strong> single-module monolith. <strong>Why use:</strong> parallel compile (faster builds), enforced boundaries (build fails if UI imports data layer directly), reusability across app variants.</p></div>
+
+  <div class="term"><h4>api vs implementation</h4><p><strong>What:</strong> Gradle dependency scopes. <code>api</code> exposes; <code>implementation</code> hides. <strong>Replaces:</strong> the old <code>compile</code> scope (which always exposed). <strong>Why:</strong> default to <code>implementation</code> to keep transitive deps invisible — consumers don't accidentally couple to your library choices.</p></div>
+
+  <div class="term"><h4>dependency inversion</h4><p><strong>What:</strong> inner layers define interfaces; outer layers implement. <strong>Replaces:</strong> "domain depends on data" backwards arrow. <strong>Why use:</strong> domain layer becomes pure (no Android, fast tests), and you can swap implementations (network → mock) without touching domain.</p></div>
+</div>
+
+<h2>Hilt / DI</h2>
+<div class="glossary">
+  <div class="term"><h4>dependency injection (DI)</h4><p><strong>What:</strong> a class receives its collaborators from outside instead of constructing them itself. <strong>Replaces:</strong> <code>val foo = FooImpl()</code> hardcoded inside classes. <strong>Why:</strong> testability (swap real for fake), decoupling (depend on interfaces), single source for "how to build X."</p></div>
+
+  <div class="term"><h4>constructor injection</h4><p><strong>What:</strong> dependencies passed via the class's constructor. <strong>Replaces:</strong> field injection or service-locator lookups. <strong>Why use:</strong> immutable (deps are <code>val</code>), explicit (reading the constructor tells you everything the class needs), easy to fake in tests without DI library.</p></div>
+
+  <div class="term"><h4>field injection</h4><p><strong>What:</strong> <code>@Inject lateinit var dep: Dep</code> set after construction. <strong>Replaces:</strong> nothing — used when you can't control the constructor. <strong>Why use:</strong> Android components Hilt can't construct (Activity, Fragment, View, Service, Receiver). Everywhere else, prefer constructor injection.</p></div>
+
+  <div class="term"><h4>Hilt</h4><p><strong>What:</strong> Google's DI library for Android, built on Dagger 2. <strong>Replaces:</strong> hand-written Dagger components, service locators. <strong>Why use:</strong> compile-time graph verification (missing deps fail the build), pre-built scopes for Android lifecycle owners (Application, Activity, ViewModel), official Google support.</p></div>
+
+  <div class="term"><h4>@HiltAndroidApp</h4><p><strong>What:</strong> annotation on Application class. <strong>Replaces:</strong> manually creating Dagger components in <code>onCreate</code>. <strong>Why:</strong> triggers Hilt code generation; the entry point of the DI graph.</p></div>
+
+  <div class="term"><h4>@AndroidEntryPoint</h4><p><strong>What:</strong> annotation enabling field injection in Activity / Fragment / Service / Receiver / View. <strong>Replaces:</strong> manual <code>component.inject(this)</code> calls. <strong>Why use:</strong> required for Hilt to inject into framework-constructed components.</p></div>
+
+  <div class="term"><h4>@Inject constructor</h4><p><strong>What:</strong> annotation telling Hilt how to construct this class. <strong>Replaces:</strong> writing <code>@Provides</code> functions for every class. <strong>Why use:</strong> for any class you control — Hilt resolves the constructor params from the graph automatically.</p></div>
+
+  <div class="term"><h4>@Module + @InstallIn</h4><p><strong>What:</strong> a class holding bindings via <code>@Provides</code>/<code>@Binds</code>; <code>@InstallIn</code> says which scope. <strong>Replaces:</strong> nothing — Dagger pattern. <strong>Why use:</strong> for types you can't <code>@Inject</code> (third-party, interfaces, configured instances).</p></div>
+
+  <div class="term"><h4>@Provides</h4><p><strong>What:</strong> function that returns an instance — for any expression. <strong>Replaces:</strong> hand-rolled factories. <strong>Why use:</strong> when the binding requires construction logic — building a Retrofit, configuring an OkHttp.</p></div>
+
+  <div class="term"><h4>@Binds</h4><p><strong>What:</strong> abstract function mapping interface → impl. <strong>Replaces:</strong> a <code>@Provides</code> function that just returns a constructor call. <strong>Why use:</strong> more efficient (Dagger doesn't generate a factory class) and clearer when there's no construction logic.</p></div>
+
+  <div class="term"><h4>@Qualifier</h4><p><strong>What:</strong> custom annotation to disambiguate same-type bindings. <strong>Replaces:</strong> wrapper classes for type-safe primitives. <strong>Why use:</strong> when two bindings of the same type must coexist (<code>@IoDispatcher</code> vs <code>@MainDispatcher</code> for <code>CoroutineDispatcher</code>).</p></div>
+
+  <div class="term"><h4>scope (@Singleton, @ViewModelScoped, etc.)</h4><p><strong>What:</strong> annotation declaring how long the binding lives within a component. <strong>Replaces:</strong> manual lifecycle bookkeeping. <strong>Why use:</strong> ensure the same instance is reused for the duration of the component (Application, Activity, ViewModel, etc.). Wider scope can be injected into narrower; not the reverse.</p></div>
+
+  <div class="term"><h4>multibinding (@IntoSet / @IntoMap)</h4><p><strong>What:</strong> collect multiple impls into a Set or Map. <strong>Replaces:</strong> hand-rolled registry of plugins. <strong>Why use:</strong> plugin-style architecture — multiple analytics trackers, multiple deep-link handlers.</p></div>
+
+  <div class="term"><h4>assisted injection</h4><p><strong>What:</strong> mix DI'd args + runtime args. Use <code>@AssistedInject</code> + <code>@Assisted</code> + <code>@AssistedFactory</code>. <strong>Replaces:</strong> manually writing factories that take both. <strong>Why use:</strong> when a class needs both injected deps and a value only known at runtime (a userId from a route).</p></div>
+</div>
+
+<h2>Jetpack libraries</h2>
+<div class="glossary">
+  <div class="term"><h4>ViewModel</h4><p><strong>What:</strong> lifecycle-aware container of UI state that survives configuration changes. <strong>Replaces:</strong> Activity fields lost on rotation; <code>onSaveInstanceState</code> for non-trivial state. <strong>Why use:</strong> hold UI state and business logic separately from the view; tests don't need an emulator. Cleared in <code>onCleared()</code> when the owner is permanently destroyed.</p></div>
+
+  <div class="term"><h4>SavedStateHandle</h4><p><strong>What:</strong> Bundle-backed map injected into a ViewModel. <strong>Replaces:</strong> <code>onSaveInstanceState</code> for VM-owned state. <strong>Why use:</strong> survives both configuration change AND process death — for state like search input or scroll position you'd be sad to lose.</p></div>
+
+  <div class="term"><h4>LiveData</h4><p><strong>What:</strong> lifecycle-aware observable. Auto-pauses observers off-screen. <strong>Replaces:</strong> manual lifecycle observers + RxJava in early-2010s Android. <strong>Why use:</strong> in legacy XML codebases. New code should prefer StateFlow.</p></div>
+
+  <div class="term"><h4>Room</h4><p><strong>What:</strong> SQLite ORM with compile-time SQL verification, Flow returns, type converters, migrations. <strong>Replaces:</strong> raw SQLiteOpenHelper + Cursor. <strong>Why use:</strong> SQL typos fail the build, not the app. Flow returns mean UI updates automatically when DB changes.</p></div>
+
+  <div class="term"><h4>DAO</h4><p><strong>What:</strong> Data Access Object — interface declaring SQL queries that Room implements. <strong>Replaces:</strong> hand-written <code>db.rawQuery</code> + cursor parsing. <strong>Why use:</strong> type-safe API surface for the DB.</p></div>
+
+  <div class="term"><h4>@Entity</h4><p><strong>What:</strong> annotates a class as a Room table. <strong>Replaces:</strong> <code>CREATE TABLE</code> SQL strings. <strong>Why:</strong> schema lives next to the model class.</p></div>
+
+  <div class="term"><h4>@Relation / @Embedded</h4><p><strong>What:</strong> compose entities — <code>@Relation</code> for one-to-many joins; <code>@Embedded</code> for inline composition. <strong>Replaces:</strong> manual JOIN queries + result mapping. <strong>Why use:</strong> pull joined data as a typed object in one query.</p></div>
+
+  <div class="term"><h4>migration</h4><p><strong>What:</strong> SQL transformation between Room schema versions. <strong>Replaces:</strong> manual <code>onUpgrade</code> code in SQLiteOpenHelper. <strong>Why use:</strong> upgrade users' on-device databases without losing their data. Always test with the schema export checked into Git.</p></div>
+
+  <div class="term"><h4>DataStore</h4><p><strong>What:</strong> async, Flow-based replacement for SharedPreferences. Preferences (untyped KV) or Proto (typed). <strong>Replaces:</strong> SharedPreferences (synchronous, ANR risk on big writes). <strong>Why use:</strong> async by design, transactional, type-safe with proto schemas. New code should use DataStore.</p></div>
+
+  <div class="term"><h4>WorkManager</h4><p><strong>What:</strong> deferrable, guaranteed background work. Survives reboot. <strong>Replaces:</strong> JobScheduler / AlarmManager / firebase-job-dispatcher. <strong>Why use:</strong> picks the right backend internally; constraints (network, charging, battery) handled for you. The default for sync, upload, indexing.</p></div>
+
+  <div class="term"><h4>foreground service</h4><p><strong>What:</strong> Service with persistent notification — OS keeps it alive. <strong>Replaces:</strong> regular Service for user-visible long work (Android 8+ kills regular Services in background). <strong>Why use:</strong> music, location tracking, video processing. Must show a notification within ~5 seconds of starting.</p></div>
+
+  <div class="term"><h4>expedited work</h4><p><strong>What:</strong> WorkManager request that runs ASAP, can promote to foreground service. Android 12+. <strong>Replaces:</strong> short-lived foreground services. <strong>Why use:</strong> "do this in seconds, not whenever the system feels like it" — like syncing a critical user action.</p></div>
+
+  <div class="term"><h4>Paging 3</h4><p><strong>What:</strong> library for paginated data. <code>PagingSource</code> for network; <code>RemoteMediator</code> for offline-first paging. <strong>Replaces:</strong> hand-rolled pagination logic + boundary callbacks. <strong>Why use:</strong> handles loading windows, prefetch, error states, and deduplication for free.</p></div>
+
+  <div class="term"><h4>Coil</h4><p><strong>What:</strong> modern Kotlin-first image loading. Memory + disk LRU caches. <strong>Replaces:</strong> Glide for new code. <strong>Why use:</strong> coroutine-native, Compose-friendly (<code>AsyncImage</code>), smaller dependency, Kotlin Multiplatform ready.</p></div>
+
+  <div class="term"><h4>Glide</h4><p><strong>What:</strong> older image-loading library. Reflection-based. <strong>Replaces:</strong> nothing in modern code — used in legacy. <strong>Why exists:</strong> mature, well-tested, common in big codebases. New code should consider Coil.</p></div>
+</div>
+
+<h2>Networking & Auth</h2>
+<div class="glossary">
+  <div class="term"><h4>REST</h4><p><strong>What:</strong> HTTP API style: resources via URLs, verbs (GET/POST/PUT/PATCH/DELETE), stateless. <strong>Replaces:</strong> SOAP / XML-RPC. <strong>Why:</strong> simple, cacheable via HTTP semantics, every backend supports it.</p></div>
+
+  <div class="term"><h4>Retrofit</h4><p><strong>What:</strong> library that converts Kotlin interfaces into HTTP clients via runtime proxies. <strong>Replaces:</strong> hand-written <code>HttpURLConnection</code> code. <strong>Why use:</strong> type-safe API definitions, integrates with kotlinx.serialization and coroutines, swappable converters.</p></div>
+
+  <div class="term"><h4>OkHttp</h4><p><strong>What:</strong> the HTTP client Retrofit sits on. Connection pooling, gzip, HTTP/2, redirects, caching. <strong>Replaces:</strong> Apache HttpClient, <code>HttpURLConnection</code>. <strong>Why:</strong> fast, modern, extensible via interceptors. The de facto standard.</p></div>
+
+  <div class="term"><h4>Interceptor</h4><p><strong>What:</strong> OkHttp pipeline element that runs on every request. <strong>Replaces:</strong> filter chains. <strong>Why use:</strong> add headers (Authorization), logging, retry on 5xx, telemetry. Cross-cutting network concerns live here.</p></div>
+
+  <div class="term"><h4>Authenticator</h4><p><strong>What:</strong> OkHttp pipeline element that runs on a 401 response. <strong>Replaces:</strong> manual "if 401, refresh token, retry" logic in every API call. <strong>Why use:</strong> refresh access token + retry the original request transparently. Must dedupe concurrent 401s with a Mutex.</p></div>
+
+  <div class="term"><h4>JSON</h4><p><strong>What:</strong> JavaScript Object Notation — the default text format for REST APIs. <strong>Replaces:</strong> XML in most REST APIs. <strong>Why:</strong> compact, human-readable, every language has a parser.</p></div>
+
+  <div class="term"><h4>Gson</h4><p><strong>What:</strong> Google's reflection-based JSON library. <strong>Replaces:</strong> hand-written JSONObject parsing. <strong>Why use:</strong> mostly legacy code. New Kotlin code should prefer kotlinx.serialization or Moshi (compile-time codegen, faster, Kotlin-aware).</p></div>
+
+  <div class="term"><h4>Moshi</h4><p><strong>What:</strong> Square's modern JSON library with codegen. <strong>Replaces:</strong> Gson for new code. <strong>Why use:</strong> faster than Gson (no reflection), Kotlin-aware (handles default args, nullability).</p></div>
+
+  <div class="term"><h4>kotlinx.serialization</h4><p><strong>What:</strong> Kotlin-first JSON (and other formats) library. KSP codegen, no reflection, KMP-ready. <strong>Replaces:</strong> Gson and Moshi for greenfield Kotlin code. <strong>Why use:</strong> handles default args, sealed classes, nullability natively; works on Kotlin Multiplatform; smaller APK (no reflection lib).</p></div>
+
+  <div class="term"><h4>OAuth 2.0</h4><p><strong>What:</strong> standard for delegated authorization — letting an app access an API on a user's behalf. <strong>Replaces:</strong> shipping the user's password. <strong>Why use:</strong> the standard for "Login with Google/GitHub/etc." Mobile apps use the PKCE flavor.</p></div>
+
+  <div class="term"><h4>PKCE</h4><p><strong>What:</strong> Proof Key for Code Exchange. Replaces a static client secret with a per-flow random verifier. <strong>Replaces:</strong> shipping a hardcoded client secret in your APK (which attackers can extract). <strong>Why use:</strong> the secure way to do OAuth 2.0 from a mobile app.</p></div>
+
+  <div class="term"><h4>access token</h4><p><strong>What:</strong> short-lived credential proving auth. Sent as <code>Authorization: Bearer ...</code>. <strong>Replaces:</strong> sending the user's password on every request. <strong>Why short-lived:</strong> if leaked, exposure is bounded — it expires in minutes.</p></div>
+
+  <div class="term"><h4>refresh token</h4><p><strong>What:</strong> longer-lived credential used to get new access tokens. <strong>Replaces:</strong> forcing re-login when access expires. <strong>Why use:</strong> seamless UX — when access expires, the app silently refreshes. Stored encrypted; server should rotate it on each use.</p></div>
+
+  <div class="term"><h4>EncryptedSharedPreferences</h4><p><strong>What:</strong> SharedPreferences variant backed by Android Keystore for encryption. <strong>Replaces:</strong> plain SharedPreferences for sensitive data. <strong>Why use:</strong> tokens, secrets — keys live in hardware-isolated Keystore on supported devices.</p></div>
+
+  <div class="term"><h4>certificate pinning</h4><p><strong>What:</strong> hardcoding the expected server cert hash. <strong>Replaces:</strong> trusting whatever cert chain the OS validates. <strong>Why use:</strong> defends against rogue CAs / MITM attacks. Pin to multiple keys (current + backup) to avoid bricking the app on cert rotation.</p></div>
+
+  <div class="term"><h4>idempotency key</h4><p><strong>What:</strong> a UUID sent with a POST request so the server can dedupe retries. <strong>Replaces:</strong> hoping the network doesn't drop between request-sent and response-received. <strong>Why use:</strong> safe POST retries; no duplicate orders / messages / payments.</p></div>
+
+  <div class="term"><h4>cursor pagination</h4><p><strong>What:</strong> server returns <code>nextCursor</code>; client sends it back for the next page. <strong>Replaces:</strong> page-number pagination (which is unstable under concurrent inserts). <strong>Why use:</strong> stable — new items inserted between pages don't cause "skip" or "duplicate" rows.</p></div>
+</div>
+
+<h2>Android core</h2>
+<div class="glossary">
+  <div class="term"><h4>Activity</h4><p><strong>What:</strong> a UI screen with its own lifecycle (onCreate / onStart / onResume / onPause / onStop / onDestroy). <strong>Replaces:</strong> nothing — fundamental Android primitive. <strong>Why:</strong> the entry point for user interaction with a screen.</p></div>
+
+  <div class="term"><h4>Fragment</h4><p><strong>What:</strong> a UI piece embedded in an Activity. Has its own lifecycle plus a separate view lifecycle. <strong>Replaces:</strong> putting everything in one Activity. <strong>Why use:</strong> reusable UI chunks, multiple panes on tablets, modular navigation.</p></div>
+
+  <div class="term"><h4>configuration change</h4><p><strong>What:</strong> rotation, font scale change, theme switch, multi-window. <strong>Replaces:</strong> nothing — OS-driven event. <strong>Why it matters:</strong> Activity is recreated by default; ViewModel survives, fields don't. <code>onSaveInstanceState</code> Bundle preserves UI state.</p></div>
+
+  <div class="term"><h4>process death</h4><p><strong>What:</strong> OS kills your background process to reclaim memory. <strong>Replaces:</strong> nothing — OS reality. <strong>Why it matters:</strong> ViewModel does NOT survive. Only <code>SavedStateHandle</code> / <code>onSaveInstanceState</code> Bundle does. Test by enabling "Don't keep activities" in dev options.</p></div>
+
+  <div class="term"><h4>launch mode</h4><p><strong>What:</strong> how an Activity is added to the task back stack — <code>standard / singleTop / singleTask / singleInstance</code>. <strong>Replaces:</strong> defaults. <strong>Why use:</strong> singleTop deduplicates an Activity already on top (notifications); singleTask makes there be only one instance task-wide (home / launcher screens).</p></div>
+
+  <div class="term"><h4>onNewIntent</h4><p><strong>What:</strong> fired when an existing Activity instance is reused (singleTop / singleTask). <strong>Replaces:</strong> <code>onCreate</code> for the reuse case. <strong>Why use:</strong> handle the new Intent's extras when reusing an instance.</p></div>
+
+  <div class="term"><h4>Service</h4><p><strong>What:</strong> background work without UI. Foreground (notification), bound (IPC), or restricted background. <strong>Replaces:</strong> raw threads + Notifications. <strong>Why use:</strong> long-running work that must keep going past Activity lifecycle. On Android 8+, prefer WorkManager unless you specifically need a foreground service.</p></div>
+
+  <div class="term"><h4>BroadcastReceiver</h4><p><strong>What:</strong> receives system or app events. Manifest-declared (restricted on Android 8+) or dynamic. <strong>Replaces:</strong> polling for events. <strong>Why use:</strong> react to system events (boot, network change). For app-internal events, prefer SharedFlow / EventBus.</p></div>
+
+  <div class="term"><h4>ContentProvider</h4><p><strong>What:</strong> Android component for cross-app data sharing via <code>content://</code> URIs. <strong>Replaces:</strong> nothing for cross-app sharing. <strong>Why use:</strong> only when exposing data to other apps (rare in modern apps). Inside your app, use Room directly.</p></div>
+
+  <div class="term"><h4>Intent</h4><p><strong>What:</strong> a messaging object describing an action. Explicit (you name the target) or implicit (system picks). <strong>Replaces:</strong> direct method calls between components (which would couple them). <strong>Why use:</strong> launch activities, start services, send broadcasts, with optional extras.</p></div>
+
+  <div class="term"><h4>PendingIntent</h4><p><strong>What:</strong> an Intent another app can fire on your behalf. Used for notifications, alarms, widgets. Android 12+ requires <code>FLAG_IMMUTABLE</code> or <code>FLAG_MUTABLE</code>. <strong>Replaces:</strong> nothing — required for cross-app callbacks. <strong>Why immutable matters:</strong> prevents another app from modifying the wrapped Intent's extras or target.</p></div>
+
+  <div class="term"><h4>Doze mode</h4><p><strong>What:</strong> battery optimization on idle stationary devices. Defers background CPU/network. <strong>Replaces:</strong> nothing — OS-driven. <strong>Why it matters:</strong> your background work can be delayed by minutes-to-hours. WorkManager handles this; foreground services + high-priority FCM bypass it.</p></div>
+
+  <div class="term"><h4>App Standby</h4><p><strong>What:</strong> OS bucketing of apps by usage (active / working set / frequent / rare / restricted). <strong>Replaces:</strong> "all apps treated equally for background." <strong>Why it matters:</strong> rarely-used apps get tighter background restrictions — alarms, jobs, FCM all delayed.</p></div>
+
+  <div class="term"><h4>ANR (Application Not Responding)</h4><p><strong>What:</strong> OS dialog when UI thread is blocked too long. UI input &gt;5s, BroadcastReceiver &gt;10s, Service &gt;20s. <strong>Replaces:</strong> nothing — OS protection. <strong>Why it matters:</strong> ANRs annoy users and tank Play Store ratings. Avoid main-thread I/O at all costs.</p></div>
+
+  <div class="term"><h4>StrictMode</h4><p><strong>What:</strong> debug enforcement of best practices — detects disk/network on main thread, leaks. <strong>Replaces:</strong> hoping bugs surface in QA. <strong>Why use:</strong> catch ANR-causing main-thread I/O <em>during development</em>, not in production. Enable only in debug builds.</p></div>
+</div>
+
+<h2>Performance</h2>
+<div class="glossary">
+  <div class="term"><h4>cold / warm / hot start</h4><p><strong>What:</strong> Cold = process newly created. Warm = process exists, Activity recreated. Hot = both exist, brought to foreground. <strong>Replaces:</strong> nothing — terminology for talking about startup. <strong>Why it matters:</strong> different optimizations target different starts. Cold is the slowest and most worth optimizing.</p></div>
+
+  <div class="term"><h4>Baseline Profile</h4><p><strong>What:</strong> AOT compile hints shipped in the APK. ART pre-compiles your hot startup paths. <strong>Replaces:</strong> hoping JIT catches up. <strong>Why use:</strong> 20-40% cold start improvement typical. Generated via Macrobenchmark recording the critical user journey.</p></div>
+
+  <div class="term"><h4>Macrobenchmark</h4><p><strong>What:</strong> AndroidX library for stable, repeatable startup/scroll benchmarks. <strong>Replaces:</strong> ad-hoc <code>System.nanoTime</code> measurements. <strong>Why use:</strong> CI gates against perf regressions; the source of truth for "is this faster than yesterday."</p></div>
+
+  <div class="term"><h4>R8</h4><p><strong>What:</strong> code shrinker + obfuscator + optimizer. Default in release. <strong>Replaces:</strong> ProGuard (which it absorbed). <strong>Why use:</strong> ~20-40% APK size reduction, faster class loading, harder reverse engineering.</p></div>
+
+  <div class="term"><h4>ProGuard</h4><p><strong>What:</strong> predecessor to R8. The rules file (<code>proguard-rules.pro</code>) is still used. <strong>Replaces:</strong> nothing — R8 absorbed its role. <strong>Why mention:</strong> in interviews you'll say "R8 / ProGuard" interchangeably; the rules format and intent are the same.</p></div>
+
+  <div class="term"><h4>resource shrinking</h4><p><strong>What:</strong> <code>shrinkResources true</code> strips unused images, layouts, strings. <strong>Replaces:</strong> manually deleting unused resources. <strong>Why use:</strong> works alongside R8 for additional APK size cuts.</p></div>
+
+  <div class="term"><h4>App Bundle (AAB)</h4><p><strong>What:</strong> upload format for Play Store. Play splits per device (architecture, density, language). <strong>Replaces:</strong> universal APKs. <strong>Why use:</strong> download size cut by 30-50% typical — Play sends only the resources/code each device needs. Mandatory for new apps on Play since 2021.</p></div>
+
+  <div class="term"><h4>jank</h4><p><strong>What:</strong> a frame missed its 16.6ms (60Hz) budget. User-perceptible stutter. <strong>Replaces:</strong> nothing — terminology. <strong>Why care:</strong> poor scrolling feels like a slow app, even when everything else is fast.</p></div>
+
+  <div class="term"><h4>JankStats</h4><p><strong>What:</strong> AndroidX library for runtime jank detection in production-like builds. <strong>Replaces:</strong> hand-rolled <code>Choreographer</code> instrumentation. <strong>Why use:</strong> collect real-user jank metrics with the screen state attached, so you know which screens jank.</p></div>
+
+  <div class="term"><h4>LeakCanary</h4><p><strong>What:</strong> debug-only library that automatically detects memory leaks. <strong>Replaces:</strong> hand-running heap dumps. <strong>Why use:</strong> just adding it as a debug dependency installs the detector — leaks pop up as notifications during development.</p></div>
+
+  <div class="term"><h4>heap dump</h4><p><strong>What:</strong> snapshot of all live objects in memory. Profiler captures these. <strong>Replaces:</strong> guessing what's leaking. <strong>Why use:</strong> investigate leaks — group by class, find &gt;1 instance of an Activity, follow the GC root chain.</p></div>
+
+  <div class="term"><h4>TTID / TTFD</h4><p><strong>What:</strong> Time to Initial Display (first frame drawn) / Time to Full Display (content fully populated). <strong>Replaces:</strong> ambiguous "startup time." <strong>Why distinguish:</strong> a splash screen has fast TTID but slow TTFD until the data loads. Mark TTFD with <code>reportFullyDrawn()</code>.</p></div>
+
+  <div class="term"><h4>overdraw</h4><p><strong>What:</strong> a pixel drawn multiple times per frame. Wastes GPU. <strong>Replaces:</strong> nothing — phenomenon. <strong>Why care:</strong> deeply nested view hierarchies cause overdraw; visualize with Layout Inspector → "Show overdraw."</p></div>
+</div>
+
+<h2>Player & streaming</h2>
+<div class="glossary">
+  <div class="term"><h4>ExoPlayer</h4><p><strong>What:</strong> open-source customizable Android media player. <strong>Replaces:</strong> the legacy <code>MediaPlayer</code> for serious streaming apps. <strong>Why use:</strong> consistent across OS versions, supports HLS / DASH / SmoothStreaming / DRM out of the box, fully customizable (track selection, buffering, ABR).</p></div>
+
+  <div class="term"><h4>Media3</h4><p><strong>What:</strong> the modern umbrella unifying ExoPlayer + MediaSession + Cast + UI. <strong>Replaces:</strong> standalone ExoPlayer artifact for new code. <strong>Why use:</strong> single coherent API; future development happens in Media3.</p></div>
+
+  <div class="term"><h4>HLS (HTTP Live Streaming)</h4><p><strong>What:</strong> Apple's adaptive streaming format. <code>.m3u8</code> manifest, <code>.ts</code> or <code>.mp4</code> segments. <strong>Replaces:</strong> progressive download / single-bitrate streams. <strong>Why use:</strong> native iOS support, works on Android via ExoPlayer.</p></div>
+
+  <div class="term"><h4>DASH</h4><p><strong>What:</strong> MPEG's adaptive streaming format. <code>.mpd</code> manifest, <code>.mp4</code> segments. <strong>Replaces:</strong> proprietary formats. <strong>Why use:</strong> open standard. No native iOS support — use HLS for iOS-friendly cross-platform.</p></div>
+
+  <div class="term"><h4>CMAF</h4><p><strong>What:</strong> Common Media Application Format — <code>.mp4</code> segments usable for both HLS and DASH. <strong>Replaces:</strong> packaging the same content twice (.ts for HLS, .mp4 for DASH). <strong>Why use:</strong> single packaging serves both formats — half the storage and CDN cost.</p></div>
+
+  <div class="term"><h4>ABR (Adaptive Bitrate)</h4><p><strong>What:</strong> player measures bandwidth + buffer health, picks bitrate from manifest variants. <strong>Replaces:</strong> fixed-quality streams that buffer on slow networks. <strong>Why use:</strong> optimal quality on every connection — switches up if buffer healthy, down if draining.</p></div>
+
+  <div class="term"><h4>Widevine</h4><p><strong>What:</strong> Google's DRM. Levels: L1 (hardware-backed), L2 (mixed), L3 (software, often no HD). <strong>Replaces:</strong> nothing — required by content owners for premium content. <strong>Why levels:</strong> Netflix / HBO etc. only allow HD on L1 devices because hardware-isolated keys are harder to extract.</p></div>
+
+  <div class="term"><h4>DRM</h4><p><strong>What:</strong> Digital Rights Management. Encrypts content; license server issues decryption keys. <strong>Replaces:</strong> shipping unencrypted streams. <strong>Why use:</strong> required for premium content licensing. Common implementations: Widevine (Android), FairPlay (Apple), PlayReady (Microsoft).</p></div>
+
+  <div class="term"><h4>CSAI</h4><p><strong>What:</strong> Client-Side Ad Insertion. Player pauses content during ad break and plays the ad separately (IMA SDK on Android). <strong>Replaces:</strong> "no ads." <strong>Why use:</strong> easy per-user targeting; downside is ad blockers can detect/skip.</p></div>
+
+  <div class="term"><h4>SSAI</h4><p><strong>What:</strong> Server-Side Ad Insertion. Ads stitched into the master stream — single continuous playback. <strong>Replaces:</strong> CSAI when you want ad-block resistance and seamless playback. <strong>Why use:</strong> harder to block, no buffer at break. Per-user targeting requires per-user manifests.</p></div>
+
+  <div class="term"><h4>quartile beacon</h4><p><strong>What:</strong> HTTP ping fired at ad lifecycle moments (start, 25%, 50%, 75%, complete) for billing/measurement. <strong>Replaces:</strong> nothing — ad industry standard. <strong>Why care:</strong> partners pay based on these. If beacons don't fire, you don't get paid.</p></div>
+
+  <div class="term"><h4>MediaSession</h4><p><strong>What:</strong> exposes playback state to system UI (lock screen, BT, notification, Cast). <strong>Replaces:</strong> hand-built lock screen controls. <strong>Why use:</strong> single source of truth for playback; system controls just work.</p></div>
+
+  <div class="term"><h4>TTFF (Time to First Frame)</h4><p><strong>What:</strong> the start-of-playback latency metric. <strong>Replaces:</strong> "is the player fast" hand-waving. <strong>Why care:</strong> users abandon playback if TTFF &gt; 3 seconds; tracked in production via Conviva or Bitmovin Analytics.</p></div>
+
+  <div class="term"><h4>rebuffer ratio</h4><p><strong>What:</strong> rebuffer time / total play time. <strong>Replaces:</strong> "buffering issues" anecdote. <strong>Why use:</strong> the player health KPI — &lt;1% is excellent, &gt;5% is a problem.</p></div>
+</div>
+
+<h2>Build & tools</h2>
+<div class="glossary">
+  <div class="term"><h4>Gradle</h4><p><strong>What:</strong> build tool for Android. Build scripts in Kotlin DSL or Groovy. <strong>Replaces:</strong> Ant + Maven for Android. <strong>Why use:</strong> the only officially supported Android build system.</p></div>
+
+  <div class="term"><h4>KSP (Kotlin Symbol Processing)</h4><p><strong>What:</strong> annotation processor framework for Kotlin. <strong>Replaces:</strong> kapt. <strong>Why use:</strong> 2x faster than kapt, doesn't generate Java stubs, official Kotlin support. Used by Room, Hilt, Moshi, kotlinx.serialization.</p></div>
+
+  <div class="term"><h4>kapt</h4><p><strong>What:</strong> Kotlin annotation processor (older). <strong>Replaces:</strong> nothing — historical. <strong>Why mention:</strong> deprecated for new code; libraries have migrated to KSP. Old projects still use it.</p></div>
+
+  <div class="term"><h4>build variant</h4><p><strong>What:</strong> combination of build type (debug/release) + flavor (free/paid). Each produces a distinct APK. <strong>Replaces:</strong> separate code branches per variant. <strong>Why use:</strong> different baseUrls, different Crashlytics keys, different feature sets — all from one codebase.</p></div>
+
+  <div class="term"><h4>BuildConfig</h4><p><strong>What:</strong> generated class with build-time constants (BuildConfig.DEBUG, version, etc.). <strong>Replaces:</strong> manually defining DEBUG flags. <strong>Why use:</strong> conditional code paths between debug and release without polluting source.</p></div>
+
+  <div class="term"><h4>AndroidManifest</h4><p><strong>What:</strong> XML declaring app components, permissions, intent filters. <strong>Replaces:</strong> nothing — fundamental. <strong>Why care:</strong> first thing the OS reads when installing your app; misdeclarations break runtime behavior.</p></div>
+
+  <div class="term"><h4>Crashlytics</h4><p><strong>What:</strong> Firebase's crash reporting tool. Collects stack traces from production. <strong>Replaces:</strong> hand-rolled crash reporting. <strong>Why use:</strong> de facto standard; integrates with Play Console Vitals; supports Kotlin coroutine context preservation.</p></div>
+</div>
+
+<h2>Misc & data structures</h2>
+<div class="glossary">
+  <div class="term"><h4>HashMap</h4><p><strong>What:</strong> hashtable map. O(1) average get/put. Keys must have stable <code>hashCode</code>/<code>equals</code>. <strong>Replaces:</strong> <code>List&lt;Pair&gt;</code> for key-based lookups. <strong>Why use:</strong> when you need value by key.</p></div>
+
+  <div class="term"><h4>HashSet</h4><p><strong>What:</strong> hashtable set. O(1) average <code>contains</code>/<code>add</code>. <strong>Replaces:</strong> <code>List.contains()</code> for uniqueness checks. <strong>Why use:</strong> when you only need to know if X is present, no value to store. Backed by HashMap with dummy values.</p></div>
+
+  <div class="term"><h4>LinkedHashMap</h4><p><strong>What:</strong> HashMap that preserves insertion (or access) order. <strong>Replaces:</strong> hand-tracking insertion order alongside a HashMap. <strong>Why use:</strong> ordered iteration. Foundation of LruCache.</p></div>
+
+  <div class="term"><h4>LruCache</h4><p><strong>What:</strong> Least Recently Used cache with bounded size. Evicts the oldest when full. <strong>Replaces:</strong> unbounded HashMap that OOMs eventually. <strong>Why use:</strong> in-memory caching with a memory ceiling — bitmaps, parsed objects.</p></div>
+
+  <div class="term"><h4>SparseArray</h4><p><strong>What:</strong> Map&lt;Int, Object&gt; without autoboxing. <strong>Replaces:</strong> <code>HashMap&lt;Int, T&gt;</code> on hot paths. <strong>Why use:</strong> avoids the boxing of Int → Integer for every key — saves memory and GC pressure on small int-keyed maps.</p></div>
+
+  <div class="term"><h4>Bundle</h4><p><strong>What:</strong> map of basic types used to pass data between Activities and to/from process death restoration. <strong>Replaces:</strong> static fields (which don't survive process death). <strong>Why use:</strong> the only thing that survives Android killing your process; small data only (a few KB).</p></div>
+
+  <div class="term"><h4>Parcelable</h4><p><strong>What:</strong> Android's serialization format for IPC and Bundle. <strong>Replaces:</strong> Java <code>Serializable</code>. <strong>Why use:</strong> 10x faster than Serializable, smaller wire size. Use <code>@Parcelize</code> annotation to auto-generate the boilerplate.</p></div>
+
+  <div class="term"><h4>AAR vs JAR</h4><p><strong>What:</strong> AAR is Android Archive (includes resources, manifest, native libs); JAR is plain Java archive. <strong>Replaces:</strong> nothing — different output formats. <strong>Why use:</strong> AAR for any library that touches Android types; JAR for pure Kotlin/Java logic that should be consumable from non-Android JVM apps too.</p></div>
+</div>
+
+<div class="footer">
+<p>Don't recognize a term elsewhere? Search this page (Cmd-F). <a href="index.html">← Back to overview</a></p>
+</div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

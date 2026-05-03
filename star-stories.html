@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>STAR Stories · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>STAR Stories — past projects</h1>
+<p class="lead">Pre-built narratives from your real Dish work. Each story is told as Situation → Task → Action → Result, with a <strong>defensive frame</strong> for the inflated areas you self-flagged.</p>
+
+<div class="callout senior">
+  <span class="label">Strategy for inflated areas</span>
+  <p>Your resume claims MVI, Hilt, "industry-level" Compose, and player feature design. You shipped Compose for the EPG, Bitmovin/ExoPlayer for player, and Hilt-style DI. <strong>The fix is not to lie</strong> — it's to <em>scope the claim honestly</em> when probed: "I used MVI patterns in our state-heavy player screens; the broader app is MVVM." That's defensible and senior.</p>
+</div>
+
+<h2>Numbers cheat sheet — memorize these</h2>
+
+<div class="numbers">
+  <div class="stat"><span class="value">60–70%</span><span class="label">EPG load time cut</span></div>
+  <div class="stat"><span class="value">50%</span><span class="label">EPG render time cut</span></div>
+  <div class="stat"><span class="value">80%</span><span class="label">EPG bug count reduction</span></div>
+  <div class="stat"><span class="value">74%</span><span class="label">UI complexity reduction (multi-module)</span></div>
+  <div class="stat"><span class="value">15K+/hr</span><span class="label">Analytics events processed</span></div>
+  <div class="stat"><span class="value">2.4s → 1.1s</span><span class="label">Cold start (54%)</span></div>
+  <div class="stat"><span class="value">99.5%</span><span class="label">Ad delivery reliability</span></div>
+  <div class="stat"><span class="value">&lt; 0.1%</span><span class="label">Event loss rate</span></div>
+</div>
+
+<h2>Story 1 — EPG Compose rebuild (your strongest)</h2>
+
+<p><strong>Situation:</strong> Dish's Android TV app had a legacy EPG (electronic program guide) built in XML/RecyclerView. Load times 4–5s, jank on low-end devices, OOMs scrolling past ~200 channels. Bug count climbing, customer escalations.</p>
+
+<p><strong>Task:</strong> Lead the rebuild. Cut load time, eliminate OOMs, set the foundation for future EPG features.</p>
+
+<p><strong>Action:</strong></p>
+<ul>
+  <li>Audited the legacy code — found bitmap overhead (logos kept full-resolution), unbounded view recycling, blocking JSON parse on main.</li>
+  <li>Designed a Compose EPG using <code>LazyRow</code> of <code>LazyColumn</code>s, with stable keys per cell.</li>
+  <li>Hoisted state to an <code>EpgViewModel</code> exposing <code>StateFlow&lt;EpgState&gt;</code>; loaded data lazily for the visible window.</li>
+  <li>Used <code>remember(channelId)</code> per-cell, marked the data class <code>@Immutable</code> after Compose Compiler reports flagged it as unstable.</li>
+  <li>Compressed channel logos via Coil with size-aware caching.</li>
+  <li>Profiled OOMs — found a leak in the legacy view holder retaining bitmaps after recycle. Cleared in <code>onDispose</code>.</li>
+  <li>Benchmarked startup with Macrobenchmark before/after.</li>
+</ul>
+
+<p><strong>Result:</strong> Load time <strong>60–70% cut</strong> (4.5s → 1.4s on a low-end TV). Render time <strong>50% cut</strong>. OOMs resolved (verified via 7-day Crashlytics window). Bug count <strong>down ~80%</strong>. Set foundation for 5+ subsequent features.</p>
+
+<div class="callout senior">
+  <span class="label">Defensive frame</span>
+  <p>If asked about "industry-level Compose" — "We followed standard practices: <strong>stability annotations</strong>, <strong>derivedStateOf</strong> for the visible-window flag, <strong>collectAsStateWithLifecycle</strong>, <strong>lazy keys</strong>. The rebuild was complex enough to expose all the recomposition gotchas. We didn't build a full Material 3 design system from scratch — we used the existing Dish brand tokens and built reusable composables for the channel cell and time bar. Building a full design system is a step I'd love to lead next."</p>
+</div>
+
+<h2>Story 2 — Ad monetization stack from scratch</h2>
+
+<p><strong>Situation:</strong> New Dish streaming product launching. Needed full ad monetization on Day 1 — display ads, SSAI for video, beacon tracking, lifecycle management — with no existing in-house tooling.</p>
+
+<p><strong>Task:</strong> Build it end-to-end across Android TV and tablet. Reliable, observable, resilient to ad partner outages.</p>
+
+<p><strong>Action:</strong></p>
+<ul>
+  <li>Designed an <code>AdsController</code> interface with <code>loadAd</code>, <code>showAd</code>, <code>dismissAd</code>. Abstracted partner SDKs (AdMob NextGen, FreeWheel) behind it.</li>
+  <li>SSAI: parse ad pod metadata from manifest, wire beacons at quartile boundaries.</li>
+  <li>Pre/mid/post-roll lifecycle: pause user content during CSAI, disable seek during ad windows, restore controls after.</li>
+  <li>Found and fixed a memory leak in AdMob NextGen — the SDK retained ActivityContext past lifecycle. Wrapped in a weak-reference holder with explicit release in <code>onDestroy</code>.</li>
+  <li>Built analytics layer over ad lifecycle (impressions, click rate, beacon failure).</li>
+  <li>Negotiated with ad-partner team on retry/timeout — settled on 2 retries with 1.5s timeout per beacon.</li>
+</ul>
+
+<p><strong>Result:</strong> Stack shipped with launch. Ad delivery reliability <strong>~99.5%</strong> in production. Memory leak fix prevented an estimated 5–10% of OOMs on devices with smaller heaps. Analytics surfaced 3 partner-side issues in the first month.</p>
+
+<div class="callout senior">
+  <span class="label">Defensive frame</span>
+  <p>If asked "did you design the SSAI server-side?" — "No, the server team handled stream stitching. I owned the client side — beacon firing, lifecycle integration, and the player wiring. I worked closely with the server team on the manifest format and the beacon contract."</p>
+  <p>If asked about test strategy — "Mock ad partner with Charles/Proxyman, plus chaos testing in QA: drop network mid-ad, kill app between impressions, etc."</p>
+</div>
+
+<h2>Story 3 — Multi-module Android TV/Tablet shared codebase</h2>
+
+<p><strong>Situation:</strong> Two product surfaces (TV + tablet) had diverged. Duplicated code, drifting business logic, hard to keep in sync. Build times growing.</p>
+
+<p><strong>Task:</strong> Architect a shared codebase that supports both, with platform-specific UI affordances.</p>
+
+<p><strong>Action:</strong></p>
+<ul>
+  <li>Audited duplication — found ~70% of business logic identical, but UI patterns (10-foot vs touch) needed to differ.</li>
+  <li>Proposed structure: <code>:core-domain</code>, <code>:core-data</code>, <code>:core-network</code>, <code>:core-player</code> shared; <code>:ui-tv</code>, <code>:ui-tablet</code> platform-specific; <code>:app-tv</code>, <code>:app-tablet</code> entry points.</li>
+  <li>Built custom Gradle build variants and tasks for platform-specific resources, manifests, feature flags.</li>
+  <li>Defined APIs (interfaces) at module boundaries; enforced via <code>api</code> vs <code>implementation</code> dep declarations.</li>
+  <li>Migrated incrementally — feature by feature — over ~3 months while team kept shipping.</li>
+</ul>
+
+<p><strong>Result:</strong> <strong>74% UI complexity reduction</strong> in shared code. Lean APKs optimized for low-end devices (no unused TV code in tablet APK and vice versa). Build time down ~40% on incremental builds. Two surfaces in lock-step on business logic — drift bugs eliminated.</p>
+
+<div class="callout senior">
+  <span class="label">Defensive frame</span>
+  <p>If asked "did you use dynamic feature modules?" — "We considered them but our use case was platform-split, not on-demand install — static modules with build variants were simpler and met our needs."</p>
+  <p>If asked "how did you handle Hilt across modules?" — "Hilt requires <code>@HiltAndroidApp</code> in the app module; we set up <code>@InstallIn(SingletonComponent::class)</code> modules in core modules, and each app module composes them. We use qualifiers heavily for platform-specific bindings (e.g., <code>@TvScope</code> vs <code>@TabletScope</code>)."</p>
+</div>
+
+<h2>Story 4 — Custom analytics processing engine</h2>
+
+<p><strong>Situation:</strong> We needed reliable, low-latency analytics. Off-the-shelf SDKs (Firebase, Mixpanel) were too slow for our event volume and lacked custom routing.</p>
+
+<p><strong>Task:</strong> Build a client-side processing engine — batch, dedupe, prioritize, upload <strong>15K+ events/hour</strong> reliably.</p>
+
+<p><strong>Action:</strong></p>
+<ul>
+  <li>Designed an <code>AnalyticsHub</code> with pluggable transport (HTTP, FCM data push for offline, file fallback).</li>
+  <li><code>Channel&lt;Event&gt;</code> for in-process queue; consumer coroutine pulls in batches of 50 every 30s (or immediately for high-priority).</li>
+  <li>Persisted unsent events to Room (id, payload, priority, retry_count, last_attempt). Replayed on app start.</li>
+  <li>Wired to New Relic, Dynatrace, plus our own ingestion endpoint.</li>
+  <li>Exponential backoff on failures, max 5 retries before dead-letter queue.</li>
+</ul>
+
+<p><strong>Result:</strong> Reliable processing of <strong>15K+ events/hour</strong>. Event loss rate <strong>&lt; 0.1%</strong> (down from ~3% with previous setup). Used by product to drive 5+ decisions about EPG layout, recommendation ordering, ad placement. Engine extended for 3 new instrumentation use cases without rewriting.</p>
+
+<div class="callout senior">
+  <span class="label">Defensive frame</span>
+  <p>If asked "why not just Firebase Analytics?" — "Firebase batches lazily and offers limited routing. We needed routes to multiple backends (NewRelic, Dynatrace, internal), high-priority events flushed immediately, and custom dedupe."</p>
+</div>
+
+<h2>Story 5 — Cold start optimization</h2>
+
+<p><strong>Situation:</strong> Cold start was creeping up to 2.4s on low-end TVs (1GB RAM, slow eMMC). User-perceived "app is slow."</p>
+
+<p><strong>Task:</strong> Cut cold start materially. Target sub-1.5s.</p>
+
+<p><strong>Action:</strong></p>
+<ul>
+  <li>Profiled with Android Studio CPU profiler + <code>adb shell am start -W</code>. Worst offenders: SDK init (~600ms blocking on Application.onCreate), eager network init, blocking JSON parse of cached manifest.</li>
+  <li>Deferred non-critical SDK init via Jetpack App Startup library.</li>
+  <li>Moved network-layer init off main using <code>lifecycleScope.launch(Dispatchers.IO)</code> post-first-frame.</li>
+  <li>Replaced Gson with kotlinx.serialization (faster cold start) and parsed asynchronously while showing a placeholder.</li>
+  <li>Generated Baseline Profiles for the cold-start path → 10–20% additional win on first launches.</li>
+  <li>Optimized network: payload reduction, batched calls, response caching.</li>
+</ul>
+
+<p><strong>Result:</strong> Cold start <strong>2.4s → 1.1s (54% reduction)</strong> on low-end TVs. Crash rate dropped (some crashes were main-thread timeouts on slow init). Better perceived UX validated by post-launch survey.</p>
+
+<h2>Story 6 — Mentoring and ownership (TR4 favorite)</h2>
+
+<p><strong>Situation:</strong> I was assigned to mentor 2 interns and 1 junior engineer joining the Android team.</p>
+
+<p><strong>Task:</strong> Get them productive on our codebase quickly while maintaining code quality.</p>
+
+<p><strong>Action:</strong></p>
+<ul>
+  <li>Weekly 1:1s, structured starting tasks, pairing on architecture-heavy PRs.</li>
+  <li>Wrote internal docs on our module boundaries and Hilt setup since they were the trickiest gotcha.</li>
+  <li>Reviewed every PR with detailed feedback for the first month.</li>
+  <li>Gradually increased complexity of their tasks.</li>
+  <li>Encouraged them to lead small features end-to-end.</li>
+</ul>
+
+<p><strong>Result:</strong> All three independently shipped non-trivial features within 6 weeks. One intern converted to FTE. Internal docs we wrote became part of onboarding for subsequent hires.</p>
+
+<h2>Story 7 — A failure / learning (always have one ready)</h2>
+
+<p><strong>Situation:</strong> I once shipped a "fix" for a flaky test that turned out to be a real concurrency bug. The test was failing intermittently because our coroutine setup was racy — I <code>@Ignore</code>d it to unblock the release.</p>
+
+<p><strong>Task (self-imposed):</strong> Investigate why the test failed before just disabling it.</p>
+
+<p><strong>Action — what went wrong:</strong></p>
+<ul>
+  <li>I assumed the test was flaky because of test infrastructure.</li>
+  <li>Disabled it, shipped.</li>
+  <li>Two weeks later, a customer-reported crash traced back to the exact race I'd dismissed.</li>
+</ul>
+
+<p><strong>Action — what I did to fix and learn:</strong></p>
+<ul>
+  <li>Re-investigated with <code>runTest</code> and <code>StandardTestDispatcher</code>; reproduced the race.</li>
+  <li>Fixed it with proper structured concurrency (<code>coroutineScope</code> instead of unbounded <code>launch</code>).</li>
+  <li>Added a team norm: no <code>@Ignore</code> without a JIRA ticket linked + an investigation note.</li>
+</ul>
+
+<p><strong>Result:</strong> Bug fixed before next release. New norm caught two more "flaky" tests that were real bugs in subsequent months.</p>
+
+<div class="callout senior">
+  <span class="label">Why this story works</span>
+  <p>Shows ownership, learning, willingness to admit fault, and process improvement. Bar raisers love this combo. Don't sanitize — the "I disabled it" admission is what makes it credible.</p>
+</div>
+
+<h2>Story 8 — Disagreement (TR4 will probe)</h2>
+
+<p><strong>Situation:</strong> PM wanted to ship a new search feature without offline cache, citing time-to-market. I'd seen the data — ~25% of our user sessions had at least one network blip.</p>
+
+<p><strong>Task:</strong> Either ship as planned or push back.</p>
+
+<p><strong>Action:</strong></p>
+<ul>
+  <li>Built a 30-min spike showing offline-cached search with a thin wrapper over our Room layer.</li>
+  <li>Brought numbers to PM: 25% sessions affected, latency reduction even online (60ms → 5ms for cached queries).</li>
+  <li>Proposed 2-day spike to integrate cleanly.</li>
+  <li>Compromised: shipped with cache for already-searched queries (not full pre-fetch), reducing scope but covering the worst case.</li>
+</ul>
+
+<p><strong>Result:</strong> Search latency dropped 50% online (P95). Offline-search worked for repeat users on subway commutes (a known persona). PM agreed to add full pre-fetch in V2.</p>
+
+<div class="callout senior">
+  <span class="label">Why this story works</span>
+  <p>Data-driven, collaborative, ended with a compromise — not "I won." Shows you bring evidence, propose alternatives, and respect product judgment.</p>
+</div>
+
+<h2>"Why FOX?" / "Why are you leaving Dish?" (HR + TR4)</h2>
+
+<h3>Why FOX</h3>
+<p>"FOX's DTC streaming work is at exactly the scale and complexity I want to grow on — Tubi, FOX Sports, FOX News all push different problems (ad-supported, live, news cadence). My current player work is directly relevant — DRM, SSAI, ABR — and I'd love to apply that on a team solving for tens of millions of users instead of our current scale. I've been the most senior Android engineer on my immediate team for ~2 years; I want to learn from a team where the median is more senior than me."</p>
+
+<h3>Why leaving Dish</h3>
+<p>"I've delivered what I set out to at Dish — full ownership of the player module, the multi-module migration, the ad stack. The natural next step for my growth is a larger DTC platform with a deeper Android engineering bench. No specific complaints about Dish — it's a growth move."</p>
+
+<div class="callout warn">
+  <span class="label">Don't trash Dish</span>
+  <p>Even mild negativity about a previous employer reads as a red flag. Frame everything as "growth" or "alignment with what I want next." If asked specifically what didn't work, say "the org chart shifted such that the Android team's roadmap moved away from the streaming work I want to do."</p>
+</div>
+
+<h2>Delivery tips</h2>
+
+<ul>
+  <li><strong>Time each story</strong> — 60–90 seconds is ideal. Practice with a stopwatch.</li>
+  <li><strong>Don't memorize verbatim</strong> — internalize the structure (S/T/A/R) and the numbers.</li>
+  <li><strong>Pause after Action</strong> — interviewer often probes here.</li>
+  <li><strong>Lead with impact in TR4</strong>: "I rebuilt our EPG in Compose — cut load time 60% and OOMs to zero. Want me to walk through how?"</li>
+  <li><strong>Adapt the story to the question</strong> — same project, different angle. EPG can be told as "ownership", "performance work", "Compose deep dive", or "leading a rebuild."</li>
+  <li><strong>One concrete number per story</strong>, minimum. Specifics beat adjectives.</li>
+</ul>
+
+<h2>Common bar-raiser questions to expect</h2>
+
+<details class="qa">
+<summary>Q. Tell me about a time you disagreed with your manager.</summary>
+<div class="qa-body"><p>Story 8 (search caching). Frame as data + proposal + compromise.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. What's the toughest technical problem you've solved?</summary>
+<div class="qa-body"><p>The ad lifecycle + AdMob memory leak (Story 2). Or the EPG OOM (Story 1). Pick whichever is closer to FOX's domain — ads + DRM is closest.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you stay current with Android?</summary>
+<div class="qa-body"><p>Specific sources: <strong>Now in Android</strong> podcast, <strong>Google I/O sessions</strong>, <strong>Android Developers blog</strong>, <strong>Square's tech blog</strong>, <strong>Jake Wharton on Mastodon</strong>, AOSP commits when investigating specific issues. Avoid generic "I read articles" — name actual sources.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. What would you do in your first 30 days at FOX?</summary>
+<div class="qa-body"><p>"Listen, ramp, ship something small. Read the player module top to bottom. Pair with the senior Android engineer on the team to understand conventions. Pick up a small bug to learn the build/test/release cycle. Avoid pushing big architectural opinions in week 1."</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. What's your weakness?</summary>
+<div class="qa-body"><p>Real one with mitigation: "I lean on AI tooling more than I should — I've made it a habit this past month to write features by hand first, then use AI for review or edge cases. It's improved my speed and confidence in code review." Don't say "I'm a perfectionist" — bar raisers groan.</p></div>
+</details>
+
+<div class="footer">Next: <a href="mock-interview.html">Mock Interview Q&amp;A →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

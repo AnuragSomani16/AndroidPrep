@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Architecture — MVVM / MVI / Clean / MVC · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Architecture — MVVM / MVI / Clean / MVC</h1>
+<p class="lead">Full examples in <strong>both Compose and XML</strong>. When to choose each. Repository pattern, multi-module, and the dependency rule.</p>
+
+<div class="buzzwords">
+  <span>unidirectional data flow</span>
+  <span>single source of truth</span>
+  <span>dependency inversion</span>
+  <span>repository pattern</span>
+  <span>state holders</span>
+  <span>side effect channel</span>
+  <span>reducer pattern</span>
+  <span>pure domain layer</span>
+  <span>multi-module enforced boundaries</span>
+  <span>API vs implementation dependencies</span>
+</div>
+
+<div class="definition"><strong>MVVM</strong> = Model-View-ViewModel. ViewModel exposes UI state via observable streams; View observes; events flow back via method calls. <strong>MVI</strong> = Model-View-Intent. Strict unidirectional flow: View sends Intent → ViewModel reduces State → View renders new State. Side effects on a separate channel. <strong>Clean Architecture</strong> = a layering pattern (presentation / domain / data) that's <em>orthogonal</em> to MVVM/MVI — you compose them. <strong>MVC</strong> = the original GUI pattern; rarely a good fit on Android because Activity ends up playing both Controller and View.</div>
+
+<h2>1. The TL;DR you should be able to recite</h2>
+
+<div class="callout senior">
+  <span class="label">Senior framing</span>
+  <p>
+    <strong>MVC</strong> — Controller mediates Model and View; legacy on Android; rarely used today.<br>
+    <strong>MVVM</strong> — ViewModel exposes state via <code>StateFlow/LiveData</code>; View observes; events flow back via methods. <strong>The default for most Android apps.</strong><br>
+    <strong>MVI</strong> — Strict <span class="signal-phrase">unidirectional data flow</span>: Intent → Reducer → State → View. Side effects on a separate channel. <strong>Best for state-heavy screens.</strong><br>
+    <strong>Clean Architecture</strong> — A <em>layering</em> concern (data / domain / presentation), <strong>orthogonal to MVVM/MVI</strong>. You compose them: MVVM-Clean or MVI-Clean.
+  </p>
+</div>
+
+<h2>2. MVC — for the trivia question</h2>
+
+<p>The original GUI pattern. Model = data; View = UI; Controller = handles input, updates model, picks views. On Android, the Activity often plays both Controller and View — leading to "fat activities." This is why MVVM emerged.</p>
+
+<div class="callout warn">
+  <span class="label">Don't recommend MVC for new Android apps</span>
+  <p>If asked "would you use MVC?" — say "I wouldn't on Android. The framework's lifecycle pulls Activity/Fragment toward Controller, and they end up owning view state too. MVVM/MVI separates these cleanly via the lifecycle-aware <code>ViewModel</code>."</p>
+</div>
+
+<h2>3. MVVM — full example in Compose AND XML</h2>
+
+<h3>The pattern</h3>
+<pre><code>┌─────────┐    methods (load/refresh/click)    ┌────────────┐
+│  View   │ ──────────────────────────────────▶│ ViewModel  │
+│ (Compose│                                     │            │
+│  or XML)│ ◀───── StateFlow/LiveData ──────────│            │
+└─────────┘                                     └─────┬──────┘
+                                                      │ uses
+                                                      ▼
+                                              ┌──────────────┐
+                                              │  Repository  │
+                                              └──────────────┘</code></pre>
+
+<h3>ViewModel (shared between both UIs)</h3>
+<pre><code class="language-kotlin">@HiltViewModel
+class NotesVm @Inject constructor(
+    private val getNotes: GetNotesUseCase
+) : ViewModel() {
+
+    private val _notes = MutableStateFlow&lt;List&lt;Note&gt;&gt;(emptyList())
+    val notes: StateFlow&lt;List&lt;Note&gt;&gt; = _notes.asStateFlow()
+
+    private val _loading = MutableStateFlow(false)
+    val loading: StateFlow&lt;Boolean&gt; = _loading.asStateFlow()
+
+    fun load() = viewModelScope.launch {
+        _loading.value = true
+        runCatching { getNotes() }
+            .onSuccess { _notes.value = it }
+            .onFailure { /* surface */ }
+        _loading.value = false
+    }
+    fun delete(id: String) = viewModelScope.launch { /* ... */ }
+}</code></pre>
+
+<div class="code-compare">
+<div>
+<h4>Compose UI (MVVM)</h4>
+<pre><code class="language-kotlin">@Composable
+fun NotesScreen(vm: NotesVm = hiltViewModel()) {
+    val notes by vm.notes.collectAsStateWithLifecycle()
+    val loading by vm.loading.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) { vm.load() }
+
+    if (loading) Spinner()
+    LazyColumn {
+        items(notes, key = { it.id }) { note -&gt;
+            NoteRow(note, onDelete = { vm.delete(note.id) })
+        }
+    }
+}</code></pre>
+</div>
+<div>
+<h4>XML UI (MVVM)</h4>
+<pre><code class="language-kotlin">@AndroidEntryPoint
+class NotesFragment : Fragment(R.layout.frag_notes) {
+    private val vm: NotesVm by viewModels()
+    override fun onViewCreated(v: View, s: Bundle?) {
+        val binding = FragNotesBinding.bind(v)
+        val adapter = NotesAdapter { vm.delete(it.id) }
+        binding.list.adapter = adapter
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { vm.notes.collect { adapter.submitList(it) } }
+                launch { vm.loading.collect { binding.progress.isVisible = it } }
+            }
+        }
+        vm.load()
+    }
+}</code></pre>
+</div>
+</div>
+
+<h3>MVVM tradeoffs</h3>
+<ul>
+  <li><strong>Pros</strong>: low ceremony, easy to start with, native fit for <code>StateFlow</code>.</li>
+  <li><strong>Cons</strong>: state spread across multiple flows; "what's the screen showing right now?" can be hard to answer; testing every state combination is awkward.</li>
+</ul>
+
+<h2>4. MVI — full example</h2>
+
+<h3>The pattern</h3>
+<pre><code>┌─────┐  Intent  ┌────────────────┐  State   ┌─────┐
+│ UI  │ ────────▶│ ViewModel      │ ────────▶│ UI  │
+└─────┘          │ - reducer       │          └─────┘
+                 │ - effects ─────▶─── one-shot ──▶ snackbar/nav
+                 └────────────────┘</code></pre>
+
+<h3>State, Intent, Effect</h3>
+<pre><code class="language-kotlin">// Single source of truth for the screen
+data class NotesState(
+    val isLoading: Boolean = false,
+    val notes: List&lt;Note&gt; = emptyList(),
+    val error: String? = null
+)
+
+// User actions
+sealed interface NotesIntent {
+    data object Load : NotesIntent
+    data object Refresh : NotesIntent
+    data class Delete(val id: String) : NotesIntent
+    data class TogglePin(val id: String) : NotesIntent
+}
+
+// One-shot side effects
+sealed interface NotesEffect {
+    data class ShowSnackbar(val msg: String) : NotesEffect
+    data class NavigateToDetail(val id: String) : NotesEffect
+}</code></pre>
+
+<h3>ViewModel</h3>
+<pre><code class="language-kotlin">@HiltViewModel
+class NotesVm @Inject constructor(
+    private val getNotes: GetNotesUseCase,
+    private val deleteNote: DeleteNoteUseCase
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(NotesState())
+    val state: StateFlow&lt;NotesState&gt; = _state.asStateFlow()
+
+    private val _effects = MutableSharedFlow&lt;NotesEffect&gt;(replay = 0, extraBufferCapacity = 1)
+    val effects: SharedFlow&lt;NotesEffect&gt; = _effects.asSharedFlow()
+
+    fun onIntent(intent: NotesIntent) {
+        when (intent) {
+            NotesIntent.Load, NotesIntent.Refresh -&gt; load()
+            is NotesIntent.Delete -&gt; delete(intent.id)
+            is NotesIntent.TogglePin -&gt; togglePin(intent.id)
+        }
+    }
+
+    private fun load() = viewModelScope.launch {
+        _state.update { it.copy(isLoading = true, error = null) }
+        runCatching { getNotes() }
+            .onSuccess { notes -&gt; _state.update { it.copy(isLoading = false, notes = notes) } }
+            .onFailure { e -&gt;
+                _state.update { it.copy(isLoading = false, error = e.message) }
+                _effects.tryEmit(NotesEffect.ShowSnackbar("Couldn't load"))
+            }
+    }
+    private fun delete(id: String) = viewModelScope.launch {
+        runCatching { deleteNote(id) }
+            .onSuccess { load() }
+            .onFailure { _effects.tryEmit(NotesEffect.ShowSnackbar("Delete failed")) }
+    }
+    private fun togglePin(id: String) { /* ... */ }
+}</code></pre>
+<div class="code-explain">Three pieces work together:
+<ol>
+  <li><strong><code>NotesState</code></strong> = the entire screen's snapshot. Loading + data + error in one immutable object. The UI binds to <em>this</em> — never to scattered fields.</li>
+  <li><strong><code>NotesIntent</code></strong> = sealed interface of every action the user can take. The UI never mutates state directly; it dispatches an Intent.</li>
+  <li><strong><code>NotesEffect</code></strong> = one-shot side effects (snackbar, navigation). On a <code>SharedFlow</code> with <code>replay=0</code> so a screen rotation doesn't replay yesterday's snackbars.</li>
+</ol>
+The <code>onIntent</code> function is the <strong>reducer</strong> — pure routing of Intent to state-update logic. <code>_state.update { it.copy(...) }</code> is atomic and respects equality dedupe. Tests can assert state-by-state by feeding intents and reading <code>state.value</code>.
+</div>
+
+<h3>UI consumption</h3>
+<div class="code-compare">
+<div>
+<h4>Compose (MVI)</h4>
+<pre><code class="language-kotlin">@Composable
+fun NotesScreen(vm: NotesVm = hiltViewModel(), nav: NavController) {
+    val state by vm.state.collectAsStateWithLifecycle()
+    val snackbarHost = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) { vm.onIntent(NotesIntent.Load) }
+
+    LaunchedEffect(Unit) {
+        vm.effects.collect {
+            when (it) {
+                is NotesEffect.ShowSnackbar -&gt; snackbarHost.showSnackbar(it.msg)
+                is NotesEffect.NavigateToDetail -&gt; nav.navigate("note/${it.id}")
+            }
+        }
+    }
+
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHost) }) { padding -&gt;
+        when {
+            state.isLoading -&gt; Spinner()
+            state.error != null -&gt; ErrorView(state.error!!) { vm.onIntent(NotesIntent.Refresh) }
+            else -&gt; NoteList(
+                notes = state.notes,
+                onDelete = { vm.onIntent(NotesIntent.Delete(it)) },
+                onPin = { vm.onIntent(NotesIntent.TogglePin(it)) },
+                modifier = Modifier.padding(padding)
+            )
+        }
+    }
+}</code></pre>
+</div>
+<div>
+<h4>XML (MVI)</h4>
+<pre><code class="language-kotlin">@AndroidEntryPoint
+class NotesFragment : Fragment(R.layout.frag_notes) {
+    private val vm: NotesVm by viewModels()
+    override fun onViewCreated(v: View, s: Bundle?) {
+        val b = FragNotesBinding.bind(v)
+        val adapter = NotesAdapter(
+            onDelete = { vm.onIntent(NotesIntent.Delete(it.id)) },
+            onPin    = { vm.onIntent(NotesIntent.TogglePin(it.id)) }
+        )
+        b.list.adapter = adapter
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    vm.state.collect { st -&gt;
+                        b.progress.isVisible = st.isLoading
+                        b.error.isVisible = st.error != null
+                        b.error.text = st.error
+                        adapter.submitList(st.notes)
+                    }
+                }
+                launch {
+                    vm.effects.collect { e -&gt;
+                        when (e) {
+                            is NotesEffect.ShowSnackbar -&gt; Snackbar.make(b.root, e.msg, Snackbar.LENGTH_SHORT).show()
+                            is NotesEffect.NavigateToDetail -&gt; findNavController().navigate(/* ... */)
+                        }
+                    }
+                }
+            }
+        }
+        vm.onIntent(NotesIntent.Load)
+    }
+}</code></pre>
+</div>
+</div>
+
+<div class="callout senior">
+  <span class="label">Why MVI shines</span>
+  <p>"<strong>Single source of truth for screen state</strong> means I can reproduce any UI state in a preview/test by passing a <code>NotesState</code>. Side effects on a separate channel mean they fire <strong>once</strong> — no double-snackbars after rotation. The reducer is <strong>pure</strong>: <code>(prev, intent) → next</code>. Easy to unit test."</p>
+</div>
+
+<h2>5. Clean Architecture — the dependency rule</h2>
+
+<pre><code>┌──────────────────────────────────────────────┐
+│ presentation (Activity/Fragment, Compose, VM)│
+│   ↓ depends on                               │
+├──────────────────────────────────────────────┤
+│ domain  (UseCases, models, repo INTERFACES)  │  ← NO Android dependency
+│   ↑ implementations sit OUTSIDE              │
+├──────────────────────────────────────────────┤
+│ data    (Repo impls, Room, Retrofit, mappers)│
+└──────────────────────────────────────────────┘</code></pre>
+
+<p><span class="signal-phrase">Inner layers know nothing about outer layers.</span> Domain has no Android dependency — pure Kotlin. Data layer implements interfaces declared in domain (<span class="signal">dependency inversion</span>).</p>
+
+<h3>Module structure</h3>
+<pre><code>:app                 (entry point, Hilt graph)
+:feature:notes
+    :ui              (Compose screens, ViewModels)
+    :domain          (use cases, models, repository interface)
+    :data            (Room, Retrofit impl, repo impl)
+:core
+    :network         (OkHttp, Retrofit, base auth)
+    :database        (Room base)
+    :design-system   (theme, common composables)
+    :common          (shared utilities)</code></pre>
+
+<h3>Layer code</h3>
+<pre><code class="language-kotlin">// :feature:notes:domain — pure Kotlin, no android deps
+data class Note(val id: String, val title: String, val body: String)
+
+interface NotesRepository {
+    fun observeAll(): Flow&lt;List&lt;Note&gt;&gt;
+    suspend fun add(note: Note)
+    suspend fun delete(id: String)
+    suspend fun refresh(): Result&lt;Unit&gt;
+}
+
+class GetNotesUseCase @Inject constructor(
+    private val repo: NotesRepository,
+    @IoDispatcher private val io: CoroutineDispatcher
+) {
+    suspend operator fun invoke(): List&lt;Note&gt; = withContext(io) {
+        repo.observeAll().first().filter { it.title.isNotBlank() }
+    }
+}
+
+// :feature:notes:data — Android deps allowed
+class NotesRepositoryImpl @Inject constructor(
+    private val dao: NotesDao,
+    private val api: NotesApi
+) : NotesRepository {
+    override fun observeAll(): Flow&lt;List&lt;Note&gt;&gt; =
+        dao.observeAll().map { entities -&gt; entities.map { it.toDomain() } }
+
+    override suspend fun add(note: Note) = dao.upsert(note.toEntity())
+    override suspend fun delete(id: String) = dao.delete(id)
+    override suspend fun refresh(): Result&lt;Unit&gt; = runCatching {
+        val remote = api.fetchNotes()
+        dao.replaceAll(remote.map { it.toEntity() })
+    }
+}
+
+// :feature:notes:ui — depends on :domain (NOT :data)
+@HiltViewModel
+class NotesVm @Inject constructor(
+    private val getNotes: GetNotesUseCase,
+    private val repo: NotesRepository    // injected via interface
+) : ViewModel() { /* ... */ }</code></pre>
+
+<h3>When to use Use Cases vs skip them</h3>
+<ul>
+  <li><strong>Use them</strong> when business logic is composed from multiple repos, reused across screens, or has non-trivial logic worth unit-testing.</li>
+  <li><strong>Skip them</strong> when the VM just calls a single repo method passthrough — adding a use case is bloat. Be pragmatic.</li>
+</ul>
+
+<h2>6. Repository pattern in detail</h2>
+
+<p>The repository is the <strong>single source of truth</strong> for a data type. It coordinates between data sources (network, DB, in-memory cache) and returns <strong>domain models</strong>, not entities/DTOs.</p>
+
+<pre><code class="language-kotlin">// Offline-first pattern
+class NotesRepositoryImpl @Inject constructor(
+    private val dao: NotesDao,
+    private val api: NotesApi,
+    @IoDispatcher private val io: CoroutineDispatcher
+) : NotesRepository {
+
+    // UI observes the DB. DB is the source of truth.
+    override fun observeAll(): Flow&lt;List&lt;Note&gt;&gt; =
+        dao.observeAll().map { it.map(NoteEntity::toDomain) }
+
+    // Refresh: network -&gt; DB. UI auto-updates via Flow.
+    override suspend fun refresh(): Result&lt;Unit&gt; = withContext(io) {
+        runCatching {
+            val remote = api.fetchNotes()
+            dao.replaceAll(remote.map(NoteDto::toEntity))
+        }
+    }
+
+    override suspend fun add(note: Note) {
+        dao.upsert(note.toEntity().copy(status = "PENDING_CREATE"))
+        // sync worker will push to network later
+    }
+}</code></pre>
+
+<div class="callout senior">
+  <span class="label">Senior framing</span>
+  <p>"For offline-first features I make the <strong>DB the source of truth</strong>. The UI observes <code>dao.observeAll()</code> as a Flow; the repository's <code>refresh()</code> writes through to the DB; the UI auto-updates. This guarantees no UI / cache drift."</p>
+</div>
+
+<h2>7. Multi-module — practical guidance</h2>
+
+<h3>Why multi-module</h3>
+<ul>
+  <li><strong>Build speed</strong> — modules compile in parallel; touching one feature doesn't recompile the world.</li>
+  <li><strong>Enforced boundaries</strong> — <code>:ui</code> can't accidentally call into <code>:data</code>; the build won't let it.</li>
+  <li><strong>Explicit API surface</strong> — what's <code>api</code>-exposed vs <code>implementation</code>-private.</li>
+  <li><strong>Reusability</strong> — pull a feature into another app variant by changing <code>build.gradle</code>.</li>
+</ul>
+
+<h3><code>api</code> vs <code>implementation</code></h3>
+<pre><code class="language-kotlin">// :feature:notes:ui
+dependencies {
+    implementation(project(":feature:notes:domain"))   // not exposed to consumers
+    api(project(":core:design-system"))                // exposed — anyone using :ui sees design-system
+}</code></pre>
+
+<p>Default to <code>implementation</code>. <code>api</code> only when the consumer of your module legitimately needs the type in their public API.</p>
+
+<h3>Avoiding circular dependencies</h3>
+<ul>
+  <li>Define <strong>interfaces in inner layers</strong> (<code>:domain</code>), implementations outside.</li>
+  <li>A <code>:core:common</code> module for shared types if needed.</li>
+  <li>Feature modules depend only on <code>:domain</code> + <code>:core:design-system</code> + <code>:common</code>, never on each other.</li>
+</ul>
+
+<h2>8. The decision matrix — when to use what</h2>
+
+<table>
+<thead><tr><th>Scenario</th><th>Architecture</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Simple CRUD list/detail screens</td><td>MVVM</td><td>State is straightforward; MVI ceremony unnecessary</td></tr>
+<tr><td>Multi-step form, video player, search</td><td>MVI</td><td>Many state interactions; benefit from single state object</td></tr>
+<tr><td>Codebase &gt; 50K LoC, multiple teams</td><td>+ Clean + multi-module</td><td>Enforce boundaries; build speed</td></tr>
+<tr><td>Single screen, prototyping</td><td>MVVM, monolith</td><td>Don't pre-architect</td></tr>
+<tr><td>"Should we use MVI?"</td><td>"Per-screen choice"</td><td>Mix — MVVM by default, lift to MVI when state grows</td></tr>
+</tbody>
+</table>
+
+<div class="callout senior">
+  <span class="label">Don't say "MVI is always better"</span>
+  <p>That's a junior take. Senior take: "I default to MVVM, lift to MVI when state interactions get complex enough that <em>'what's the screen showing right now?'</em> becomes hard to answer. Single source of truth is the win, not the boilerplate."</p>
+</div>
+
+<h2>9. Anti-patterns to call out (and avoid in your interview)</h2>
+<ul>
+  <li><strong>Fat ViewModel</strong> with 800 lines, business logic + UI logic + side effects in one place. Extract use cases / mappers.</li>
+  <li><strong>Repository returning DTOs</strong>. Map at the boundary; UI shouldn't know about <code>UserDto</code>.</li>
+  <li><strong>SingleLiveEvent</strong> hacks for one-shot events. Use <code>SharedFlow(replay=0)</code> or <code>Channel</code>.</li>
+  <li><strong>Bare <code>collectAsState</code></strong>. Use <code>collectAsStateWithLifecycle</code>.</li>
+  <li><strong>Activity holding the data</strong>. ViewModel survives config changes; activity doesn't.</li>
+  <li><strong>Singleton state</strong> via <code>object Repo</code>. Use DI; lifecycle-managed scope.</li>
+  <li><strong>Multiple sources of truth</strong>. Cache + DB + memory all updating independently → drift bugs.</li>
+</ul>
+
+<h2>10. Senior framing for the architecture round</h2>
+
+<div class="callout senior">
+  <span class="label">30-second monologue you should rehearse</span>
+  <p>"At Dish I architected our Android TV/Tablet app with <span class="signal">multi-module Clean Architecture</span>. UI is Compose with MVVM by default; player and EPG screens use MVI for their state complexity. <span class="signal-phrase">Domain is pure Kotlin</span> — Use Cases compose repository methods. <span class="signal-phrase">Repositories are single source of truth</span>; for offline-first features, the Room DB is authoritative and UI observes via Flow. Hilt wires the graph; DI scopes match component lifecycles. CI enforces lint, unit tests, and Compose stability reports on every MR."</p>
+</div>
+
+<div class="footer">Next: <a href="di-hilt.html">Dependency Injection (Hilt) →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

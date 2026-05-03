@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Performance & Profiling · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Performance &amp; Profiling</h1>
+<p class="lead">Cold start, jank, memory leaks, ANRs, APK size, Baseline Profiles, Macrobenchmark — and the tooling workflows seniors use to find the regression in 10 minutes.</p>
+
+<div class="buzzwords">
+  <span>cold / warm / hot start</span>
+  <span>baseline profiles</span>
+  <span>R8 + resource shrinking</span>
+  <span>16.6ms frame budget (60Hz)</span>
+  <span>StrictMode in debug</span>
+  <span>LeakCanary</span>
+  <span>JankStats + Macrobenchmark</span>
+  <span>app startup tracing</span>
+  <span>Time to Initial Display (TTID)</span>
+  <span>Time to Full Display (TTFD)</span>
+</div>
+
+<div class="definition"><strong>Cold start</strong> = process newly created (first launch, or after Android killed it). Application.onCreate runs, classes load, resources inflate. Slowest. <strong>Warm start</strong> = process exists, but the Activity was destroyed; just <code>onCreate</code> runs again. <strong>Hot start</strong> = process AND Activity exist; just brought to foreground. Fastest. <strong>Baseline Profile</strong> = compile-hint file shipped in the APK so Android Runtime (ART) pre-compiles your hot startup paths AOT instead of JIT-ing them on first run.</div>
+
+<h2>1. Startup — cold / warm / hot</h2>
+
+<table>
+<thead><tr><th>Type</th><th>What's happening</th><th>Target</th></tr></thead>
+<tbody>
+<tr><td><strong>Cold</strong></td><td>Process newly created. Application.onCreate runs. Activity inflates.</td><td>&lt; 500ms great, &lt; 1500ms acceptable</td></tr>
+<tr><td><strong>Warm</strong></td><td>Process exists; Activity recreated.</td><td>&lt; 200ms</td></tr>
+<tr><td><strong>Hot</strong></td><td>Process + Activity exist; just brought to foreground.</td><td>&lt; 100ms</td></tr>
+</tbody>
+</table>
+
+<h3>Measure</h3>
+<pre><code>adb shell am start -W -n com.fox.app/.MainActivity
+# WaitTime, ThisTime, TotalTime
+# TotalTime = time until first frame fully drawn</code></pre>
+
+<p>Better: <strong>Macrobenchmark</strong> with <code>StartupBenchmark</code> rule for stable, repeatable, CI-friendly numbers.</p>
+
+<h2>2. Cold start — every win in priority order</h2>
+
+<ol>
+  <li><strong>Baseline Profiles</strong> — biggest single win. Ships AOT-compile hints; ART pre-compiles your hot startup paths. Often 20-40% improvement on cold start.</li>
+  <li><strong>Trim Application.onCreate</strong> — every ms here is cold start. Defer non-critical SDK init (Crashlytics, Analytics, AdMob) via <a href="android-core.html">App Startup library</a> or <code>lifecycleScope.launch(Dispatchers.IO)</code> after first frame.</li>
+  <li><strong>R8 + resource shrinking</strong> — smaller APK, faster class loading. <code>minifyEnabled true; shrinkResources true</code> in release.</li>
+  <li><strong>Lazy DI graph</strong> — Hilt's @Singleton are lazy by default. Don't reference unnecessary singletons in <code>onCreate</code>.</li>
+  <li><strong>Splash screen API</strong> — Android 12+ <code>SplashScreen</code> compat lib. Don't draw your own splash.</li>
+  <li><strong>Avoid blocking I/O on main</strong> — synchronous SharedPreferences, Disk I/O, parsing JSON.</li>
+  <li><strong>Network layer init off-main</strong> — Retrofit is fine to construct on main, but don't make first network call inline.</li>
+</ol>
+
+<h3>Baseline Profiles in 60 seconds</h3>
+<pre><code class="language-kotlin">// Generate via macrobenchmark:
+@RunWith(AndroidJUnit4::class)
+class BaselineProfileGenerator {
+    @get:Rule val rule = BaselineProfileRule()
+    @Test fun generate() = rule.collect(packageName = "com.fox.app") {
+        pressHome()
+        startActivityAndWait()
+        // simulate critical user journey:
+        device.findObject(By.text("Home")).click()
+        device.wait(Until.hasObject(By.text("Featured")), 5000)
+    }
+}
+// Run on rooted/debug build → produces baseline-prof.txt → check into src/main/baselineProfiles/</code></pre>
+
+<h3>Defer SDK init via App Startup</h3>
+<pre><code class="language-kotlin">class CrashlyticsInitializer : Initializer&lt;Unit&gt; {
+    override fun create(ctx: Context) {
+        FirebaseApp.initializeApp(ctx)
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true)
+    }
+    override fun dependencies() = emptyList&lt;Class&lt;out Initializer&lt;*&gt;&gt;&gt;()
+}</code></pre>
+
+<h2>3. Frame timing &amp; jank</h2>
+
+<table>
+<thead><tr><th>Display</th><th>Per-frame budget</th></tr></thead>
+<tbody>
+<tr><td>60 Hz</td><td>16.6 ms</td></tr>
+<tr><td>90 Hz</td><td>11.1 ms</td></tr>
+<tr><td>120 Hz</td><td>8.3 ms</td></tr>
+</tbody>
+</table>
+
+<h3>Common jank sources</h3>
+<ul>
+  <li>Heavy work on main thread — JSON parsing, large bitmap decode, expensive measure/layout passes.</li>
+  <li>Compose: unstable parameters causing entire subtrees to recompose.</li>
+  <li>RecyclerView <code>onBindViewHolder</code> doing I/O or heavy work.</li>
+  <li>Overdraw — too many opaque layers stacked. Use Layout Inspector → "Show overdraw".</li>
+  <li>Bitmap loading without sampling. Use <strong>Coil/Glide</strong>.</li>
+</ul>
+
+<h3>Tools</h3>
+<ul>
+  <li><strong>JankStats library</strong> — runtime jank detection in production-like builds.</li>
+  <li><strong>Profiler → System Trace</strong> — see frame timeline, missed deadlines.</li>
+  <li><strong>Layout Inspector → Recomposition counts</strong> (Compose).</li>
+  <li><strong>Choreographer.FrameCallback</strong> — programmatic frame timing.</li>
+</ul>
+
+<pre><code class="language-kotlin">val jankStats = JankStats.createAndTrack(window) { frameData -&gt;
+    if (frameData.isJank) {
+        log("jank ${frameData.frameDurationUiNanos / 1_000_000}ms")
+    }
+}
+override fun onResume() { super.onResume(); jankStats.isTrackingEnabled = true }
+override fun onPause() { jankStats.isTrackingEnabled = false; super.onPause() }</code></pre>
+
+<h2>4. Memory leaks</h2>
+
+<h3>The classics</h3>
+<ul>
+  <li>Holding <code>Activity</code>/<code>Context</code> in a <code>Singleton</code>.</li>
+  <li>Anonymous inner classes (<code>Handler</code>, <code>Runnable</code>) holding implicit outer reference.</li>
+  <li>Listeners registered but never unregistered.</li>
+  <li>Coroutine scope leaking (e.g., GlobalScope.launch capturing Activity).</li>
+  <li>ExoPlayer not released.</li>
+  <li>RxJava subscriptions not disposed (legacy).</li>
+  <li>Bitmaps cached unboundedly.</li>
+</ul>
+
+<h3>LeakCanary in debug builds</h3>
+<pre><code class="language-kotlin">// build.gradle (debug only)
+debugImplementation("com.squareup.leakcanary:leakcanary-android:2.13")
+// no further setup needed — auto-installs and notifies on leak</code></pre>
+
+<h3>Heap dump workflow</h3>
+<ol>
+  <li>Reproduce: do the suspected leak action 5x (rotate, navigate in/out).</li>
+  <li>Profiler → Memory tab → "Capture heap dump."</li>
+  <li>Group by <em>class</em>, look for &gt; 1 instance of your <code>Activity</code> / <code>ViewModel</code> / Compose <code>Composer</code>.</li>
+  <li>"Show nearest GC root" → find the chain pinning the leaked object.</li>
+</ol>
+
+<h2>5. ANRs (Application Not Responding)</h2>
+
+<p>Triggered when:</p>
+<ul>
+  <li>UI thread blocked &gt; 5 seconds for input.</li>
+  <li>BroadcastReceiver onReceive &gt; 10 seconds.</li>
+  <li>Service onStart &gt; 20 seconds.</li>
+</ul>
+
+<h3>StrictMode for early detection (debug only)</h3>
+<pre><code class="language-kotlin">if (BuildConfig.DEBUG) {
+    StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.Builder()
+        .detectDiskReads()
+        .detectDiskWrites()
+        .detectNetwork()
+        .penaltyLog()
+        .build())
+    StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder()
+        .detectLeakedClosableObjects()
+        .detectActivityLeaks()
+        .penaltyLog()
+        .build())
+}</code></pre>
+
+<h3>Reading ANR traces</h3>
+<p>From <code>/data/anr/traces.txt</code> (root) or Play Console "Vitals." Look at the <strong>main thread stack</strong> at the moment of ANR — usually points to whatever blocked it.</p>
+
+<h2>6. APK / app size</h2>
+
+<ul>
+  <li><strong>R8</strong> — obfuscation + shrinking. Default enabled in release.</li>
+  <li><strong>Resource shrinking</strong>: <code>shrinkResources true</code>.</li>
+  <li><strong>App Bundles (.aab)</strong> — Play Store builds per-device APKs (only architectures, density buckets, languages relevant to that device).</li>
+  <li><strong>WebP</strong> for images, <strong>vector drawables</strong> for icons.</li>
+  <li><strong>Dynamic feature modules</strong> (Play Feature Delivery) for rarely-used features.</li>
+  <li>Audit dependencies — large transitives like Guava can be replaced with smaller alternatives.</li>
+</ul>
+
+<h3>Inspect APK / AAB contents</h3>
+<pre><code>./gradlew bundleRelease
+bundletool build-apks --bundle=app-release.aab --output=apks.apks
+unzip apks.apks
+# Or in Android Studio: Build → Analyze APK</code></pre>
+
+<h2>7. Network performance</h2>
+
+<ul>
+  <li><strong>HTTP/2 + connection pooling</strong> — OkHttp does this by default.</li>
+  <li><strong>Compression</strong> — <code>Accept-Encoding: gzip</code> handled automatically.</li>
+  <li><strong>Batch endpoints</strong> — collapse N small calls into 1 batched call.</li>
+  <li><strong>Caching</strong> — <code>Cache-Control</code> headers, OkHttp HTTP cache, app-level cache.</li>
+  <li><strong>Reduce payload</strong> — server-side: GraphQL, sparse fieldsets, pagination size right-sized.</li>
+  <li><strong>Prefetch</strong> hot data on cold start while user is on splash/auth screen.</li>
+</ul>
+
+<h2>8. Compose-specific performance</h2>
+
+<ul>
+  <li>Stable parameters → recomposition skipping.</li>
+  <li><code>derivedStateOf</code> to gate downstream recomposition (e.g., scroll position →"isAtTop" boolean).</li>
+  <li><code>key = { it.id }</code> and <code>contentType</code> in lazy lists.</li>
+  <li>Don't allocate lambdas in body when passed to stable composables — extract.</li>
+  <li>Avoid <code>Modifier.composed</code> where a direct modifier works (composed allocates).</li>
+  <li>Compose Compiler reports → identify non-skippable composables.</li>
+</ul>
+
+<h2>9. Profiler workflows you should know</h2>
+
+<h3>Workflow A — "the screen is sluggish"</h3>
+<ol>
+  <li>Profiler → CPU → "System Trace" recording.</li>
+  <li>Reproduce the slowness, stop recording.</li>
+  <li>Find frames with red markers (jank).</li>
+  <li>Zoom in. Look at main thread. The biggest red bar is the culprit.</li>
+  <li>If Compose: check Layout Inspector recomposition counts. Run Compose Compiler reports.</li>
+</ol>
+
+<h3>Workflow B — "the app is OOMing"</h3>
+<ol>
+  <li>Reproduce → Profiler → Memory → record allocations during.</li>
+  <li>Look at allocation graph. Spike? Steady growth? Large bitmaps?</li>
+  <li>Heap dump at peak. Group by class. Anything &gt; 100MB? Anything growing unboundedly?</li>
+  <li>For bitmap-related: confirm via "Bitmap" filter — usually the cache or unbounded image loading.</li>
+</ol>
+
+<h3>Workflow C — "cold start regressed"</h3>
+<ol>
+  <li>Macrobenchmark <code>StartupBenchmark</code> — capture before/after numbers.</li>
+  <li>System trace during cold start. Look at <code>Application.onCreate</code>, <code>Activity.onCreate</code>, first inflate.</li>
+  <li>Identify any new SDK init or large class init pulled in by the change.</li>
+  <li>Defer or move off-main.</li>
+</ol>
+
+<h2>10. The performance interview talking sequence</h2>
+
+<div class="callout senior">
+  <span class="label">Senior framing — say this</span>
+  <p>"For perf I work top-down: <span class="signal-phrase">measure first, never assume</span>. <span class="signal-phrase">Macrobenchmark for repeatable startup numbers</span> in CI. <span class="signal-phrase">Baseline Profiles + R8</span> are the highest-leverage knobs for cold start. <span class="signal-phrase">JankStats in production-like builds</span> for frame health. <span class="signal-phrase">Compose Compiler reports</span> for recomposition smell. <span class="signal-phrase">LeakCanary in debug</span> for memory. <span class="signal-phrase">StrictMode</span> catches main-thread I/O before it ANRs."</p>
+</div>
+
+<h2>11. Past project — what to say at FOX</h2>
+
+<p>You actually shipped this. From your Dish work:</p>
+
+<ul>
+  <li>"Cold start <strong>2.4s → 1.1s</strong> on low-end TVs. Combined: deferred SDK init via App Startup, generated Baseline Profiles for the cold path, switched JSON parser to kotlinx.serialization, batched cold-start API calls."</li>
+  <li>"Resolved <strong>OOMs in production</strong> on EPG screen by tracking down a leaked custom view holder retaining bitmaps. Found via Profiler heap dump."</li>
+  <li>"<strong>EPG load time -60-70%</strong> via Compose rebuild — stable data classes, lazy keys, derivedStateOf for visible-window flags."</li>
+  <li>"<strong>APK size reduction</strong> via R8 + resource shrinking + WebP migration."</li>
+</ul>
+
+<h2>12. Common interview probes</h2>
+
+<details class="qa">
+<summary>Q. How do you measure cold start?</summary>
+<div class="qa-body"><p><code>adb shell am start -W</code> for quick reads. <strong>Macrobenchmark StartupBenchmark</strong> for stable, CI-friendly numbers. Profiler "System Trace" for one-time deep dive.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. What's TTID vs TTFD?</summary>
+<div class="qa-body"><p><strong>Time to Initial Display</strong> — first frame drawn. <strong>Time to Full Display</strong> — content fully populated. Mark with <code>reportFullyDrawn()</code>. Macrobenchmark distinguishes them.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do Baseline Profiles work?</summary>
+<div class="qa-body"><p>Pre-AOT-compile hints shipped in the APK. ART pre-compiles those classes/methods so first execution doesn't pay JIT cost. Generated via Macrobenchmark recording the critical path.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. Why does my LazyColumn recompose unnecessarily?</summary>
+<div class="qa-body"><p>(1) Missing <code>key</code>; (2) unstable item parameter (e.g., a <code>List</code> field); (3) lambda allocated per composition. Run Compose Compiler reports to confirm.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. Strategies to reduce APK size?</summary>
+<div class="qa-body"><p>R8 + shrinkResources, App Bundles, WebP/vector drawables, audit dependencies, dynamic feature modules. Bonus: <strong>language-specific splits</strong> via Bundles drop unused locales per device.</p></div>
+</details>
+
+<h2>13. Senior signal phrases</h2>
+<ul>
+  <li>"<span class="signal-phrase">Measure first, optimize second</span>."</li>
+  <li>"<span class="signal-phrase">Baseline Profiles + R8</span> are the biggest single-knob wins for cold start."</li>
+  <li>"<span class="signal-phrase">Defer non-critical init via App Startup</span>."</li>
+  <li>"<span class="signal-phrase">JankStats for production-grade frame health</span>."</li>
+  <li>"<span class="signal-phrase">Compose Compiler stability reports</span> in CI."</li>
+  <li>"<span class="signal-phrase">StrictMode in debug builds</span> catches main-thread sins."</li>
+</ul>
+
+<div class="footer">Next: <a href="player.html">Video Player (your moat) →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

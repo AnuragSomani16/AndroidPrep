@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Video Player — Your Moat · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Video Player — your moat</h1>
+<p class="lead">FOX is a streaming company; this is what they're hiring for. Own this page: <span class="signal">ExoPlayer / Media3</span>, <span class="signal">HLS vs DASH</span>, <span class="signal">ABR</span>, <span class="signal">Widevine DRM</span>, <span class="signal">CSAI vs SSAI</span>, <span class="signal">beacons</span>, <span class="signal">MediaSession</span>, <span class="signal">PiP</span>.</p>
+
+<div class="callout senior">
+  <span class="label">Why this page matters most</span>
+  <p>Most candidates won't have hands-on player experience. You do — <strong>Bitmovin SDK, ExoPlayer/Media3, HLS, SSAI, DRM</strong> are all on your resume. The interviewer will probe; if you articulate this cleanly, your score jumps materially. If you stumble, the inflated parts of your resume become a liability. Own it.</p>
+</div>
+
+<div class="buzzwords">
+  <span>Media3 (ExoPlayer's new home)</span>
+  <span>MediaSource / TrackSelector / LoadControl</span>
+  <span>HLS + CMAF</span>
+  <span>adaptive bitrate (ABR)</span>
+  <span>Widevine L1 / L2 / L3</span>
+  <span>SSAI vs CSAI</span>
+  <span>quartile beacons (25/50/75/100)</span>
+  <span>MediaSession for system integration</span>
+  <span>OfflineLicenseHelper for offline DRM</span>
+  <span>buffer health based switching</span>
+</div>
+
+<div class="definition"><strong>ExoPlayer</strong> = open-source Android media player from Google. Customizable, supports HLS/DASH/SmoothStreaming/DRM out of the box. <strong>Media3</strong> = the modern umbrella unifying ExoPlayer + MediaSession + Cast + UI. <strong>HLS</strong> = HTTP Live Streaming (Apple), <code>.m3u8</code> manifest. <strong>DASH</strong> = Dynamic Adaptive Streaming over HTTP (MPEG), <code>.mpd</code> manifest. <strong>ABR</strong> = Adaptive Bitrate — player picks a stream variant based on bandwidth + buffer. <strong>DRM</strong> = Digital Rights Management; Widevine is the Android standard. <strong>SSAI</strong> / <strong>CSAI</strong> = Server-/Client-Side Ad Insertion.</div>
+
+<h2>1. ExoPlayer / Media3 — the architecture</h2>
+
+<p>Media3 is the new umbrella unifying <strong>ExoPlayer + MediaSession + Cast + UI</strong>. ExoPlayer is being merged into Media3 as <code>androidx.media3.exoplayer</code>. New code uses Media3.</p>
+
+<h3>Core types (memorize these)</h3>
+<table>
+<thead><tr><th>Type</th><th>Role</th></tr></thead>
+<tbody>
+<tr><td><code>Player</code></td><td>API surface — <code>play</code>, <code>pause</code>, <code>seekTo</code>, <code>addListener</code>. Implementation is usually <code>ExoPlayer</code>.</td></tr>
+<tr><td><code>MediaSource</code></td><td>Where the media comes from. <code>HlsMediaSource</code>, <code>DashMediaSource</code>, <code>ProgressiveMediaSource</code>, <code>SsMediaSource</code> (Smooth Streaming).</td></tr>
+<tr><td><code>TrackSelector</code></td><td>Picks the active video/audio/text track. <code>DefaultTrackSelector</code> includes ABR.</td></tr>
+<tr><td><code>LoadControl</code></td><td>Buffering policy — min/max buffer ms, buffer-for-playback ms. <code>DefaultLoadControl</code>.</td></tr>
+<tr><td><code>Renderer</code></td><td>Converts samples to output. Video/audio/text/metadata renderers.</td></tr>
+<tr><td><code>AdsLoader</code></td><td>Ad insertion (CSAI: IMA SDK). For SSAI, ads are baked into the stream — no AdsLoader needed.</td></tr>
+<tr><td><code>Player.Listener</code></td><td>Callbacks: <code>onPlaybackStateChanged</code>, <code>onPlayerError</code>, <code>onPositionDiscontinuity</code>.</td></tr>
+<tr><td><code>MediaSession</code></td><td>Exposes playback to system (lock screen, BT, notification).</td></tr>
+</tbody>
+</table>
+
+<h2>2. Minimal player setup</h2>
+<pre><code class="language-kotlin">val player = ExoPlayer.Builder(context).build().apply {
+    setMediaItem(MediaItem.fromUri("https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"))
+    prepare()
+    playWhenReady = true
+}
+
+// Listen to state
+player.addListener(object : Player.Listener {
+    override fun onPlaybackStateChanged(state: Int) {
+        when (state) {
+            Player.STATE_BUFFERING -&gt; { /* show spinner */ }
+            Player.STATE_READY -&gt; { /* hide spinner */ }
+            Player.STATE_ENDED -&gt; { /* play next / show end card */ }
+        }
+    }
+    override fun onPlayerError(error: PlaybackException) {
+        // error.errorCode constants: ERROR_CODE_IO_BAD_HTTP_STATUS, ERROR_CODE_DECODER_INIT_FAILED, etc.
+    }
+})</code></pre>
+
+<h2>3. PlayerController — the abstraction layer (your senior signal)</h2>
+
+<p>Don't expose ExoPlayer directly to the rest of the app. Wrap it. Then you can swap to Bitmovin (or vice versa) by changing one impl, and tests can use a fake.</p>
+
+<pre><code class="language-kotlin">interface PlayerController {
+    val state: StateFlow&lt;PlaybackState&gt;
+    val position: StateFlow&lt;Long&gt;
+    fun load(item: PlayerItem)
+    fun play()
+    fun pause()
+    fun seekTo(ms: Long)
+    fun release()
+}
+
+data class PlaybackState(
+    val isPlaying: Boolean = false,
+    val isBuffering: Boolean = false,
+    val durationMs: Long = 0,
+    val error: PlayerError? = null
+)
+
+class ExoPlayerController @Inject constructor(
+    @ApplicationContext private val ctx: Context
+) : PlayerController {
+    private val _state = MutableStateFlow(PlaybackState())
+    override val state = _state.asStateFlow()
+
+    private val _position = MutableStateFlow(0L)
+    override val position = _position.asStateFlow()
+
+    private var player: ExoPlayer? = null
+    private var positionJob: Job? = null
+
+    override fun load(item: PlayerItem) {
+        release()
+        player = ExoPlayer.Builder(ctx).build().apply {
+            addListener(listener)
+            setMediaItem(MediaItem.fromUri(item.url))
+            prepare()
+            playWhenReady = true
+        }
+        positionJob = MainScope().launch {
+            while (isActive) {
+                _position.value = player?.currentPosition ?: 0L
+                delay(500)
+            }
+        }
+    }
+    override fun play()  { player?.playWhenReady = true }
+    override fun pause() { player?.playWhenReady = false }
+    override fun seekTo(ms: Long) { player?.seekTo(ms) }
+
+    override fun release() {
+        positionJob?.cancel()
+        player?.release()
+        player = null
+    }
+
+    private val listener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            _state.update { it.copy(isPlaying = isPlaying) }
+        }
+        override fun onPlaybackStateChanged(state: Int) {
+            _state.update { it.copy(isBuffering = state == Player.STATE_BUFFERING) }
+        }
+        override fun onPlayerError(error: PlaybackException) {
+            _state.update { it.copy(error = error.toDomain()) }
+        }
+    }
+}</code></pre>
+
+<h2>4. HLS vs DASH — the table you'll be quizzed on</h2>
+
+<table>
+<thead><tr><th></th><th>HLS</th><th>DASH</th></tr></thead>
+<tbody>
+<tr><td>Standard</td><td>Apple</td><td>MPEG (open)</td></tr>
+<tr><td>Manifest</td><td><code>.m3u8</code> (text)</td><td><code>.mpd</code> (XML)</td></tr>
+<tr><td>Segments</td><td><code>.ts</code> (legacy) or <code>.mp4</code> (CMAF)</td><td><code>.mp4</code> CMAF</td></tr>
+<tr><td>iOS native support</td><td>Yes</td><td>No (must use library)</td></tr>
+<tr><td>Common DRM</td><td>FairPlay (Apple), Widevine (CMAF)</td><td>Widevine, PlayReady</td></tr>
+<tr><td>Use case</td><td>Cross-platform incl. iOS</td><td>Android, web (MSE)</td></tr>
+</tbody>
+</table>
+
+<div class="callout senior">
+  <span class="label">Modern best practice</span>
+  <p>"<span class="signal-phrase">HLS with CMAF (.mp4 segments) + Widevine</span> is what most major streamers ship today — a single packaging works for iOS (FairPlay on the same .mp4 segments) and Android/web (Widevine). It also lets the CDN cache once for both platforms."</p>
+</div>
+
+<h2>5. Adaptive bitrate (ABR)</h2>
+
+<p>The player picks a bitrate from the manifest's variants based on:</p>
+<ol>
+  <li><strong>Bandwidth estimation</strong> — moving average of segment download bytes/sec.</li>
+  <li><strong>Buffer health</strong> — current buffer length vs target.</li>
+  <li><strong>Constraints</strong> — max bitrate, max resolution, data-saver toggle.</li>
+</ol>
+
+<p>Switches up if buffer is healthy AND bandwidth allows; down if buffer drains faster than refill.</p>
+
+<pre><code class="language-kotlin">val trackSelector = DefaultTrackSelector(ctx).apply {
+    parameters = buildUponParameters()
+        .setMaxVideoBitrate(2_500_000)        // for data saver mode
+        .setMaxVideoSize(1280, 720)            // cap to 720p on small screens
+        .setForceHighestSupportedBitrate(false)
+        .build()
+}
+val player = ExoPlayer.Builder(ctx).setTrackSelector(trackSelector).build()</code></pre>
+
+<h2>6. Widevine DRM</h2>
+
+<table>
+<thead><tr><th>Level</th><th>What</th><th>Allowed</th></tr></thead>
+<tbody>
+<tr><td>L1</td><td>Hardware-backed (TEE)</td><td>HD/4K — most secure</td></tr>
+<tr><td>L2</td><td>Mixed (some HW, some SW)</td><td>HD usually allowed</td></tr>
+<tr><td>L3</td><td>Software only</td><td>SD typically; HD often blocked by content owners</td></tr>
+</tbody>
+</table>
+
+<h3>Online DRM playback</h3>
+<pre><code class="language-kotlin">val drmConfig = MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
+    .setLicenseUri("https://license.fox.com/widevine")
+    .setLicenseRequestHeaders(mapOf("Authorization" to "Bearer $token"))
+    .setMultiSession(false)
+    .build()
+
+val mediaItem = MediaItem.Builder()
+    .setUri(streamUrl)
+    .setDrmConfiguration(drmConfig)
+    .build()
+
+player.setMediaItem(mediaItem)
+player.prepare()</code></pre>
+
+<h3>Offline DRM (download-and-watch-later)</h3>
+<pre><code class="language-kotlin">// Download license alongside the stream
+val helper = OfflineLicenseHelper.newWidevineInstance(
+    licenseUri = "https://license.fox.com/widevine",
+    forceDefaultLicenseUri = false,
+    dataSourceFactory = httpDataSourceFactory,
+    licenseRequestHeaders = mapOf("Authorization" to "Bearer $token"),
+    eventDispatcher = DrmSessionEventListener.EventDispatcher()
+)
+val licenseKeyId = helper.downloadLicense(/* DASH/HLS manifest format */)
+storeKeyId(streamId, licenseKeyId)
+
+// Later, on offline playback — provide the keyId in DrmConfiguration
+val drmConfig = MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
+    .setKeySetId(licenseKeyId)
+    .build()</code></pre>
+
+<h2>7. Ad insertion — CSAI vs SSAI</h2>
+
+<table>
+<thead><tr><th></th><th>CSAI (Client-Side)</th><th>SSAI (Server-Side)</th></tr></thead>
+<tbody>
+<tr><td>Where ads are stitched</td><td>On device — player pauses content, plays ad, resumes</td><td>In the stream — single continuous playback</td></tr>
+<tr><td>Buffering at break</td><td>Yes (separate fetch)</td><td>No (seamless)</td></tr>
+<tr><td>Ad-block resistance</td><td>Low (recognizable patterns)</td><td>High (looks like content)</td></tr>
+<tr><td>Personalization</td><td>Easy per-user</td><td>Harder — needs per-user manifests</td></tr>
+<tr><td>Beacon accuracy</td><td>High — client knows exact start</td><td>Need ad markers in stream + client beacons</td></tr>
+<tr><td>SDK example</td><td>IMA (Google), FreeWheel</td><td>Server stitches; client fires beacons at known times</td></tr>
+</tbody>
+</table>
+
+<h3>Beacon tracking (you've shipped this)</h3>
+<p>Beacons are HTTP fire-and-forget pings to ad partners at lifecycle moments. Standard quartiles:</p>
+<ul>
+  <li><code>impression</code> / <code>start</code> — playback of ad started</li>
+  <li><code>firstQuartile</code> — 25%</li>
+  <li><code>midpoint</code> — 50%</li>
+  <li><code>thirdQuartile</code> — 75%</li>
+  <li><code>complete</code> — 100%</li>
+  <li><code>click</code>, <code>error</code>, <code>skip</code></li>
+</ul>
+
+<pre><code class="language-kotlin">class BeaconTracker @Inject constructor(private val client: OkHttpClient) {
+    private val fired = mutableSetOf&lt;String&gt;()    // dedupe per ad
+
+    fun onProgress(adId: String, beacons: AdBeacons, currentMs: Long, durationMs: Long) {
+        val pct = currentMs.toDouble() / durationMs
+        when {
+            pct &gt;= 1.0 -&gt; fire(adId, "complete", beacons.complete)
+            pct &gt;= 0.75 -&gt; fire(adId, "thirdQuartile", beacons.thirdQuartile)
+            pct &gt;= 0.50 -&gt; fire(adId, "midpoint", beacons.midpoint)
+            pct &gt;= 0.25 -&gt; fire(adId, "firstQuartile", beacons.firstQuartile)
+        }
+    }
+
+    private fun fire(adId: String, event: String, urls: List&lt;String&gt;) {
+        val key = "$adId:$event"
+        if (!fired.add(key)) return       // already fired
+        urls.forEach { url -&gt;
+            client.newCall(Request.Builder().url(url).build())
+                .enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) { /* log */ }
+                    override fun onResponse(call: Call, response: Response) { response.close() }
+                })
+        }
+    }
+}</code></pre>
+
+<h2>8. MediaSession (system integration)</h2>
+
+<p>Exposes playback state to the system: lock screen controls, Bluetooth headset buttons, Wear OS, Auto, Cast.</p>
+
+<pre><code class="language-kotlin">class PlaybackService : MediaSessionService() {
+    private lateinit var session: MediaSession
+
+    override fun onCreate() {
+        super.onCreate()
+        val player = ExoPlayer.Builder(this).build()
+        session = MediaSession.Builder(this, player)
+            .setCallback(MediaSessionCallback())
+            .build()
+    }
+    override fun onGetSession(info: MediaSession.ControllerInfo): MediaSession = session
+    override fun onDestroy() { session.release(); super.onDestroy() }
+}</code></pre>
+
+<h2>9. Picture-in-Picture (PiP)</h2>
+<pre><code class="language-kotlin">// AndroidManifest
+&lt;activity android:name=".PlayerActivity"
+    android:supportsPictureInPicture="true"
+    android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" /&gt;
+
+// In Activity
+fun enterPiP() {
+    val params = PictureInPictureParams.Builder()
+        .setAspectRatio(Rational(16, 9))
+        .build()
+    enterPictureInPictureMode(params)
+}
+
+override fun onPictureInPictureModeChanged(isInPip: Boolean, c: Configuration) {
+    super.onPictureInPictureModeChanged(isInPip, c)
+    // Hide UI controls when in PiP, restore when out
+}</code></pre>
+
+<h2>10. Compose integration</h2>
+<pre><code class="language-kotlin">@Composable
+fun PlayerScreen(player: ExoPlayer, modifier: Modifier = Modifier) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(player, lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event -&gt;
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -&gt; player.pause()
+                Lifecycle.Event.ON_RESUME -&gt; player.play()
+                else -&gt; Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    AndroidView(
+        factory = { ctx -&gt;
+            PlayerView(ctx).apply {
+                this.player = player
+                useController = true
+            }
+        },
+        update = { it.player = player },
+        modifier = modifier.fillMaxWidth().aspectRatio(16f / 9f)
+    )
+
+    DisposableEffect(Unit) {
+        onDispose {
+            // If you OWN the player at this scope, release here:
+            // player.release()
+        }
+    }
+}</code></pre>
+
+<h2>11. Quality / observability</h2>
+
+<p>Track these metrics in production (Conviva, Bitmovin Analytics, or your own pipeline):</p>
+<ul>
+  <li><strong>TTFF</strong> — Time To First Frame.</li>
+  <li><strong>Rebuffer ratio</strong> — rebuffer time / total play time.</li>
+  <li><strong>Bitrate distribution</strong> — what % of playtime at each variant.</li>
+  <li><strong>Errors</strong> — DRM errors, network errors, decoder errors, fatal vs recoverable.</li>
+  <li><strong>Concurrency</strong> — average concurrent streams per user (DRM seat concerns).</li>
+</ul>
+
+<h2>12. Common player interview probes</h2>
+
+<details class="qa">
+<summary>Q. Why ExoPlayer over MediaPlayer?</summary>
+<div class="qa-body"><p>MediaPlayer is OS-tied — limited customization, no full ABR, DRM only via OS support, hard to debug, behavior varies by OEM. ExoPlayer is open-source, configurable, consistent across OS versions, supports HLS/DASH/SmoothStreaming/DRM out of the box.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you handle a 4G→Wifi switch mid-playback?</summary>
+<div class="qa-body"><p>ExoPlayer recovers automatically — segments fail, retry, continue. If retries exhaust, surface a recoverable error and call <code>player.prepare()</code> again. The DASH/HLS adaptive bitrate logic re-evaluates bandwidth on the new connection.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you A/B test player builds?</summary>
+<div class="qa-body"><p>Behind a feature flag, swap the <code>PlayerController</code> implementation (e.g., Bitmovin vs ExoPlayer for one cohort). Compare TTFF, rebuffer ratio, error rate. Roll forward or back based on metrics.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you do offline playback?</summary>
+<div class="qa-body"><p>(1) Download stream segments via <code>DownloadManager</code>. (2) Pre-fetch and store the Widevine license via <code>OfflineLicenseHelper</code>. (3) On playback, hand the license keyId to the player via <code>DrmConfiguration.setKeySetId()</code>.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. What's the difference between SSAI and CSAI?</summary>
+<div class="qa-body"><p>CSAI: client fetches ad and pauses content during ad break (separate fetch, vulnerable to ad blockers, easier per-user personalization). SSAI: server stitches ads into the master stream — single continuous playback, no buffer at break, harder to ad-block, harder per-user personalization (needs per-user manifests).</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you know an ad's quartile beacons fired?</summary>
+<div class="qa-body"><p>Track beacon-fire events client-side and send to your analytics. Compare ad partner reports vs your client beacons — discrepancies (>2-3%) indicate beacon delivery issues, partner-side processing lag, or ad-blocker activity.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you handle DRM L3 → L1 fallback?</summary>
+<div class="qa-body"><p>Capability-detect at startup: query <code>MediaDrm</code> for the supported security level. If L1 unavailable but content requires it, refuse playback or downgrade to lower-tier content. Don't silently serve SD on a 4K device — confuses users.</p></div>
+</details>
+
+<h2>13. The 30-second player monologue (rehearse this)</h2>
+
+<div class="callout senior">
+  <span class="label">Say this when asked about your player work</span>
+  <p>"I owned the player module at Dish end-to-end. We built it on Bitmovin and migrated parts to ExoPlayer/Media3 for tighter control. <span class="signal-phrase">I wrap the player behind a PlayerController interface</span> so business logic, UI, and tests are decoupled from the SDK. We support <span class="signal-phrase">Widevine DRM</span>, <span class="signal-phrase">HLS with adaptive bitrate</span>, <span class="signal-phrase">SSAI ad insertion</span> with <span class="signal-phrase">end-to-end beacon tracking</span> at impression and quartile boundaries, full <span class="signal-phrase">pre/mid/post-roll lifecycle management</span>, and continue-watching for premium VOD. We instrument with Conviva for TTFF and rebuffer health. The trickiest production issue I shipped was a memory leak in the AdMob NextGen SDK retaining ActivityContext — found via Profiler heap dumps, fixed with a weak-reference holder."</p>
+</div>
+
+<h2>14. Senior signal phrases</h2>
+<ul>
+  <li>"<span class="signal-phrase">PlayerController interface</span> behind ExoPlayer/Bitmovin."</li>
+  <li>"<span class="signal-phrase">HLS+CMAF for cross-platform packaging</span>."</li>
+  <li>"<span class="signal-phrase">Widevine L1 hardware-backed for HD/4K</span>."</li>
+  <li>"<span class="signal-phrase">SSAI for seamless ad-stitch + ad-block resistance</span>."</li>
+  <li>"<span class="signal-phrase">Quartile beacons fired idempotently</span>."</li>
+  <li>"<span class="signal-phrase">OfflineLicenseHelper for DRM offline keys</span>."</li>
+  <li>"<span class="signal-phrase">TTFF and rebuffer ratio as the player health KPIs</span>."</li>
+</ul>
+
+<div class="footer">Next: <a href="system-design.html">System Design (HLD / LLD) →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

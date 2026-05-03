@@ -1,0 +1,1100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scenario Drills · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Scenario Drills</h1>
+<p class="lead">"What would you do if…" walkthrough format. Each scenario gives you the senior playbook: <span class="signal">diagnose → tradeoffs → fix</span>, with code where useful and an explanation of why it works. Includes a full <strong>offline-first end-to-end</strong> walkthrough at #15 — schema, optimistic writes, sync, conflicts, reconnect, auth, UI, all together.</p>
+
+<div class="buzzwords">
+  <span>diagnose-then-fix</span>
+  <span>SavedStateHandle for process death</span>
+  <span>cache-aside</span>
+  <span>strictmode + leakcanary in debug</span>
+  <span>chunked main-thread work</span>
+  <span>baseline profile path</span>
+  <span>shared module navigation</span>
+  <span>R8 keep rules</span>
+  <span>App Bundle splits</span>
+  <span>secure key storage</span>
+</div>
+
+<h2>1. "View value isn't being restored after screen reorientation"</h2>
+
+<div class="definition"><strong>What's actually happening:</strong> The Activity gets recreated on rotation. Anything stored only in field variables on the Activity/Fragment is lost. ViewModel <em>survives</em> rotation but <em>not</em> process death — so depending on where you stored the value, the cause differs.</div>
+
+<h3>Diagnosis checklist (in order)</h3>
+<ol>
+  <li><strong>Is the value held in a field of the Activity/Fragment?</strong> Then it's lost on rotation by design — that field is on a destroyed instance.</li>
+  <li><strong>Compose:</strong> are you using <code>remember { mutableStateOf(...) }</code>? <code>remember</code> only survives recomposition — NOT activity recreate. Use <code>rememberSaveable</code>.</li>
+  <li><strong>XML:</strong> is the View a custom view that didn't override <code>onSaveInstanceState</code>/<code>onRestoreInstanceState</code>? Standard Views (EditText, etc.) restore IF they have an <code>android:id</code>.</li>
+  <li><strong>Did you set <code>android:configChanges="orientation|screenSize"</code> in the manifest?</strong> Then the Activity is NOT recreated — but anything depending on rotation-driven recreation (theme switch, layout pickup) is broken.</li>
+  <li><strong>Is the value in ViewModel?</strong> ViewModel survives rotation. If still lost, you're hitting process death — the ViewModel is recreated. Use <code>SavedStateHandle</code> (Bundle-backed; survives both).</li>
+</ol>
+
+<h3>Fix recipe — Compose</h3>
+<pre><code class="language-kotlin">@Composable
+fun NameField() {
+    // BAD — lost on rotation
+    var name by remember { mutableStateOf("") }
+
+    // GOOD — survives configuration change AND process death (Bundle-based, &lt; ~50KB)
+    var name by rememberSaveable { mutableStateOf("") }
+
+    TextField(name, { name = it })
+}</code></pre>
+<div class="code-explain"><code>remember</code> stores in the slot table and only persists across <strong>recompositions</strong>. <code>rememberSaveable</code> additionally serializes the value into the <code>SavedStateRegistry</code> (Bundle-backed), so it survives Activity recreation AND a temporary process kill.</div>
+
+<h3>Fix recipe — ViewModel-owned input</h3>
+<pre><code class="language-kotlin">@HiltViewModel
+class FormVm @Inject constructor(
+    private val savedState: SavedStateHandle    // injected by Hilt — backed by Bundle
+) : ViewModel() {
+    val name: StateFlow&lt;String&gt; = savedState.getStateFlow("name", "")
+    fun onNameChange(v: String) { savedState["name"] = v }
+}
+
+@Composable
+fun NameField(vm: FormVm = hiltViewModel()) {
+    val name by vm.name.collectAsStateWithLifecycle()
+    TextField(name, vm::onNameChange)
+}</code></pre>
+<div class="code-explain"><code>SavedStateHandle</code> is a key-value map persisted into the saved-instance-state Bundle. <code>getStateFlow</code> exposes it as an observable Flow. Updates via <code>savedState["name"] = v</code> are written through. This survives both rotation (ViewModel) and process death (Bundle).</div>
+
+<h3>Fix recipe — XML custom View</h3>
+<pre><code class="language-kotlin">class NameView : LinearLayout {
+    /* ... */
+
+    override fun onSaveInstanceState(): Parcelable? {
+        return Bundle().apply {
+            putParcelable("super", super.onSaveInstanceState())
+            putString("name", currentText())
+        }
+    }
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        val bundle = state as? Bundle ?: return super.onRestoreInstanceState(state)
+        super.onRestoreInstanceState(bundle.getParcelable("super"))
+        setText(bundle.getString("name", ""))
+    }
+}</code></pre>
+<div class="code-explain">Custom Views must explicitly serialize their internal state. The framework calls <code>onSaveInstanceState</code> when the Activity is being recreated; the returned Parcelable goes into the Bundle and comes back via <code>onRestoreInstanceState</code> on the new instance. Always carry the <code>super.onSaveInstanceState()</code> Parcelable forward — that's the parent class's state.</div>
+
+<h2>2. "Implement a cache so the app shows data offline + survives network failure"</h2>
+
+<div class="definition"><strong>The senior pattern: offline-first with Room as source of truth.</strong> UI observes the database via Flow; the network layer writes through to the DB. This guarantees no UI/cache drift and gives you offline reads for free.</div>
+
+<h3>Architecture</h3>
+<pre><code>┌──── Network (Retrofit) ────┐
+│  api.fetchNotes()          │
+└────────────┬───────────────┘
+             ↓ writes through
+┌──── Room (source of truth) ─┐
+│  dao.upsert(...)            │
+│  dao.observeAll(): Flow     │
+└────────────┬───────────────┘
+             ↓ collects
+┌──── ViewModel ─────────────┐
+│  StateFlow&lt;UiState&gt;        │
+└────────────┬───────────────┘
+             ↓
+┌──── UI ────────────────────┐
+└────────────────────────────┘</code></pre>
+
+<h3>Repository implementation</h3>
+<pre><code class="language-kotlin">class NotesRepoImpl @Inject constructor(
+    private val dao: NotesDao,
+    private val api: NotesApi,
+    @IoDispatcher private val io: CoroutineDispatcher
+) : NotesRepo {
+
+    // UI observes the DB. Always emits — even if offline (last-cached values).
+    override fun observeAll(): Flow&lt;List&lt;Note&gt;&gt; =
+        dao.observeAll().map { entities -&gt; entities.map { it.toDomain() } }
+
+    // refresh() is best-effort. Failure leaves DB unchanged → UI keeps showing cached data.
+    override suspend fun refresh(): Result&lt;Unit&gt; = withContext(io) {
+        runCatching {
+            val remote = api.fetchNotes()                 // throws on network failure
+            dao.replaceAll(remote.map { it.toEntity() })  // write-through to DB
+        }
+    }
+}</code></pre>
+<div class="code-explain">
+<ol>
+  <li><strong>Source of truth = Room</strong>. <code>observeAll()</code> returns a Flow that Room emits to whenever the table changes — UI auto-updates without manual orchestration.</li>
+  <li><strong>refresh() is fail-safe</strong>: <code>runCatching</code> wraps the network call. If it throws, the DB isn't touched and the existing Flow values stay valid. UI shows cached data; you can surface a "couldn't refresh" snackbar separately.</li>
+  <li><strong>I/O on the right dispatcher</strong>: <code>withContext(io)</code> runs the network + DB write on a background thread.</li>
+</ol>
+</div>
+
+<h3>ViewModel orchestration</h3>
+<pre><code class="language-kotlin">@HiltViewModel
+class NotesVm @Inject constructor(
+    private val repo: NotesRepo
+) : ViewModel() {
+
+    // Offline-first: emits cached data immediately, refreshes in background.
+    val notes: StateFlow&lt;List&lt;Note&gt;&gt; = repo.observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _refreshError = MutableSharedFlow&lt;String&gt;(extraBufferCapacity = 1)
+    val refreshError: SharedFlow&lt;String&gt; = _refreshError.asSharedFlow()
+
+    init { refresh() }   // kick off background refresh on first creation
+
+    fun refresh() = viewModelScope.launch {
+        repo.refresh().onFailure { _refreshError.emit("Couldn't sync — showing cached") }
+    }
+}</code></pre>
+<div class="code-explain">UI gets two streams: <code>notes</code> (always populated from DB, never empty after first sync) and <code>refreshError</code> (one-shot event when a refresh fails). The user sees cached content immediately on app launch — even with no network — and a subtle banner if the refresh failed.</div>
+
+<h3>Background sync via WorkManager</h3>
+<pre><code class="language-kotlin">// On app start, schedule periodic sync that respects network conditions
+val sync = PeriodicWorkRequestBuilder&lt;NotesSyncWorker&gt;(15, TimeUnit.MINUTES)
+    .setConstraints(
+        Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+    )
+    .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+    .build()
+
+WorkManager.getInstance(ctx).enqueueUniquePeriodicWork(
+    "notes-sync", ExistingPeriodicWorkPolicy.KEEP, sync
+)</code></pre>
+<div class="code-explain">WorkManager handles network return for free — its constraint system waits for connectivity before running the worker, retries with exponential backoff on failure, survives reboot.</div>
+
+<h2>3. "App is throwing ANRs — how do you fix?"</h2>
+
+<div class="definition"><strong>ANR ("Application Not Responding")</strong> = the OS detects your main thread is blocked too long. Triggers: UI input not handled within 5s, BroadcastReceiver onReceive &gt;10s, Service onStart &gt;20s.</div>
+
+<h3>Diagnosis sequence</h3>
+<ol>
+  <li><strong>Get the stack trace.</strong> Play Console → Vitals → ANR. Or <code>/data/anr/traces.txt</code> on a rooted device. The main thread stack at the moment of ANR is what you investigate.</li>
+  <li><strong>Look at the top frames of main.</strong> If it's <code>BinderProxy.transact</code> → IPC call (often ContentProvider or system service). If it's <code>java.io.*</code> → disk read on main. If it's <code>HttpURLConnection</code> → network on main (yes, people still do this).</li>
+  <li><strong>Look at locks.</strong> If main is blocked on <code>Object.wait</code> or a synchronized monitor, find which other thread holds the lock — usually a deadlock or a slow background operation.</li>
+  <li><strong>Reproduce in debug with StrictMode.</strong> StrictMode catches main-thread disk/network in real-time during development.</li>
+</ol>
+
+<h3>StrictMode setup (debug only)</h3>
+<pre><code class="language-kotlin">class App : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        if (BuildConfig.DEBUG) {
+            StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.Builder()
+                .detectDiskReads()
+                .detectDiskWrites()
+                .detectNetwork()
+                .detectCustomSlowCalls()
+                .penaltyLog()           // log violations
+                .penaltyDeath()          // crash on violation — uncomment to be aggressive
+                .build())
+            StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder()
+                .detectLeakedClosableObjects()
+                .detectActivityLeaks()
+                .penaltyLog()
+                .build())
+        }
+    }
+}</code></pre>
+<div class="code-explain">StrictMode is the OS's lint for runtime sins. <code>ThreadPolicy</code> watches the main thread for disk/network operations. <code>VmPolicy</code> watches the whole VM for leaked Cursors, Closables, Activities. <code>penaltyLog</code> just logs; <code>penaltyDeath</code> crashes — useful in CI to fail builds on regressions.</div>
+
+<h3>Common ANR fixes</h3>
+
+<table>
+<thead><tr><th>Cause</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>Disk I/O on main (SharedPreferences <code>commit()</code>, file reads)</td><td>Use DataStore (async) or move to a coroutine on <code>Dispatchers.IO</code></td></tr>
+<tr><td>JSON parsing on main</td><td>Parse on <code>Dispatchers.Default</code>; switch to kotlinx.serialization for less GC churn</td></tr>
+<tr><td>Big <code>onBindViewHolder</code></td><td>Pre-compute / pre-format off main; bind only display strings on main</td></tr>
+<tr><td>BroadcastReceiver doing work in <code>onReceive</code></td><td>Enqueue a WorkManager job from <code>onReceive</code>; or call <code>goAsync()</code> for short async</td></tr>
+<tr><td>Synchronous network call (legacy)</td><td>Coroutine + Retrofit's <code>suspend</code> functions</td></tr>
+<tr><td>Held lock across slow operation</td><td>Reduce critical section; switch to <code>Mutex</code> in coroutine code</td></tr>
+<tr><td>Cold-start work in Application.onCreate</td><td>Defer via App Startup library or <code>lifecycleScope.launch(IO)</code> after first frame</td></tr>
+</tbody>
+</table>
+
+<h3>Senior framing to say out loud</h3>
+<div class="callout senior">
+  <span class="label">Senior phrase</span>
+  <p>"For ANRs I work backward from Play Console Vitals — the main-thread stack at the moment of ANR points at the culprit. I run StrictMode in debug builds to catch disk/network-on-main before it ANRs in production. The structural fix is usually to move I/O off main via coroutines + injected dispatchers, defer non-critical SDK init via App Startup, and shrink critical sections that hold locks."</p>
+</div>
+
+<h2>4. "Smooth scrolling for a list of 10,000 items"</h2>
+
+<h3>Compose — LazyColumn</h3>
+<pre><code class="language-kotlin">// Stable, immutable item type
+@Immutable
+data class FeedItem(val id: String, val title: String, val thumbnailUrl: String)
+
+@Composable
+fun Feed(items: List&lt;FeedItem&gt;) {
+    LazyColumn {
+        items(
+            items = items,
+            key = { it.id },                      // stable identity → correct recomposition
+            contentType = { "feed_item" }          // helps view-pool reuse for heterogeneous lists
+        ) { item -&gt;
+            FeedRow(item)
+        }
+    }
+}
+
+@Composable
+private fun FeedRow(item: FeedItem) {
+    // Coil sized to the rendered area — prevents giant bitmap decode
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(item.thumbnailUrl)
+            .size(160)                            // pixel dimension cap
+            .crossfade(true)
+            .build(),
+        contentDescription = null,
+        modifier = Modifier.size(80.dp)
+    )
+    Text(item.title)
+}</code></pre>
+<div class="code-explain">
+<ol>
+  <li><strong><code>@Immutable</code> on the data class</strong>: tells Compose it can skip recomposition when the parameter <code>equals</code> previous. Without it, <code>List</code>-typed fields make the type unstable.</li>
+  <li><strong><code>key = { it.id }</code></strong>: Compose uses this to identify items across data updates. Without keys, scroll position jumps on insertions/reorderings.</li>
+  <li><strong><code>contentType</code></strong>: helps the LazyColumn's view pool reuse compositions for items of the same shape.</li>
+  <li><strong>Coil <code>.size(160)</code></strong>: bitmap is decoded at request size, not source size. Critical for grids of small thumbnails.</li>
+</ol>
+</div>
+
+<h3>XML — RecyclerView</h3>
+<pre><code class="language-kotlin">class FeedAdapter : ListAdapter&lt;FeedItem, FeedVH&gt;(DIFF_CALLBACK) {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FeedVH {
+        val v = LayoutInflater.from(parent.context).inflate(R.layout.row_feed, parent, false)
+        return FeedVH(v)
+    }
+    override fun onBindViewHolder(h: FeedVH, pos: Int) {
+        h.bind(getItem(pos))
+    }
+    companion object {
+        val DIFF_CALLBACK = object : DiffUtil.ItemCallback&lt;FeedItem&gt;() {
+            override fun areItemsTheSame(old: FeedItem, new: FeedItem) = old.id == new.id
+            override fun areContentsTheSame(old: FeedItem, new: FeedItem) = old == new
+        }
+    }
+}
+
+// In layout XML — fixed item size + RecyclerView optimizations
+&lt;androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/list"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior" /&gt;
+
+// In code — when items have a fixed height
+recyclerView.setHasFixedSize(true)         // skip a measure pass on inserts
+recyclerView.itemAnimator = null            // disable animations during heavy scroll if needed
+recyclerView.recycledViewPool.setMaxRecycledViews(VIEW_TYPE_FEED, 20)</code></pre>
+<div class="code-explain">
+<ol>
+  <li><strong><code>ListAdapter</code> + <code>DiffUtil</code></strong>: only recomputes/redraws changed rows when you call <code>submitList(newList)</code>. Crucial for performance with frequent updates.</li>
+  <li><strong><code>setHasFixedSize(true)</code></strong>: tells RecyclerView item size doesn't change on data changes — skips a layout pass.</li>
+  <li><strong><code>onBindViewHolder</code> stays cheap</strong>: only set already-formatted strings + load images via Glide/Coil. Never compute or do I/O here.</li>
+</ol>
+</div>
+
+<h3>For huge datasets — Paging 3</h3>
+<p>10K items in memory may be fine; 1M items is not. Use Paging 3 with <code>RemoteMediator</code> so only the visible window + buffer is loaded at any time. See <a href="jetpack.html">Jetpack page</a>.</p>
+
+<h2>5. "How do I store API keys securely?"</h2>
+
+<div class="callout warn">
+  <span class="label">The honest answer first</span>
+  <p>Anything shipped in the APK can be extracted. The goal is to <strong>raise the bar</strong>, not achieve absolute security.</p>
+</div>
+
+<h3>Layered approach</h3>
+<ol>
+  <li><strong>Don't put real secrets in source control.</strong> Use <code>local.properties</code> or environment variables; load via <code>buildConfigField</code>.</li>
+  <li><strong>Don't ship long-lived shared secrets to clients.</strong> Use OAuth + PKCE for user auth; ephemeral tokens are fine. For service-level secrets, route calls through your backend.</li>
+  <li><strong>Obfuscate via R8.</strong> Keeps casual reverse-engineering tedious. Doesn't stop a determined attacker.</li>
+  <li><strong>Use NDK / native code</strong> for the most sensitive constants — harder to extract than Java strings, but still possible.</li>
+  <li><strong>For per-user tokens</strong>: store in <code>EncryptedSharedPreferences</code> (Android Keystore-backed).</li>
+</ol>
+
+<h3>Build-config approach (better than hardcoded)</h3>
+<pre><code class="language-kotlin">// gradle.properties (gitignored or in CI secrets)
+API_KEY=abc123
+
+// app/build.gradle.kts
+android {
+    defaultConfig {
+        buildConfigField("String", "API_KEY", "\"${project.findProperty("API_KEY")}\"")
+    }
+}
+
+// In code
+val key = BuildConfig.API_KEY</code></pre>
+<div class="code-explain">The key isn't in source. It still ends up as a String in the compiled APK — extractable with <code>strings</code> on the dex — but at least it's not in your git history or accessible to people reading your repo.</div>
+
+<h3>EncryptedSharedPreferences for user tokens</h3>
+<pre><code class="language-kotlin">val masterKey = MasterKey.Builder(ctx)
+    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)   // hardware-backed when available
+    .build()
+
+val prefs = EncryptedSharedPreferences.create(
+    ctx, "secure_tokens", masterKey,
+    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+)
+
+prefs.edit().putString("access_token", token).apply()</code></pre>
+<div class="code-explain">The master key lives in Android Keystore. On devices with hardware-backed Keystore (most modern phones), the key never leaves the secure element — even root can't extract it. The encrypted blob is stored in normal SharedPreferences XML; only the device that wrote it can read it back.</div>
+
+<h2>6. "Why ProGuard / R8?"</h2>
+
+<div class="definition"><strong>R8</strong> = the modern code shrinker, obfuscator, and optimizer Android uses in release builds. It absorbed ProGuard's role; you'll still see "ProGuard rules" because the rule file format (<code>proguard-rules.pro</code>) is the same.</div>
+
+<h3>What R8 does (release builds only by default)</h3>
+<ol>
+  <li><strong>Tree-shaking</strong> — removes unused classes, methods, fields. Often 20-40% APK size reduction.</li>
+  <li><strong>Optimization</strong> — inlines methods, propagates constants, removes dead code.</li>
+  <li><strong>Obfuscation</strong> — renames classes/methods to <code>a/b/c</code>. Smaller bytecode + harder to reverse-engineer.</li>
+  <li><strong>Resource shrinking</strong> (with <code>shrinkResources true</code>) — strips unused images, layouts, strings.</li>
+</ol>
+
+<h3>Enable in build.gradle</h3>
+<pre><code class="language-kotlin">android {
+    buildTypes {
+        release {
+            isMinifyEnabled = true            // R8 code shrink + obfuscate
+            isShrinkResources = true           // strip unused resources
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+}</code></pre>
+
+<h3>Common keep rules you'll write</h3>
+<pre><code># For reflection-heavy libs (Gson, Moshi, Retrofit @SerializedName)
+-keep class com.fox.app.dto.** { *; }
+-keepattributes Signature
+-keepattributes RuntimeVisibleAnnotations
+
+# For Kotlinx Serialization
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+
+# Keep your Retrofit interface
+-keep,allowobfuscation,allowshrinking interface com.fox.app.api.**
+
+# Don't strip data classes serialized by Gson
+-keepclassmembers class com.fox.app.dto.** {
+    &lt;fields&gt;;
+    &lt;init&gt;(...);
+}</code></pre>
+<div class="code-explain">"Keep" rules tell R8 NOT to remove or obfuscate matching symbols. You need them for code accessed via reflection — JSON DTOs, Retrofit interfaces, anything called from JNI, anything referenced by class name from XML or strings. Without keep rules, R8 may rename a field that GSON tries to deserialize by name → runtime crash.</div>
+
+<h2>7. "AAB vs APK — what's the advantage?"</h2>
+
+<div class="definition"><strong>APK</strong> = a single installable Android package. Same binary delivered to every device.<br><strong>AAB (Android App Bundle)</strong> = upload format for Play Store. Play uses it to generate per-device APKs with only the resources/code needed for that specific device.</div>
+
+<h3>What gets split per-device</h3>
+<ul>
+  <li><strong>ABI splits</strong> — only ARM64 native libs go to ARM64 devices, etc.</li>
+  <li><strong>Density splits</strong> — only mdpi/hdpi/xxhdpi resources for the device's actual density.</li>
+  <li><strong>Language splits</strong> — only English+French for a French-system device, etc.</li>
+</ul>
+
+<h3>Concrete numbers</h3>
+<p>Typical app: a 50 MB universal APK becomes a ~22 MB per-device download via AAB. Significant on low-end markets where data is metered.</p>
+
+<h3>Other AAB benefits</h3>
+<ul>
+  <li><strong>Dynamic feature modules</strong> — install rarely-used features on demand (Play Feature Delivery).</li>
+  <li><strong>Asset packs</strong> — separate-from-base downloads for large assets (game levels, video catalogs).</li>
+  <li><strong>Play App Signing</strong> — Google holds the app signing key; you sign with an upload key. Signing key rotation possible.</li>
+</ul>
+
+<h3>Mandatory since 2021</h3>
+<p>Play Store requires AAB for new apps. APK is still fine for sideloading or alternative stores.</p>
+
+<h2>8. "Memory leaks — how do you find and fix?"</h2>
+
+<div class="definition"><strong>Memory leak</strong> = an object that's no longer logically needed but is still reachable from a GC root, so the garbage collector can't free it. On Android, the classic case is an <code>Activity</code> instance retained past its destruction.</div>
+
+<h3>Detection</h3>
+<ol>
+  <li><strong>LeakCanary</strong> in debug builds — automatically detects retained instances and reports the GC-root chain. Just adding it as a debug dependency is enough.</li>
+  <li><strong>Profiler heap dumps</strong> for runtime investigation — Android Studio → Profiler → Memory → "Capture heap dump" after reproducing the leak. Group by class; look for <code>Activity</code>/<code>Fragment</code> with &gt;1 instance.</li>
+  <li><strong>StrictMode <code>VmPolicy.detectActivityLeaks()</code></strong> — logs in real time when an Activity isn't GC'd after destruction.</li>
+  <li><strong>Production crash reports</strong> with patterns like "OutOfMemoryError" or unbounded memory growth in Crashlytics.</li>
+</ol>
+
+<h3>The classic causes</h3>
+<table>
+<thead><tr><th>Cause</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>Singleton holds an Activity Context</td><td>Use Application Context (or <code>@ApplicationContext</code> via Hilt)</td></tr>
+<tr><td>Anonymous inner class (Handler, Runnable) holds outer reference</td><td>Use static nested classes + WeakReference, or migrate to coroutines</td></tr>
+<tr><td>Listeners registered, never unregistered</td><td>Unregister in <code>onDestroy</code> / <code>onPause</code> mirroring registration</td></tr>
+<tr><td>GlobalScope.launch captures Activity</td><td>Use <code>viewModelScope</code> or <code>lifecycleScope</code></td></tr>
+<tr><td>ExoPlayer not released</td><td><code>player.release()</code> in <code>onDestroy</code> / <code>onDispose</code></td></tr>
+<tr><td>Fragment uses <code>this</code> as LifecycleOwner for view-bound observers</td><td>Use <code>viewLifecycleOwner</code> instead</td></tr>
+<tr><td>RxJava subscription not disposed (legacy)</td><td>Add to <code>CompositeDisposable</code>; clear in <code>onDestroy</code></td></tr>
+<tr><td>Bitmap cache unbounded</td><td>LruCache with <code>maxSize</code> in bytes; or use Coil/Glide</td></tr>
+</tbody>
+</table>
+
+<h3>Heap-dump workflow (step-by-step)</h3>
+<ol>
+  <li>Run debug build on device. Open Android Studio Profiler.</li>
+  <li>Reproduce the suspected leak: open the screen, rotate 5 times, navigate away.</li>
+  <li>Profiler → Memory tab → click <strong>"Capture heap dump"</strong>.</li>
+  <li>Group by <em>class</em>. Type your Activity name.</li>
+  <li>If &gt;1 instance, you have a leak. Click an instance → "Show nearest GC root."</li>
+  <li>The chain shows what's holding it — usually a static field, singleton, or registered listener.</li>
+  <li>Fix the chain root. Re-run, dump, verify count is back to 0 (or 1 if currently visible).</li>
+</ol>
+
+<h2>9. "Multi-module app — how do you handle navigation + state sharing?"</h2>
+
+<h3>Navigation</h3>
+<p><strong>Don't</strong> let feature modules know about each other's destinations. <strong>Do</strong> route through interfaces.</p>
+
+<pre><code class="language-kotlin">// :feature:home — declares an interface for "where to go from here"
+interface HomeNavigator {
+    fun openDetail(id: String)
+    fun openProfile()
+}
+
+// :app — implements it knowing about all features
+class AppNavigator(private val nav: NavController) : HomeNavigator {
+    override fun openDetail(id: String) = nav.navigate("detail/$id")
+    override fun openProfile() = nav.navigate("profile")
+}
+
+// Hilt provides the impl
+@Module @InstallIn(ActivityComponent::class)
+abstract class NavigatorModule {
+    @Binds abstract fun bindHome(impl: AppNavigator): HomeNavigator
+}</code></pre>
+<div class="code-explain">Each feature module <em>declares</em> what it needs to navigate to (<code>HomeNavigator</code> interface) but doesn't know how. The <code>:app</code> module wires them all together with the actual NavController. This keeps <code>:feature:home</code> from depending on <code>:feature:detail</code> — no cycles, fast incremental builds.</div>
+
+<h3>State sharing across modules</h3>
+<ol>
+  <li><strong>Repository in a shared <code>:core:data</code> module.</strong> Feature modules depend on the repository <em>interface</em> in <code>:core:domain</code>. Multiple features observe the same Flow → same data, automatic sync.</li>
+  <li><strong>Shared ViewModel via <code>navGraphViewModels</code></strong> (XML) or <strong>shared NavBackStackEntry</strong> in Compose: scope a ViewModel to a sub-graph so multiple destinations see the same instance.</li>
+  <li><strong>Cross-module events</strong> via a shared <code>SharedFlow</code> in <code>:core:common</code>, fed by features and observed by others. Use sparingly — easy to abuse.</li>
+</ol>
+
+<h3>Shared graph ViewModel — Compose example</h3>
+<pre><code class="language-kotlin">@Composable
+fun CheckoutGraph(navController: NavHostController) {
+    NavHost(navController, startDestination = "cart") {
+        navigation(startDestination = "cart", route = "checkout") {
+            composable("cart") { entry -&gt;
+                val parent = remember(entry) { navController.getBackStackEntry("checkout") }
+                val vm: CheckoutVm = hiltViewModel(parent)   // shared across cart/payment/confirm
+                CartScreen(vm)
+            }
+            composable("payment") { entry -&gt;
+                val parent = remember(entry) { navController.getBackStackEntry("checkout") }
+                val vm: CheckoutVm = hiltViewModel(parent)
+                PaymentScreen(vm)
+            }
+            composable("confirm") { entry -&gt;
+                val parent = remember(entry) { navController.getBackStackEntry("checkout") }
+                val vm: CheckoutVm = hiltViewModel(parent)
+                ConfirmScreen(vm)
+            }
+        }
+    }
+}</code></pre>
+<div class="code-explain"><code>hiltViewModel(parent)</code> scopes the ViewModel to the parent backstack entry — the <code>"checkout"</code> sub-graph. All three screens see the same <code>CheckoutVm</code> instance with shared state (cart contents, selected payment, etc.). The VM is cleared when the user navigates out of the entire <code>"checkout"</code> graph.</div>
+
+<h2>10. "Constructor injection vs field injection — which and why?"</h2>
+
+<div class="definition"><strong>Constructor injection:</strong> dependencies passed via the constructor parameters. Default for plain Kotlin classes.<br><strong>Field injection:</strong> <code>@Inject lateinit var dep: Dep</code> set after construction. Used for Android components Hilt can't construct (Activity, Fragment, etc.).</div>
+
+<h3>Why constructor injection is preferred</h3>
+<ol>
+  <li><strong>Immutability.</strong> Dependencies are <code>val</code>; can't be reassigned mid-life.</li>
+  <li><strong>Compile-time safety.</strong> Missing dependency → compile error, not runtime NPE.</li>
+  <li><strong>Easy unit testing.</strong> Pass fakes directly to the constructor — no DI framework needed in tests.</li>
+  <li><strong>Explicit dependency surface.</strong> Reading the constructor tells you everything the class needs.</li>
+  <li><strong>No <code>lateinit</code> ceremony.</strong> No risk of calling a method before injection happens.</li>
+</ol>
+
+<h3>When you must use field injection</h3>
+<p>Android constructs Activities, Fragments, Services, Receivers, Views — you don't get to control their constructors. Hilt's <code>@AndroidEntryPoint</code> generates the field-injection plumbing for these cases.</p>
+
+<pre><code class="language-kotlin">// Plain class — constructor injection
+class FetchUseCase @Inject constructor(
+    private val repo: NotesRepo,
+    @IoDispatcher private val io: CoroutineDispatcher
+) {
+    suspend operator fun invoke(): List&lt;Note&gt; = withContext(io) { repo.fetchAll() }
+}
+
+// Android component — field injection (you don't own the constructor)
+@AndroidEntryPoint
+class HomeFragment : Fragment() {
+    @Inject lateinit var analytics: AnalyticsTracker      // injected after creation
+
+    override fun onResume() {
+        super.onResume()
+        analytics.screen("home")     // safe — Hilt injects before lifecycle calls
+    }
+}</code></pre>
+<div class="code-explain"><code>HomeFragment</code> is constructed by the Android framework; you can't add constructor params. Hilt's generated code injects fields right before <code>super.onCreate</code> runs, so any lifecycle method can safely use them.</div>
+
+<h2>11. "ContentProvider — what is it and when?"</h2>
+
+<div class="definition"><strong>ContentProvider</strong> = an Android component that exposes structured data (typically backed by SQLite or files) to <strong>other apps</strong>. URIs of the form <code>content://authority/path/id</code>. Used by system apps (Contacts, Calendar, MediaStore) and rarely by app-internal code.</div>
+
+<h3>When to use one</h3>
+<ul>
+  <li>You're building a launcher / system-style app that needs to be queryable.</li>
+  <li>You need to share data across multiple of your own apps without a shared backend.</li>
+  <li>You want to hand a <code>content://</code> URI to another app for it to read (e.g., letting the system Photo Picker read your gallery).</li>
+</ul>
+
+<h3>When NOT to</h3>
+<p>Within a single app, use Room directly. ContentProvider adds boilerplate, IPC overhead, and security surface area — only worth it if there's a true cross-app contract.</p>
+
+<h3>Typical consumer-side usage</h3>
+<pre><code class="language-kotlin">val cursor = ctx.contentResolver.query(
+    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+    arrayOf(MediaStore.Images.Media._ID, MediaStore.Images.Media.DISPLAY_NAME),
+    null, null,
+    "${MediaStore.Images.Media.DATE_ADDED} DESC"
+)
+cursor?.use {
+    while (it.moveToNext()) {
+        val id = it.getLong(0)
+        val name = it.getString(1)
+        // ...
+    }
+}</code></pre>
+<div class="code-explain">This queries the system MediaStore for all images, sorted newest first. The <code>cursor.use</code> block ensures the cursor is closed even on exception. Always project specific columns instead of <code>null</code> (= "all") for performance and forward compatibility.</div>
+
+<h2>12. "HashMap vs HashSet vs LinkedHashMap — which when?"</h2>
+
+<table>
+<thead><tr><th>Need</th><th>Use</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Key → value lookup</td><td><code>HashMap</code></td><td>O(1) average</td></tr>
+<tr><td>Just "is X in this set?"</td><td><code>HashSet</code></td><td>O(1) average; no value to store</td></tr>
+<tr><td>Insertion order preserved</td><td><code>LinkedHashMap</code></td><td>HashMap + doubly-linked list of entries</td></tr>
+<tr><td>Sorted by key</td><td><code>TreeMap</code></td><td>O(log n); red-black tree</td></tr>
+<tr><td>Int-keyed map (no autoboxing)</td><td><code>SparseArray</code></td><td>Avoids Integer boxing on hot paths</td></tr>
+<tr><td>Bounded LRU cache</td><td><code>LruCache</code> (built on LinkedHashMap)</td><td>Evicts oldest when full</td></tr>
+</tbody>
+</table>
+
+<h3>Quick example — counting word frequencies</h3>
+<pre><code class="language-kotlin">// HashMap<String, Int> — counts per key
+val counts = HashMap&lt;String, Int&gt;()
+for (word in words) counts[word] = (counts[word] ?: 0) + 1
+
+// Or idiomatically with Kotlin
+val counts = words.groupingBy { it }.eachCount()</code></pre>
+<div class="code-explain"><code>groupingBy</code> + <code>eachCount</code> is a Kotlin stdlib idiom that compiles to roughly the same logic. Read this when you spot the imperative HashMap-counter pattern in code review — replacing it makes intent clearer.</div>
+
+<h2>13. "Service vs WorkManager — when which?"</h2>
+
+<table>
+<thead><tr><th>Need</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td>User-visible long-running task (music, location, video processing)</td><td>Foreground Service (with notification)</td></tr>
+<tr><td>Bound IPC to another component</td><td>Bound Service</td></tr>
+<tr><td>Deferrable + guaranteed task (sync, upload, indexing)</td><td>WorkManager</td></tr>
+<tr><td>Schedule wakeup at exact time</td><td>AlarmManager (rare; needs SCHEDULE_EXACT_ALARM permission Android 12+)</td></tr>
+<tr><td>"Background" task you used to start a Service for</td><td>WorkManager — background Services are blocked on Android 8+</td></tr>
+</tbody>
+</table>
+
+<div class="callout warn">
+  <span class="label">Background service restrictions (Android 8+, API 26)</span>
+  <p>You cannot start a regular Service while the app is in the background — the OS throws <code>IllegalStateException</code>. The fix is either: <strong>(a)</strong> a foreground Service (must show a notification within 5s), <strong>(b)</strong> WorkManager for deferrable work, or <strong>(c)</strong> JobScheduler.</p>
+</div>
+
+<h2>14. "Scenario: you're shipping to Play Store with a 64MB APK"</h2>
+
+<h3>Reduction checklist</h3>
+<ol>
+  <li><strong>Switch to App Bundle (AAB).</strong> Per-device download often cut by 50%.</li>
+  <li><strong>Enable R8</strong>: <code>isMinifyEnabled = true</code>, <code>isShrinkResources = true</code>.</li>
+  <li><strong>Convert PNGs to WebP</strong> (Android Studio → right-click → Convert to WebP). 25-50% size cut for lossy.</li>
+  <li><strong>Use vector drawables</strong> for icons. One asset, all densities.</li>
+  <li><strong>Audit dependencies.</strong> Use APK Analyzer in Android Studio. Look for huge transitive deps (Guava, big util libs).</li>
+  <li><strong>Strip native lib ABIs</strong> you don't ship: <code>ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }</code> — drop x86 if you don't need it.</li>
+  <li><strong>Dynamic feature modules</strong> for rarely-used features (Play Feature Delivery).</li>
+  <li><strong>Asset packs</strong> for large media (use Play Asset Delivery instead of bundling).</li>
+</ol>
+
+<h2>15. "Build an offline-first app from scratch — end-to-end"</h2>
+
+<div class="definition"><strong>Offline-first</strong> means the app is fully usable without a network. Reads come from the local DB (which is the <em>source of truth</em>); writes go to the DB immediately and are <em>queued</em> for sync to the server when connectivity returns. The user never sees a spinner waiting on the wire for a normal interaction.</div>
+
+<p>This is the senior-level walkthrough that pulls together everything: cache, secure auth, optimistic writes, conflict resolution, network-aware sync, and offline UI. Treat this as the deep-dive answer to "design an offline-first notes app" or any similar prompt.</p>
+
+<h3>Goals + non-functional requirements (always state these first)</h3>
+<ul>
+  <li>Reads work fully offline — <strong>Room is the source of truth</strong>; UI observes its Flow.</li>
+  <li>Writes apply locally immediately (optimistic UI), queue for server sync, retry on network return.</li>
+  <li>Server failures don't crash the UI or lose data — failures are observable, not catastrophic.</li>
+  <li>Conflicts resolve deterministically (last-write-wins by default; surface to user for important data).</li>
+  <li>Auth tokens stored securely; refresh on 401 transparent; tokens persist across app kills.</li>
+  <li>"You're offline" / "couldn't sync" UI cues are subtle, not modal.</li>
+</ul>
+
+<h3>Architecture (the picture to draw)</h3>
+<pre><code>┌──────────── UI (Compose / XML) ────────────┐
+│  collects StateFlow&lt;UiState&gt; from VM       │
+│  shows offline banner from ConnectivityFlow│
+└──────────────┬─────────────────────────────┘
+               ↓ intents (add/edit/delete)
+┌──────────── ViewModel ─────────────────────┐
+│  exposes state + one-shot effects          │
+└──────────────┬─────────────────────────────┘
+               ↓ calls
+┌──────────── Repository ────────────────────┐
+│  observe() → Flow from DAO                 │   ← reads always work offline
+│  add/edit/delete() → write to DAO + enqueue│   ← writes optimistic
+└──────┬───────────────┬─────────────────────┘
+       ↓               ↓
+┌─────────────┐  ┌──────────────────────────┐
+│  Room DB    │  │  WorkManager (SyncWorker)│
+│  (truth)    │  │  - OneTime + Periodic    │
+└─────────────┘  │  - NetworkType.CONNECTED │
+                 │  - Exponential backoff   │
+                 └────────┬─────────────────┘
+                          ↓
+                 ┌──────────────────────────┐
+                 │  Retrofit + Auth pipeline│
+                 │  - AuthInterceptor       │
+                 │  - TokenAuthenticator    │
+                 │  - EncryptedPrefs tokens │
+                 └────────┬─────────────────┘
+                          ↓
+                 ┌──────────────────────────┐
+                 │  Backend                 │
+                 └──────────────────────────┘</code></pre>
+
+<h3>Step 1 — schema with sync state</h3>
+
+<pre><code class="language-kotlin">@Entity(tableName = "notes")
+data class NoteEntity(
+    @PrimaryKey val id: String,                  // client-generated UUID
+    val serverId: String? = null,                 // populated after first sync
+    val title: String,
+    val body: String,
+    val updatedAt: Long,                          // local mutation timestamp
+    val version: Int = 0,                         // for optimistic concurrency
+    val syncStatus: String,                       // SYNCED / PENDING_CREATE / PENDING_UPDATE / PENDING_DELETE
+    val idempotencyKey: String                    // UUID per pending mutation; never re-used on retry
+)
+
+@Dao
+interface NotesDao {
+    @Query("SELECT * FROM notes WHERE syncStatus != 'PENDING_DELETE' ORDER BY updatedAt DESC")
+    fun observeAll(): Flow&lt;List&lt;NoteEntity&gt;&gt;     // UI sees this — never includes "tombstoned" deletes
+
+    @Query("SELECT * FROM notes WHERE syncStatus != 'SYNCED'")
+    suspend fun pending(): List&lt;NoteEntity&gt;       // SyncWorker drains this
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(note: NoteEntity)
+
+    @Query("UPDATE notes SET syncStatus = 'SYNCED', serverId = :serverId, version = :version WHERE id = :id")
+    suspend fun markSynced(id: String, serverId: String, version: Int)
+
+    @Query("DELETE FROM notes WHERE id = :id")
+    suspend fun hardDelete(id: String)
+}</code></pre>
+
+<div class="code-explain">
+<ol>
+  <li><strong>Client-generated UUID (<code>id</code>)</strong> means the user can keep editing offline; we don't need a server round-trip to get an ID. Once synced, <code>serverId</code> fills in.</li>
+  <li><strong><code>syncStatus</code></strong> is the heart of the engine. Every row is either SYNCED (server agrees) or pending one of three operations.</li>
+  <li><strong><code>idempotencyKey</code></strong> is per-mutation, regenerated when the user makes a fresh edit. The SyncWorker sends it as a request header so the server dedupes our retries — even if our network died after the server processed the request, our retry won't create a duplicate.</li>
+  <li><strong><code>observeAll()</code> filters out PENDING_DELETE</strong> — items the user deleted offline disappear from the UI immediately; they only get hard-deleted from the local DB after the server confirms. This is the "tombstone" pattern.</li>
+</ol>
+</div>
+
+<h3>Step 2 — Repository: reads (offline-first cache)</h3>
+
+<pre><code class="language-kotlin">interface NotesRepo {
+    fun observe(): Flow&lt;List&lt;Note&gt;&gt;
+    suspend fun add(title: String, body: String)
+    suspend fun edit(id: String, title: String, body: String)
+    suspend fun delete(id: String)
+    suspend fun forceSync(): Result&lt;Unit&gt;
+}
+
+class NotesRepoImpl @Inject constructor(
+    private val dao: NotesDao,
+    private val syncScheduler: SyncScheduler,
+    @IoDispatcher private val io: CoroutineDispatcher
+) : NotesRepo {
+
+    // UI-bound: always populated from local DB. Works fully offline.
+    override fun observe(): Flow&lt;List&lt;Note&gt;&gt; =
+        dao.observeAll().map { entities -&gt; entities.map { it.toDomain() } }
+
+    /* writes below */
+}</code></pre>
+
+<div class="code-explain">The UI's Flow comes from Room directly. <strong>If the server is down, the network is gone, the user is on a plane — none of this matters for reads.</strong> The Flow keeps emitting whatever's in the local DB. New emissions happen only when the DB itself changes (via a write or a successful sync that updated rows).</div>
+
+<h3>Step 3 — Repository: writes (optimistic + enqueue)</h3>
+
+<pre><code class="language-kotlin">override suspend fun add(title: String, body: String) = withContext(io) {
+    val now = System.currentTimeMillis()
+    val newNote = NoteEntity(
+        id = UUID.randomUUID().toString(),
+        title = title, body = body,
+        updatedAt = now, version = 0,
+        syncStatus = "PENDING_CREATE",
+        idempotencyKey = UUID.randomUUID().toString()
+    )
+    dao.upsert(newNote)              // (1) UI updates immediately via Flow
+    syncScheduler.scheduleSync()      // (2) tell WorkManager to try syncing now
+}
+
+override suspend fun edit(id: String, title: String, body: String) = withContext(io) {
+    val current = dao.byId(id) ?: return@withContext
+    val updated = current.copy(
+        title = title, body = body,
+        updatedAt = System.currentTimeMillis(),
+        // PENDING_CREATE stays PENDING_CREATE if not yet synced once;
+        // otherwise becomes PENDING_UPDATE
+        syncStatus = if (current.syncStatus == "PENDING_CREATE") "PENDING_CREATE" else "PENDING_UPDATE",
+        idempotencyKey = UUID.randomUUID().toString()  // fresh key for the new mutation
+    )
+    dao.upsert(updated)
+    syncScheduler.scheduleSync()
+}
+
+override suspend fun delete(id: String) = withContext(io) {
+    val current = dao.byId(id) ?: return@withContext
+    if (current.serverId == null) {
+        // Never made it to the server — just hard-delete locally.
+        dao.hardDelete(id)
+    } else {
+        // Tombstone: hide from UI, tell server later.
+        dao.upsert(current.copy(syncStatus = "PENDING_DELETE", idempotencyKey = UUID.randomUUID().toString()))
+        syncScheduler.scheduleSync()
+    }
+}</code></pre>
+
+<div class="code-explain">
+<ol>
+  <li><strong>Optimistic UI:</strong> <code>dao.upsert(...)</code> runs first. Room's invalidation tracker fires. The Flow emits. UI updates within ~milliseconds. The user sees the change immediately.</li>
+  <li><strong>Schedule sync:</strong> <code>syncScheduler.scheduleSync()</code> kicks WorkManager. If online, the SyncWorker runs in seconds. If offline, WorkManager waits for connectivity (constraint) and runs as soon as the network returns.</li>
+  <li><strong>State machine for edits:</strong> if a note is still PENDING_CREATE (never synced) and the user edits it again, we keep it as PENDING_CREATE — the server will see only the final version, not an intermediate. This is "coalescing" pending mutations.</li>
+  <li><strong>Delete carefully:</strong> if the note never reached the server, hard-delete locally. Otherwise mark PENDING_DELETE so the UI hides it but we still know to call <code>DELETE</code> on the server.</li>
+</ol>
+</div>
+
+<h3>Step 4 — SyncScheduler + SyncWorker</h3>
+
+<pre><code class="language-kotlin">@Singleton
+class SyncScheduler @Inject constructor(
+    @ApplicationContext private val ctx: Context
+) {
+    fun scheduleSync() {
+        val request = OneTimeWorkRequestBuilder&lt;SyncWorker&gt;()
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+            .build()
+
+        WorkManager.getInstance(ctx).enqueueUniqueWork(
+            "notes-sync",
+            ExistingWorkPolicy.APPEND_OR_REPLACE,   // collapse rapid bursts
+            request
+        )
+    }
+
+    fun schedulePeriodic() {
+        val request = PeriodicWorkRequestBuilder&lt;SyncWorker&gt;(30, TimeUnit.MINUTES)
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+            .build()
+        WorkManager.getInstance(ctx).enqueueUniquePeriodicWork(
+            "notes-sync-periodic", ExistingPeriodicWorkPolicy.KEEP, request
+        )
+    }
+}
+
+@HiltWorker
+class SyncWorker @AssistedInject constructor(
+    @Assisted ctx: Context,
+    @Assisted params: WorkerParameters,
+    private val dao: NotesDao,
+    private val api: NotesApi
+) : CoroutineWorker(ctx, params) {
+
+    override suspend fun doWork(): Result {
+        val pending = dao.pending()
+        if (pending.isEmpty()) return Result.success()
+
+        for (entity in pending) {
+            val outcome = runCatching {
+                when (entity.syncStatus) {
+                    "PENDING_CREATE" -&gt; {
+                        val resp = api.create(entity.toCreateDto(), entity.idempotencyKey)
+                        dao.markSynced(entity.id, resp.serverId, resp.version)
+                    }
+                    "PENDING_UPDATE" -&gt; {
+                        // version sent for optimistic concurrency — server returns 409 if mismatched
+                        val resp = api.update(entity.serverId!!, entity.toPatchDto(), entity.version, entity.idempotencyKey)
+                        dao.markSynced(entity.id, resp.serverId, resp.version)
+                    }
+                    "PENDING_DELETE" -&gt; {
+                        api.delete(entity.serverId!!, entity.idempotencyKey)
+                        dao.hardDelete(entity.id)
+                    }
+                }
+            }
+            outcome.onFailure { e -&gt;
+                if (e is HttpException &amp;&amp; e.code() == 409) {
+                    resolveConflict(entity)
+                    // continue with the next item
+                } else if (e is HttpException &amp;&amp; e.code() in 400..499) {
+                    // permanent client error — remove from queue, log, surface
+                    dao.markFailed(entity.id, e.message ?: "")
+                } else {
+                    return Result.retry()  // transient network/5xx — exponential backoff
+                }
+            }
+        }
+
+        // Pull deltas after pushing
+        runCatching {
+            val since = dao.lastSyncedAt() ?: 0L
+            val remote = api.delta(since)
+            dao.upsertAll(remote.map { it.toEntity().copy(syncStatus = "SYNCED") })
+            dao.setLastSyncedAt(System.currentTimeMillis())
+        }.onFailure { return Result.retry() }
+
+        return Result.success()
+    }
+}</code></pre>
+
+<div class="code-explain">
+<ol>
+  <li><strong><code>NetworkType.CONNECTED</code> constraint</strong> means the worker waits for connectivity before running. If the user is offline when they save a note, WorkManager queues the worker; the moment the OS sees a usable network, the worker runs automatically.</li>
+  <li><strong><code>ExistingWorkPolicy.APPEND_OR_REPLACE</code></strong> coalesces rapid sync requests. If the user adds 5 notes in 3 seconds, we don't fire 5 workers in parallel — they batch.</li>
+  <li><strong>Idempotency key passed in every call</strong> — server dedupes if our retry arrives after the original was already processed. No phantom duplicates.</li>
+  <li><strong>409 = conflict</strong>: we sent a stale <code>version</code>. Hand to <code>resolveConflict</code> (next step). Don't retry.</li>
+  <li><strong>4xx (except 409) = permanent client error</strong>: don't retry forever. Mark the row failed, surface to the user, move on.</li>
+  <li><strong>5xx + IO = transient</strong>: <code>Result.retry()</code>. WorkManager applies exponential backoff (30s, 60s, 120s...).</li>
+  <li><strong>Pull deltas after push</strong>: any changes other devices made since <code>lastSyncedAt</code> — keeps multi-device state consistent.</li>
+</ol>
+</div>
+
+<h3>Step 5 — Conflict resolution (409 handling)</h3>
+
+<pre><code class="language-kotlin">private suspend fun resolveConflict(local: NoteEntity) {
+    // Server's current version of this note
+    val remote = api.fetchOne(local.serverId!!).toEntity()
+
+    // Strategy 1: last-write-wins by timestamp (simplest, lossy)
+    if (local.updatedAt &gt; remote.updatedAt) {
+        // Force-push our version with the latest server version number
+        val resp = api.update(local.serverId!!, local.toPatchDto(), remote.version, local.idempotencyKey)
+        dao.markSynced(local.id, resp.serverId, resp.version)
+    } else {
+        // Server is newer — accept it locally, dropping our pending change
+        dao.upsert(remote.copy(syncStatus = "SYNCED"))
+    }
+
+    // Strategy 2 (alternative): surface to user
+    // emit ConflictEvent(local, remote) → UI prompts user to pick
+    // Strategy 3 (Notion-level): three-way merge on diff of (commonAncestor, local, remote)
+}</code></pre>
+
+<div class="code-explain">Pick a strategy upfront and call it out: <strong>(a) last-write-wins</strong> (timestamp-driven, simple, can lose user input), <strong>(b) prompt user</strong> (good UX for important data — emit a one-shot event, let UI show a "Local vs Server" picker), <strong>(c) three-way merge</strong> (Notion/Figma-level — usually overkill). Pick one per data type. For notes: prompting is reasonable. For ephemeral things like "last read position": last-write-wins is fine.</div>
+
+<h3>Step 6 — Network awareness: trigger immediate sync on reconnect</h3>
+
+<pre><code class="language-kotlin">@Singleton
+class NetworkObserver @Inject constructor(
+    @ApplicationContext private val ctx: Context,
+    private val syncScheduler: SyncScheduler,
+    appScope: AppScope
+) {
+    private val cm = ctx.getSystemService(ConnectivityManager::class.java)
+
+    val isOnline: StateFlow&lt;Boolean&gt; = callbackFlow {
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                trySend(true)
+                syncScheduler.scheduleSync()    // network came back — drain the queue now
+            }
+            override fun onLost(network: Network) { trySend(false) }
+        }
+        cm.registerDefaultNetworkCallback(callback)
+        awaitClose { cm.unregisterNetworkCallback(callback) }
+    }.stateIn(appScope, SharingStarted.Eagerly, initialValue = isCurrentlyOnline())
+
+    private fun isCurrentlyOnline(): Boolean {
+        val net = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(net) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+}</code></pre>
+
+<div class="code-explain">Two roles:
+<ol>
+  <li><strong>UI banner driver</strong> — <code>isOnline</code> is a StateFlow the UI binds to: show "You're offline, changes will sync later" when false; hide when true.</li>
+  <li><strong>Eager sync trigger</strong> — when the OS reports a network became available (<code>onAvailable</code>), <strong>immediately</strong> call <code>scheduleSync()</code>. WorkManager would eventually pick this up via its constraint system, but observing the callback fires it in a few ms instead of waiting for the system to re-evaluate constraints.</li>
+</ol>
+<code>callbackFlow</code> + <code>awaitClose</code> ensure we unregister the system callback when nothing's collecting — no leak.
+</div>
+
+<h3>Step 7 — Auth integration in this same flow</h3>
+
+<p>The SyncWorker calls go through your standard <code>OkHttpClient</code> with <code>AuthInterceptor</code> + <code>TokenAuthenticator</code>:</p>
+
+<ul>
+  <li><strong>Tokens stored in <code>EncryptedSharedPreferences</code></strong> (Keystore-backed) — survive app kill, can't be read by other apps.</li>
+  <li><strong>AuthInterceptor</strong> attaches the access token on every request including SyncWorker's.</li>
+  <li><strong>TokenAuthenticator</strong> handles 401 transparently — refreshes under a <code>Mutex</code>, retries the original request.</li>
+  <li><strong>If refresh itself fails</strong> (refresh token revoked / expired beyond grace) — clear tokens, return null. SyncWorker sees the request fail, marks rows as needing re-auth, returns <code>Result.failure()</code>. UI surfaces "please sign in again" banner. Local data is preserved; nothing is lost.</li>
+</ul>
+
+<div class="callout warn">
+  <span class="label">Don't sync without auth</span>
+  <p>Before <code>doWork()</code> walks the queue, check <code>tokens.refreshToken() != null</code>. If null (logged out), exit early — no point hammering the server. The pending mutations stay queued until the user signs back in, then sync drains as expected.</p>
+</div>
+
+<h3>Step 8 — UI: offline banner + sync-failure feedback</h3>
+
+<pre><code class="language-kotlin">@Composable
+fun NotesScreen(
+    vm: NotesVm = hiltViewModel(),
+    network: NetworkObserver = LocalNetworkObserver.current
+) {
+    val state by vm.state.collectAsStateWithLifecycle()
+    val online by network.isOnline.collectAsStateWithLifecycle()
+
+    Column {
+        if (!online) {
+            // Subtle, non-modal banner. Doesn't block interaction.
+            OfflineBanner("You're offline — changes will sync when you're back online")
+        }
+
+        // Always-render content from cache. Notes flow continues to emit even offline.
+        NotesList(
+            notes = state.notes,
+            onAdd = { title, body -&gt; vm.onIntent(NotesIntent.Add(title, body)) },
+            onEdit = { id, title, body -&gt; vm.onIntent(NotesIntent.Edit(id, title, body)) },
+            onDelete = { id -&gt; vm.onIntent(NotesIntent.Delete(id)) }
+        )
+    }
+
+    // One-shot effects from the VM
+    LaunchedEffect(Unit) {
+        vm.effects.collect { e -&gt;
+            when (e) {
+                is NotesEffect.SyncFailed -&gt; snackbarHostState.showSnackbar("Couldn't sync: ${e.message}")
+                is NotesEffect.AuthExpired -&gt; navController.navigate("auth")
+            }
+        }
+    }
+}</code></pre>
+
+<div class="code-explain">Three UI behaviors stacked:
+<ol>
+  <li><strong>Offline banner</strong> — <em>informative, not blocking</em>. The user can still add/edit/delete; their changes apply locally and queue for sync.</li>
+  <li><strong>Notes list always renders</strong> from the cached Flow. Whether online or offline doesn't change reads at all.</li>
+  <li><strong>One-shot effects</strong> — sync failures surface as snackbars (auto-dismiss); auth expiry navigates to login. Both come via <code>SharedFlow(replay=0)</code> so a screen rotation doesn't replay yesterday's snackbars.</li>
+</ol>
+</div>
+
+<h3>The 30-second monologue (rehearse this)</h3>
+
+<div class="callout senior">
+  <span class="label">Say this when asked "design an offline-first app"</span>
+  <p>"I make the <span class="signal-phrase">local DB the single source of truth</span> — Room, with each row carrying a <code>syncStatus</code> and an <code>idempotencyKey</code>. Reads come from the DAO's Flow; the UI never blocks on network. Writes apply locally first (optimistic), then a <span class="signal-phrase">WorkManager SyncWorker with NetworkType.CONNECTED constraint</span> drains the pending queue. <span class="signal-phrase">Idempotency keys</span> on every server call dedupe retries. <span class="signal-phrase">Conflict resolution</span> is a per-feature choice — usually last-write-wins, sometimes a user prompt. A <span class="signal-phrase">ConnectivityManager NetworkCallback</span> triggers immediate sync on reconnect. <span class="signal-phrase">Tokens live in EncryptedSharedPreferences</span> backed by Keystore; the OkHttp Authenticator handles 401 refresh transparently. The UI shows a non-modal offline banner and a snackbar on sync failures — neither blocks usage. The result: the app is fully functional on a plane, syncs in the background when network returns, and never loses user input."</p>
+</div>
+
+<h2>16. "Senior-flavored 'Tell me how you'd approach X' patterns"</h2>
+
+<div class="callout senior">
+  <span class="label">Generic senior approach</span>
+  <p>Whatever the question, follow this template aloud: <strong>(1)</strong> Clarify the requirement (don't assume scale, online/offline, real-time). <strong>(2)</strong> Name the constraints (latency, battery, offline, accessibility). <strong>(3)</strong> Sketch 2-3 approaches with explicit tradeoffs. <strong>(4)</strong> Pick one + justify. <strong>(5)</strong> Mention what you'd measure to validate. <strong>(6)</strong> Mention what could go wrong + how you'd respond.</p>
+  <p>This template alone is the difference between "junior who knows how to code" and "senior who shapes engineering decisions."</p>
+</div>
+
+<div class="footer">
+<p>More scenarios? Check <a href="system-design.html">HLD / LLD</a> for Tubi-clone, image loader, chat, photo upload. <a href="index.html">← Overview</a></p>
+</div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

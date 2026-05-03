@@ -1,0 +1,1063 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mock Interview — 200+ Q&A · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Mock Interview — 200+ Q&amp;A</h1>
+<p class="lead">Filter by difficulty. <strong>Attempt the answer aloud first</strong>, then expand. Mark questions you stumbled on; redo them tomorrow.</p>
+
+<div class="qa-controls">
+  <span class="label">Difficulty:</span>
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="basic">Basic</button>
+  <button class="filter-btn" data-filter="intermediate">Intermediate</button>
+  <button class="filter-btn" data-filter="advanced">Advanced</button>
+  <button class="filter-btn" data-filter="extreme">Extreme</button>
+  <span style="flex:1"></span>
+  <button class="filter-btn" id="expand-all">Expand visible</button>
+  <button class="filter-btn" id="collapse-all">Collapse all</button>
+</div>
+
+<input type="text" id="qa-search" placeholder="Search questions and answers..."
+  style="width:100%;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;margin-bottom:24px"/>
+
+<!-- ============================================
+     KOTLIN
+     ============================================ -->
+<h2 class="qa-section-title">Kotlin (1–35)</h2>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q1. Difference between val and var?</summary>
+<div class="qa-body"><p><code>val</code> is read-only after initialization (immutable reference; the underlying object can still be mutable). <code>var</code> can be reassigned. Use <code>val</code> by default.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q2. What is null safety in Kotlin?</summary>
+<div class="qa-body"><p>The type system distinguishes nullable (<code>String?</code>) from non-null (<code>String</code>). The compiler enforces null checks before access. Operators: <code>?.</code> (safe call), <code>?:</code> (Elvis), <code>!!</code> (force non-null — avoid). <span class="signal">Compile-time NPE protection</span>.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q3. What is a data class?</summary>
+<div class="qa-body"><p>Auto-generates <code>equals</code>, <code>hashCode</code>, <code>toString</code>, <code>copy</code>, <code>componentN</code>. Must have ≥1 constructor parameter. Can't be <code>abstract</code>, <code>open</code>, <code>sealed</code>, <code>inner</code>. Non-constructor <code>var</code> fields are NOT in equals/hashCode/copy — common bug source.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q4. What does <code>!!</code> do?</summary>
+<div class="qa-body"><p>Asserts the value is non-null; throws <code>NullPointerException</code> if it isn't. Acceptable in tests; a code smell in production. Use <code>?.let</code>, <code>?:</code>, or <code>checkNotNull</code> instead.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q5. What's a sealed class / sealed interface?</summary>
+<div class="qa-body"><p>A type whose subclasses are all known at compile time → exhaustive <code>when</code>. Use for closed hierarchies like <code>UiState.Loading/Success/Error</code>. Sealed interface (1.5+) allows multiple-inheritance composition.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q6. What does <code>const val</code> mean?</summary>
+<div class="qa-body"><p>Compile-time constant. Only at top level / object / companion object. Only primitives + <code>String</code>. Inlined at the call site; saves a getter call vs <code>val</code>.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q7. Differences between String concatenation, StringBuilder, and String templates in Kotlin?</summary>
+<div class="qa-body"><p>String templates (<code>"Hello $name"</code>) compile to <code>StringBuilder.append</code> chains — efficient for typical use. For tight loops with many appends, instantiate a <code>StringBuilder</code> yourself. Plain <code>+</code> on String creates intermediate Strings — fine for occasional use, slow in loops.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q8. What is <code>Any</code> vs <code>Object</code>?</summary>
+<div class="qa-body"><p><code>Any</code> is Kotlin's root class (analogous to Java's <code>Object</code>). On the JVM, Kotlin's <code>Any</code> compiles to <code>java.lang.Object</code>. Differences: Kotlin's <code>Any</code> has only <code>equals</code>, <code>hashCode</code>, <code>toString</code> — no <code>wait/notify/getClass</code>.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q9. <code>List</code> vs <code>MutableList</code>?</summary>
+<div class="qa-body"><p><code>List&lt;T&gt;</code> is read-only (no <code>add</code>/<code>remove</code> methods). <code>MutableList&lt;T&gt;</code> adds them. Both are interfaces; underlying implementation is typically <code>ArrayList</code>. <strong>Read-only ≠ immutable</strong> — another reference may mutate the same list.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q10. What does <code>fun foo(x: Int = 5, y: String = "hi")</code> demonstrate?</summary>
+<div class="qa-body"><p>Default arguments. Combined with named-args (<code>foo(y = "world")</code>) eliminates most builder-pattern boilerplate.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q11. <code>lateinit</code> vs <code>by lazy</code>?</summary>
+<div class="qa-body"><p><code>lateinit var</code>: only <code>var</code>, only non-null reference types, must be initialized before use. <code>by lazy</code>: only <code>val</code>, thread-safe (SYNCHRONIZED) by default, computed on first access. Use <code>lateinit</code> for DI/view binding; <code>by lazy</code> for expensive deferred init.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q12. Explain scope functions (let/run/with/apply/also).</summary>
+<div class="qa-body"><p><code>let</code>: <code>it</code> / lambda result — nullable transform. <code>run</code>: <code>this</code> / lambda result — block on receiver. <code>with</code>: <code>this</code> / lambda result — group calls. <code>apply</code>: <code>this</code> / receiver — builder. <code>also</code>: <code>it</code> / receiver — side effect. Mnemonic: <code>apply/also</code> return the receiver; others return the lambda result.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q13. <code>==</code> vs <code>===</code>?</summary>
+<div class="qa-body"><p><code>==</code> calls <code>equals()</code> — structural equality. <code>===</code> is referential identity — same object. For nullables, both correctly handle null comparisons.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q14. What's an extension function and how is it dispatched?</summary>
+<div class="qa-body"><p>A function defined outside a class but called as if it were a member: <code>fun String.isEmail(): Boolean = ...</code>. <strong>Statically dispatched</strong> — resolved at compile time based on the static (declared) type, not the runtime type. A member with the same signature wins over an extension.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q15. What is an <code>inline</code> function and when to use it?</summary>
+<div class="qa-body"><p>Compiler inlines the function body at each call site. Avoids lambda object allocation; supports non-local <code>return</code>. Use for high-frequency higher-order functions (<code>forEach</code>, <code>let</code>). Don't inline large functions — bytecode bloat.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q16. What is <code>reified</code> and why does it require <code>inline</code>?</summary>
+<div class="qa-body"><p><code>reified</code> makes the type parameter accessible at runtime as <code>T::class</code>. Only works inside <code>inline</code> functions because <code>inline</code> copies the body — including the type parameter — to the call site, where T is concrete. Used in APIs like <code>gson.fromJson&lt;T&gt;(json)</code> or <code>intent.getParcelable&lt;T&gt;(key)</code>.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q17. Explain variance: <code>out</code>, <code>in</code>, invariant.</summary>
+<div class="qa-body"><p><code>out T</code> (covariant): producer of T; <code>Box&lt;Dog&gt;</code> is-a <code>Box&lt;Animal&gt;</code>. T can only appear in OUT positions. <code>in T</code> (contravariant): consumer; <code>Comparator&lt;Animal&gt;</code> is-a <code>Comparator&lt;Dog&gt;</code>. T can only appear in IN positions. Invariant (default): no subtype relationship — like <code>MutableList&lt;T&gt;</code>.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q18. What's the difference between <code>object</code> and <code>companion object</code>?</summary>
+<div class="qa-body"><p><code>object</code> = singleton. Lazily initialized, thread-safe. <code>companion object</code> inside a class = singleton tied to the class (Java's static analog). Use <code>@JvmStatic</code> on companion members for true Java-static interop.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q19. What is class delegation (<code>by</code>)?</summary>
+<div class="qa-body"><p>Forwards interface methods to a constructor argument: <code>class Cached(impl: Repo) : Repo by impl { /* override only what you need */ }</code>. Composition over inheritance with zero boilerplate.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q20. Property delegation — what's <code>by lazy</code> doing under the hood?</summary>
+<div class="qa-body"><p><code>val x by lazy { ... }</code> compiles to a backing <code>Lazy&lt;T&gt;</code> property whose <code>getValue</code> returns the cached value (computed once). Other built-in delegates: <code>Delegates.observable</code>, <code>Delegates.vetoable</code>, <code>Delegates.notNull</code>, map delegation.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q21. Sealed class vs enum — when which?</summary>
+<div class="qa-body"><p>Enum: fixed instances with the same fields/methods (<code>Direction.NORTH/SOUTH/EAST/WEST</code>). Sealed: hierarchy where each subclass can have unique fields (<code>UiState.Loading</code>, <code>UiState.Success(items)</code>, <code>UiState.Error(throwable)</code>). Use sealed for state with associated data; enum for plain enumerations.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q22. What's a value class and when to use it?</summary>
+<div class="qa-body"><p><code>@JvmInline value class UserId(val raw: String)</code> — wraps a single value with no runtime overhead in most cases (no boxing on direct calls). Use for type-safe primitives — <code>fetch(userId, email)</code> can't be called with the args swapped at compile time.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q23. What is operator overloading? Give a senior-level use.</summary>
+<div class="qa-body"><p><code>operator fun</code> on standard names (<code>plus</code>, <code>minus</code>, <code>get</code>, <code>set</code>, <code>invoke</code>, etc.). Senior pattern: <code>operator fun invoke</code> for use cases — <code>class GetUser @Inject constructor(...) { suspend operator fun invoke(id) = ... }</code>; called as <code>getUser(id)</code>.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q24. <code>crossinline</code> vs <code>noinline</code>?</summary>
+<div class="qa-body"><p>Both modify <code>inline</code> function lambda parameters. <code>crossinline</code>: forbids non-local returns (used when the lambda is called from a different execution context, e.g., stored in another lambda or thread). <code>noinline</code>: opt out of inlining for that one parameter (when you need to pass the lambda as an object, e.g., to another non-inline function).</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q25. Why does <code>data class</code> with a <code>var</code> body field break <code>equals</code>?</summary>
+<div class="qa-body"><p>Data class generates <code>equals/hashCode/copy</code> from <strong>constructor parameters only</strong>. A <code>var</code> declared in the body is NOT in those — so two instances differing only in body fields are still <code>==</code>. Always put fields in the constructor.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q26. What's <code>typealias</code> good for?</summary>
+<div class="qa-body"><p>Aliases for complex types: <code>typealias OnUserSelected = (User) -&gt; Unit</code>. Improves readability without creating a distinct type. (For type safety distinctness, use <code>value class</code> instead.)</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q27. What's a <code>contract</code> in Kotlin (e.g., <code>contract { returns() implies (x is Int) }</code>)?</summary>
+<div class="qa-body"><p>Compiler hints describing the function's behavior to enable smarter smart-casts. E.g., <code>contract { callsInPlace(block, EXACTLY_ONCE) }</code> tells the compiler the lambda runs exactly once, enabling val-init-after-call. Used by stdlib (<code>let</code>, <code>also</code>, <code>require</code>, <code>requireNotNull</code>).</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q28. <code>Sequence</code> vs <code>Iterable</code> — when which?</summary>
+<div class="qa-body"><p>Iterable: each operator allocates a new collection; eager. Sequence: lazy, terminal-driven; better for big collections with many ops; worse for small ones (per-element overhead). Convert with <code>list.asSequence()...toList()</code>.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q29. Spot the bug:
+<pre><code class="language-kotlin">data class User(val id: String) { var lastSeen: Long = 0 }
+val a = User("1"); a.lastSeen = 100
+val b = User("1"); b.lastSeen = 200
+println(a == b)</code></pre></summary>
+<div class="qa-body"><p>Prints <code>true</code>. <code>lastSeen</code> is a body <code>var</code> — NOT in generated <code>equals</code>/<code>hashCode</code>/<code>copy</code>. Either move it to the constructor or use a non-data class.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q30. Spot the bug:
+<pre><code class="language-kotlin">open class A { open fun hi() = "A" }
+class B : A() { override fun hi() = "B" }
+fun A.greet() = "Hi A"
+fun B.greet() = "Hi B"
+val a: A = B()
+println(a.greet())</code></pre></summary>
+<div class="qa-body"><p>Prints <code>"Hi A"</code>. Member functions are dynamically dispatched; extension functions are <strong>statically dispatched</strong> based on the declared type. <code>a</code> is declared <code>A</code>, so <code>A.greet()</code> wins.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q31. Why does this code not compile?
+<pre><code class="language-kotlin">val box: Box&lt;Animal&gt; = Box&lt;Dog&gt;(Dog())
+class Box&lt;T&gt;(val item: T)</code></pre></summary>
+<div class="qa-body"><p>Generic types are invariant by default — <code>Box&lt;Dog&gt;</code> is NOT a subtype of <code>Box&lt;Animal&gt;</code>. Make T covariant: <code>class Box&lt;out T&gt;(val item: T)</code> — works because T only appears in OUT positions.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q32. What's the difference between <code>List&lt;Any&gt;</code> and <code>List&lt;*&gt;</code>?</summary>
+<div class="qa-body"><p><code>List&lt;Any&gt;</code>: list of <code>Any</code>; you can read items as <code>Any</code> or write <code>Any</code> values. <code>List&lt;*&gt;</code>: star projection — you can read but the element type is <code>Any?</code>; you can't write because the element type is unknown. Use <code>*</code> when you only consume from a list of unknown <code>T</code>.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q33. What does <code>Nothing</code> mean and when do you encounter it?</summary>
+<div class="qa-body"><p><code>Nothing</code> is a subtype of every type — used for "this never returns" (functions that throw or loop forever): <code>throw IllegalStateException()</code>, <code>error("...")</code>, <code>TODO()</code>. Also enables covariance: <code>sealed class Result&lt;out T&gt; { class Err : Result&lt;Nothing&gt;() }</code> — Err can be a Result of any T.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q34. What's the bytecode-level difference between a Kotlin <code>data class</code> and a Java POJO?</summary>
+<div class="qa-body"><p>Data class generates <code>equals</code>, <code>hashCode</code>, <code>toString</code>, <code>component1..N</code>, <code>copy</code> methods automatically. The class itself is final by default. Properties are exposed as private fields + getters (and setters for <code>var</code>). At the JVM level, the result is a typical immutable POJO — usable from Java but with extra <code>componentN</code> methods.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q35. Spot the issue:
+<pre><code class="language-kotlin">inline fun foo(crossinline cb: () -&gt; Unit) {
+    val r = Runnable { cb() }
+    Thread(r).start()
+}
+foo { return }   // ?</code></pre></summary>
+<div class="qa-body"><p>Compile error. <code>crossinline</code> forbids non-local <code>return</code>s in the lambda — and the lambda is being captured into <code>Runnable</code>, which the compiler can't inline. The non-local <code>return</code> would jump out of the calling function from a different thread, which is impossible. <code>crossinline</code> exists exactly to forbid this.</p></div></details>
+
+<!-- ============================================
+     COROUTINES & FLOWS
+     ============================================ -->
+<h2 class="qa-section-title">Coroutines & Flows (36–80)</h2>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q36. What is a coroutine?</summary>
+<div class="qa-body"><p>A suspendable computation. Cheaper than a thread (thousands at once); runs on a thread (managed by a Dispatcher) and can suspend at <code>suspend</code> points without blocking the thread.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q37. <code>launch</code> vs <code>async</code>?</summary>
+<div class="qa-body"><p>Both start a coroutine. <code>launch</code> returns <code>Job</code> — fire-and-forget; uncaught exception propagates immediately. <code>async</code> returns <code>Deferred&lt;T&gt;</code> — call <code>await()</code> to get result; exceptions held until <code>await</code>.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q38. Name the standard Dispatchers and their use cases.</summary>
+<div class="qa-body"><p><code>Main</code>: UI thread updates. <code>Default</code>: CPU-bound (parsing, sorting). <code>IO</code>: blocking I/O (network, disk). <code>Unconfined</code>: rarely used — resumes on whichever thread triggered resumption.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q39. What is <code>viewModelScope</code>?</summary>
+<div class="qa-body"><p>A pre-built <code>CoroutineScope</code> tied to a ViewModel's lifecycle. Cancelled in <code>onCleared()</code>. Use it for VM business logic.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q40. What does <code>suspend</code> do?</summary>
+<div class="qa-body"><p>Marks a function as suspendable. The compiler transforms it into a state machine that can pause/resume without blocking the underlying thread. Can only be called from another suspend function or a coroutine builder.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q41. Explain structured concurrency.</summary>
+<div class="qa-body"><p>Coroutines are tied to a <code>CoroutineScope</code>. Children depend on the parent's lifecycle. Parent cancel → children cancel. Child failure → parent fails (unless <code>SupervisorJob</code>). A coroutine can never outlive its scope. Eliminates GlobalScope-style leaks.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q42. What does <code>SupervisorJob</code> do?</summary>
+<div class="qa-body"><p>A Job where child failures don't cancel siblings or the parent. Used inside <code>supervisorScope { }</code> or as a custom scope's context: <code>CoroutineScope(SupervisorJob() + Dispatchers.Default)</code>.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q43. <code>coroutineScope { }</code> vs <code>supervisorScope { }</code>?</summary>
+<div class="qa-body"><p><code>coroutineScope</code>: any child failure cancels all siblings and propagates up. <code>supervisorScope</code>: children are independent — one's failure doesn't kill others. <code>coroutineScope</code> for atomic groups; <code>supervisorScope</code> for resilient parallel fetches.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q44. How does cancellation work in coroutines?</summary>
+<div class="qa-body"><p>Cooperative — <code>cancel()</code> sets a flag; suspending functions check it (most stdlib ones do). For CPU loops, call <code>ensureActive()</code> or <code>yield()</code> periodically. <code>finally</code> blocks run; for cleanup that must suspend, wrap in <code>withContext(NonCancellable)</code>.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q45. How do you handle exceptions in <code>launch</code> vs <code>async</code>?</summary>
+<div class="qa-body"><p><code>launch</code>: uncaught exceptions go to the parent / <code>CoroutineExceptionHandler</code>. <code>async</code>: exception is held in <code>Deferred</code> until <code>await()</code> — so wrap <code>await()</code> in try/catch. <code>CoroutineExceptionHandler</code> does NOT catch async exceptions until awaited.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q46. What's <code>withContext</code>?</summary>
+<div class="qa-body"><p>Switches dispatcher inside an existing coroutine. Doesn't start a new coroutine. Returns when the block completes. Use for "do this part on IO, the rest on Main": <code>val data = withContext(Dispatchers.IO) { api.fetch() }</code>.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q47. <code>withTimeout</code> vs <code>withTimeoutOrNull</code>?</summary>
+<div class="qa-body"><p><code>withTimeout</code>: throws <code>TimeoutCancellationException</code>. <code>withTimeoutOrNull</code>: returns null on timeout. Use the null variant when you can fall back gracefully.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q48. Cold vs hot Flow?</summary>
+<div class="qa-body"><p>Cold (<code>Flow</code>): producer block runs <em>per collector</em>; no collector → no work. Hot (<code>StateFlow</code>, <code>SharedFlow</code>): emits independently of collectors; collectors see whatever is currently being emitted (or replay).</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q49. <code>StateFlow</code> vs <code>SharedFlow</code>?</summary>
+<div class="qa-body"><p><code>StateFlow</code>: always has a value, conflated, replay = 1, equality dedupe — for state. <code>SharedFlow</code>: configurable replay/buffer, no dedupe — for events. <code>StateFlow</code> is essentially <code>SharedFlow(replay=1, BufferOverflow.DROP_OLDEST)</code> + conflation + equality dedupe.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q50. What is <code>flatMapLatest</code>?</summary>
+<div class="qa-body"><p>For each upstream emission, cancels the previous inner Flow and starts a new one. Search-as-you-type pattern: each new query cancels the in-flight search.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q51. What does <code>stateIn(scope, SharingStarted.WhileSubscribed(5000), initial)</code> do?</summary>
+<div class="qa-body"><p>Converts a cold Flow to a hot StateFlow. The 5000ms timeout keeps upstream alive after the last collector unsubscribes — handles configuration changes (rotation) without re-fetching. The standard pattern.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q52. <code>combine</code> vs <code>zip</code> vs <code>merge</code>?</summary>
+<div class="qa-body"><p><code>combine</code>: emits whenever any source emits, using latest from each. <code>zip</code>: pairs up; waits for both; emits when both have a new value. <code>merge</code>: interleaves emissions.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q53. What is <code>flowOn</code>?</summary>
+<div class="qa-body"><p>Sets the dispatcher for upstream operators. Doesn't affect downstream. Used to shift the producer's work off main: <code>flow { ... }.map { ... }.flowOn(IO).collect { ... }</code> — the flow + map run on IO, collect runs on caller dispatcher.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q54. <code>collectAsState</code> vs <code>collectAsStateWithLifecycle</code>?</summary>
+<div class="qa-body"><p><code>collectAsState</code>: starts collecting and never stops while in composition (background work even when off-screen). <code>collectAsStateWithLifecycle</code>: stops when the lifecycle drops below STARTED. Always use the lifecycle-aware variant.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q55. What's <code>repeatOnLifecycle(Lifecycle.State.STARTED) { }</code>?</summary>
+<div class="qa-body"><p>For Activity/Fragment Flow collection. Restarts the block each time the lifecycle reaches STARTED, cancels when it drops below. Equivalent to <code>collectAsStateWithLifecycle</code> in Compose.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q56. Why doesn't my SharedFlow deliver events when there's no collector?</summary>
+<div class="qa-body"><p>Default: <code>replay=0, extraBufferCapacity=0</code>. <code>emit()</code> suspends; <code>tryEmit()</code> drops. For events: <code>MutableSharedFlow(replay=0, extraBufferCapacity=1, onBufferOverflow=DROP_OLDEST)</code> — buffer 1 in case the collector is briefly absent.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q57. Why doesn't my StateFlow update sometimes?</summary>
+<div class="qa-body"><p>StateFlow uses structural equality dedupe. If <code>newValue.equals(oldValue)</code>, no emission. Use <code>update { it.copy(...) }</code> with actual changes, and ensure your data class's equals reflects the changing fields.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q58. How do you bridge a callback API to Flow?</summary>
+<div class="qa-body"><p><code>callbackFlow { register listener that calls trySend; awaitClose { unregister } }</code>. <code>awaitClose</code> is required so the producer suspends until the collector cancels.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q59. <code>buffer</code> vs <code>conflate</code> vs <code>collectLatest</code>?</summary>
+<div class="qa-body"><p>All address backpressure. <code>buffer(n)</code>: queue up to n items between producer and consumer. <code>conflate</code>: drop intermediate; consumer always sees latest. <code>collectLatest</code>: cancel in-progress collector when a new item arrives.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q60. Why do <code>try { ... } catch (e: Exception) { ... }</code> blocks "swallow" cancellation?</summary>
+<div class="qa-body"><p><code>CancellationException</code> is an <code>Exception</code> — gets caught silently, breaking cooperative cancellation. Always rethrow it: <code>if (e is CancellationException) throw e</code>. Or catch only the specific exceptions you handle.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q61. How do you make a CPU-heavy loop cancellable?</summary>
+<div class="qa-body"><p>Call <code>ensureActive()</code> or <code>yield()</code> periodically inside the loop. Suspending functions check cancellation automatically; pure CPU loops do not — you'd otherwise see "cancelled" coroutines still running.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q62. What's <code>NonCancellable</code> and when to use it?</summary>
+<div class="qa-body"><p>A <code>Job</code> in the context that ignores cancellation. Use inside <code>finally</code> blocks for cleanup that must suspend: <code>finally { withContext(NonCancellable) { release() } }</code>.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q63. Walk through a search-as-you-type pipeline.</summary>
+<div class="qa-body"><pre><code class="language-kotlin">val results = queryFlow
+    .debounce(300)
+    .distinctUntilChanged()
+    .flatMapLatest { q -&gt; if (q.isBlank()) flowOf(emptyList()) else repo.search(q) }
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())</code></pre><p>Debounce drops bursts; distinctUntilChanged dedupes consecutive same query; flatMapLatest cancels in-flight when new query arrives; stateIn turns it hot with config-change tolerance.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q64. How do you test coroutine code?</summary>
+<div class="qa-body"><p><code>runTest { }</code> with virtual time. Inject your dispatcher (<code>StandardTestDispatcher</code>) — never hardcode <code>Dispatchers.IO</code>. Use <code>advanceTimeBy</code>, <code>advanceUntilIdle</code>. <code>Dispatchers.setMain(testDispatcher)</code> for VM tests. <code>Turbine</code> for Flow assertions.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q65. What are <code>Channel</code> capacities?</summary>
+<div class="qa-body"><p><code>Channel.RENDEZVOUS</code> (0): send suspends until receive. <code>Channel.UNLIMITED</code>: unbounded. <code>Channel.CONFLATED</code>: keep only the latest. <code>Channel.BUFFERED</code>: default ~64. Or specify an int.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q66. Trace this:
+<pre><code class="language-kotlin">scope.launch {
+    val a = async { fetchA() }   // throws
+    val b = async { fetchB() }
+    a.await()  // ?
+    b.await()
+}</code></pre></summary>
+<div class="qa-body"><p>If <code>scope</code> is <code>coroutineScope</code> (no SupervisorJob), <code>fetchA</code>'s exception cancels <code>b</code> too, propagates to the outer launch. With <code>SupervisorJob</code>, <code>b</code> survives; <code>a.await()</code> rethrows; if uncaught, the outer launch fails.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q67. Why is <code>GlobalScope.launch</code> almost always wrong?</summary>
+<div class="qa-body"><p>Bypasses structured concurrency — the coroutine outlives any meaningful lifetime, leaks references, prevents tests from waiting for it cleanly. The only legitimate use is at the very top of <code>Application.onCreate</code> for app-scoped work — and even then, prefer <code>CoroutineScope(SupervisorJob() + Dispatchers.Default)</code> stored as a property so you can cancel during tests.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q68. How does <code>kotlinx.coroutines</code> implement suspension under the hood?</summary>
+<div class="qa-body"><p>The compiler transforms each <code>suspend</code> function into a state machine. At each suspension point, it saves the local state into a <code>Continuation</code> object and returns. When resumed, it picks up where it left off. The dispatcher schedules continuations on threads. No magic — just CPS (continuation-passing style) generated by the compiler.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q69. How would you implement parallel mapping with bounded concurrency?</summary>
+<div class="qa-body"><pre><code class="language-kotlin">suspend fun &lt;T, R&gt; List&lt;T&gt;.parallelMap(parallelism: Int = 4, transform: suspend (T) -&gt; R): List&lt;R&gt; =
+    coroutineScope {
+        val sem = Semaphore(parallelism)
+        map { item -&gt; async { sem.withPermit { transform(item) } } }.awaitAll()
+    }</code></pre></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q70. <code>Mutex</code> vs <code>synchronized</code>?</summary>
+<div class="qa-body"><p><code>synchronized</code> blocks the underlying thread — bad for coroutines (could deadlock with single-threaded dispatchers like Main). <code>Mutex.withLock</code> is suspendable — yields the thread while waiting. Always use <code>Mutex</code> in coroutine contexts.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q71. What's the difference between <code>distinctUntilChanged</code> and a regular <code>distinct</code>?</summary>
+<div class="qa-body"><p><code>distinctUntilChanged</code> dedupes <em>consecutive</em> equals — A B A is preserved as A B A. There's no general <code>distinct</code> on Flow because true distinct would require remembering all past values.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q72. <code>onEach</code> vs <code>map</code>?</summary>
+<div class="qa-body"><p><code>onEach { }</code>: side effect per emission; passes the value through unchanged. <code>map { }</code>: transforms each emission. Use <code>onEach</code> for logging or analytics in a chain.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q73. <code>SharingStarted.Eagerly</code> vs <code>Lazily</code> vs <code>WhileSubscribed</code>?</summary>
+<div class="qa-body"><p>Eagerly: starts immediately when scope starts. Lazily: starts on first collector, never stops. WhileSubscribed(timeout): starts on first collector, stops after timeout post-last-unsubscribe. WhileSubscribed(5000) is the standard.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q74. What's the relationship between <code>Job</code>, <code>SupervisorJob</code>, and <code>CoroutineScope</code>?</summary>
+<div class="qa-body"><p>A <code>CoroutineScope</code>'s context contains a <code>Job</code> (or <code>SupervisorJob</code>). Children of coroutines launched in this scope have this Job as parent. Cancelling the parent Job cancels the scope. SupervisorJob differs in that one child's failure doesn't propagate to siblings.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q75. Why is exception handling different in <code>launch</code> vs <code>async</code>?</summary>
+<div class="qa-body"><p><code>launch</code> is "fire and forget" — exceptions need somewhere to go (handler, parent). <code>async</code> represents a future result; the exception is part of that result, surfaced when you call <code>await()</code>. If you never await, the exception is silently held (and propagates via parent in non-supervisor scopes).</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q76. How do you handle a 401 response when multiple parallel requests hit it simultaneously?</summary>
+<div class="qa-body"><p>OkHttp's <code>Authenticator</code> with a <code>Mutex.withLock</code> around the refresh call. First 401 acquires the lock, refreshes, releases. Subsequent 401s see the new token (compare-and-swap pattern: check current vs expired token, skip refresh if already updated).</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q77. What happens when you collect a Flow on the wrong dispatcher?</summary>
+<div class="qa-body"><p>If your producer blocks (e.g., DB read), collecting on Main blocks the UI. Use <code>flowOn(IO)</code> upstream to shift the producer; collect on Main for UI updates.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q78. Difference between <code>shareIn</code> and <code>stateIn</code>?</summary>
+<div class="qa-body"><p>Both convert cold→hot. <code>stateIn</code>: returns <code>StateFlow</code> with conflation, equality dedupe, replay=1, requires initial value. <code>shareIn</code>: returns <code>SharedFlow</code> with configurable replay/buffer, no dedupe, no initial value. Use <code>stateIn</code> for screen state; <code>shareIn</code> for event streams.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q79. Build a rate-limited Flow that emits at most 1 item per second.</summary>
+<div class="qa-body"><pre><code class="language-kotlin">fun &lt;T&gt; Flow&lt;T&gt;.throttleFirst(periodMs: Long): Flow&lt;T&gt; = flow {
+    var lastEmit = 0L
+    collect {
+        val now = System.currentTimeMillis()
+        if (now - lastEmit &gt;= periodMs) {
+            lastEmit = now
+            emit(it)
+        }
+    }
+}</code></pre></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q80. Why is <code>GlobalScope.launch { /* ... */ }</code> dangerous in Compose?</summary>
+<div class="qa-body"><p>Compose composables are recomposed many times. If you start a coroutine in <code>GlobalScope</code> from a composable body, you'll spawn one per recomposition — leak. Use <code>LaunchedEffect</code> (key-tied) or <code>rememberCoroutineScope()</code> (event-triggered).</p></div></details>
+
+<!-- ============================================
+     COMPOSE
+     ============================================ -->
+<h2 class="qa-section-title">Jetpack Compose (81–115)</h2>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q81. What is Jetpack Compose?</summary>
+<div class="qa-body"><p>Android's declarative UI toolkit. You describe what UI should look like for a given state via <code>@Composable</code> functions; the runtime diffs and updates underlying nodes. Replaces XML layouts and View hierarchies for new code.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q82. Why Compose over XML?</summary>
+<div class="qa-body"><p>State-driven (no <code>findViewById</code>, no manual <code>setText</code>), composable functions are testable as plain Kotlin, less boilerplate, first-class animations via <code>animate*AsState</code>, type-safe theming, incremental migration via <code>ComposeView</code> / <code>AndroidView</code>.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q83. What is recomposition?</summary>
+<div class="qa-body"><p>Re-running parts of the composition tree when state inputs change. Compose uses a <strong>slot table</strong> for positional memoization to know what to re-run vs reuse.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q84. What is state hoisting?</summary>
+<div class="qa-body"><p>Lifting state to the lowest common parent and passing <code>state</code> + <code>onEvent</code> down to stateless composables. Makes children easier to preview, test, and reuse.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q85. <code>remember</code> vs <code>rememberSaveable</code>?</summary>
+<div class="qa-body"><p><code>remember</code>: survives recomposition; lost on configuration change. <code>rememberSaveable</code>: also survives configuration change AND process death (Bundle-based).</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q86. What are stable types in Compose?</summary>
+<div class="qa-body"><p>Types Compose can trust to mean "if equals returns true, the rendered output is the same." Primitives, String, lambdas, types annotated <code>@Stable</code>/<code>@Immutable</code>, data classes with all-stable val fields. Lists/Maps are unstable. Stable parameters enable <span class="signal">recomposition skipping</span>.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q87. <code>LaunchedEffect</code> vs <code>SideEffect</code> vs <code>DisposableEffect</code>?</summary>
+<div class="qa-body"><p><code>LaunchedEffect(key)</code>: launch a coroutine; restarts on key change. <code>SideEffect</code>: runs after every successful composition; sync state to non-Compose code. <code>DisposableEffect(key)</code>: setup + <code>onDispose { cleanup }</code>.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q88. What is <code>derivedStateOf</code>?</summary>
+<div class="qa-body"><p>Wraps a state read so dependents recompose only when the <em>derived value</em> changes — not when underlying state ticks. Classic use: <code>val showFab by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }</code>.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q89. What is <code>rememberUpdatedState</code> for?</summary>
+<div class="qa-body"><p>Fixing the stale-closure problem in long-running effects. <code>val current by rememberUpdatedState(callback)</code> always points to the latest value — so a <code>LaunchedEffect(Unit)</code> doesn't capture an old version of the lambda.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q90. What is <code>CompositionLocal</code>?</summary>
+<div class="qa-body"><p>Implicitly passes values down the composition tree without prop drilling. Use for cross-cutting concerns (theme, density, snackbar host). <code>compositionLocalOf</code> tracks reads (only readers recompose); <code>staticCompositionLocalOf</code> doesn't track (all descendants recompose on change — cheaper for rarely-changing values).</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q91. Why does Modifier order matter?</summary>
+<div class="qa-body"><p>Modifiers compose left-to-right, outside-to-inside. <code>padding(16).background(Red)</code> = padding around red bg. <code>background(Red).padding(16)</code> = red bg with padding inside (smaller red).</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q92. Why must <code>LazyColumn</code> items have a <code>key</code>?</summary>
+<div class="qa-body"><p>Without <code>key</code>, Compose treats items by position — reordering causes wrong recomposition, scroll jumps, and animations targeting wrong items. <code>key = { it.id }</code> always.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q93. How do you debug "my composable recomposes too much"?</summary>
+<div class="qa-body"><p>(1) Layout Inspector → "Show recomposition counts." (2) Compose Compiler reports — shows per-function stability/skippability. (3) Look for unstable parameters — Lists, Maps, var fields, lambdas allocated per composition. Fix with <code>@Immutable</code>, <code>ImmutableList</code>, or <code>remember { { ... } }</code>.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q94. How do you persist UI state across process death in Compose?</summary>
+<div class="qa-body"><p><code>rememberSaveable</code> for trivial UI state (Bundle-based; small data only). For ViewModel-owned state, inject <code>SavedStateHandle</code> and use <code>savedState.getStateFlow(key, default)</code>. For larger state, persist to Room or DataStore.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q95. How does <code>snapshotFlow</code> work?</summary>
+<div class="qa-body"><p>Wraps a State-reading lambda into a Flow. Compose's snapshot system detects which State objects the lambda reads; the Flow re-emits when any of them change. Use to bridge Compose State to non-Compose code: <code>snapshotFlow { listState.firstVisibleItemIndex }.collect { ... }</code>.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q96. What's the difference between <code>Modifier.composed</code> and a regular Modifier function?</summary>
+<div class="qa-body"><p>Regular Modifier extension: stateless. <code>Modifier.composed { }</code>: runs in a composition scope, can call composables, can <code>remember</code> state. Allocates per composition — use sparingly. For most cases, prefer plain Modifier extensions or wrap state externally.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q97. How would you implement a custom <code>Modifier</code> that scales the child on press?</summary>
+<div class="qa-body"><pre><code class="language-kotlin">fun Modifier.scaleOnPress() = composed {
+    var pressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(if (pressed) 0.95f else 1f, label = "scale")
+    pointerInput(Unit) {
+        awaitEachGesture {
+            awaitFirstDown(); pressed = true
+            waitForUpOrCancellation(); pressed = false
+        }
+    }.graphicsLayer { scaleX = scale; scaleY = scale }
+}</code></pre></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q98. What's the diff between <code>compositionLocalOf</code> and <code>staticCompositionLocalOf</code>?</summary>
+<div class="qa-body"><p><code>compositionLocalOf</code>: tracks reads — only composables that actually read the value recompose when it changes. <code>staticCompositionLocalOf</code>: doesn't track — when value changes, ALL descendants recompose. Use static for rarely-changing values (theme); dynamic for values that change often.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q99. How do you avoid the "lambda allocated per composition" gotcha?</summary>
+<div class="qa-body"><p>For function-references (<code>vm::onClick</code>): they're stable, no fix needed. For inline lambdas passed to children: extract to <code>remember { { } }</code>, OR rely on Compose Compiler's stability — function types are stable starting from a recent version. Function reference is the cleanest.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q100. What's the role of the slot table?</summary>
+<div class="qa-body"><p>The runtime data structure holding composition state. Each composable call has a "slot" identified by call-site location. Compose uses positional memoization — at the same position, <code>remember</code> returns the same value across recompositions. Reordering or conditional inclusion of composables changes positions.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q101. Why does <code>if (condition) { remember { 0 } } else { remember { 0 } }</code> behave differently than <code>remember { if (condition) 0 else 0 }</code>?</summary>
+<div class="qa-body"><p>Different slot positions. The first form has <em>two</em> remember calls — one inside each branch. Toggling condition swaps which slot is active, losing the other's state. The second form has one remember call at a stable position. <strong>Lesson: structure remember calls so position is stable across compositions.</strong></p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q102. How would you debug a Compose performance regression?</summary>
+<div class="qa-body"><p>(1) Reproduce in profiler with System Trace to see frame timings. (2) Layout Inspector recomposition counts on the suspect screens. (3) Compose Compiler reports — diff against the last good commit. (4) Macrobenchmark for objective numbers. (5) Check baseline profiles still cover the changed code.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q103. How do you implement Pull-to-Refresh in Compose?</summary>
+<div class="qa-body"><pre><code class="language-kotlin">val refreshState = rememberPullToRefreshState()
+LaunchedEffect(refreshState.isRefreshing) {
+    if (refreshState.isRefreshing) {
+        vm.refresh()                  // VM updates a Flow when done
+        refreshState.endRefresh()
+    }
+}
+Box(Modifier.nestedScroll(refreshState.nestedScrollConnection)) {
+    LazyColumn { ... }
+    PullToRefreshContainer(refreshState, Modifier.align(Alignment.TopCenter))
+}</code></pre></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q104. How do you handle navigation in Compose?</summary>
+<div class="qa-body"><p>Navigation Compose: <code>NavHost(navController, startDestination)</code> + <code>composable&lt;Route&gt; { }</code>. For type-safe routes (Nav 2.8+), use <code>@Serializable</code> data classes. <code>navController.navigate(Route(id))</code> to push; <code>navController.popBackStack()</code> to go back.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q105. Why use <code>Modifier.testTag</code>?</summary>
+<div class="qa-body"><p>For UI testing — finds the node via <code>composeTestRule.onNodeWithTag("X")</code>. For accessibility, use <code>Modifier.semantics { contentDescription = "..." }</code> or <code>Modifier.contentDescription("...")</code>.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q106. What's <code>produceState</code>?</summary>
+<div class="qa-body"><p>Turns a non-Compose source into a State&lt;T&gt;. Provides a coroutine scope and an <code>awaitDispose</code> for cleanup: <code>val state by produceState(initial = "...") { value = repo.fetch(); awaitDispose { } }</code>.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q107. <code>animateFloatAsState</code> vs <code>updateTransition</code>?</summary>
+<div class="qa-body"><p><code>animateFloatAsState</code>: animate one value. <code>updateTransition</code>: orchestrate multiple animations driven by the same state — alpha, color, size all animating together when state changes.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q108. How do you do dark theme in Compose?</summary>
+<div class="qa-body"><p><code>val colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()</code>; pass to <code>MaterialTheme(colorScheme = colorScheme) { content() }</code>. Override per-app by reading user preference from DataStore.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q109. Why do I get "@Composable invocations can only happen from the context of a @Composable function"?</summary>
+<div class="qa-body"><p>You're calling a composable from a non-composable lambda — e.g., from <code>onClick</code>. Composables can only be called inside other composables. Use <code>rememberCoroutineScope()</code> or hoist the action.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q110. What's the lifecycle of <code>LaunchedEffect</code>?</summary>
+<div class="qa-body"><p>Starts a coroutine when the effect enters the composition. Cancels and restarts when the key changes. Cancels permanently when the composable leaves the composition.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q111. How do you embed a legacy XML View in Compose?</summary>
+<div class="qa-body"><p><code>AndroidView(factory = { ctx -&gt; LegacyView(ctx) }, update = { it.refresh(state) })</code>. The <code>update</code> block runs on each recomposition.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q112. How do you embed a Composable in an XML layout?</summary>
+<div class="qa-body"><p><code>&lt;androidx.compose.ui.platform.ComposeView&gt;</code> in XML; in code, <code>binding.composeView.setContent { MyComposable() }</code>.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q113. Why does my <code>LaunchedEffect(Unit)</code> still re-run on rotation?</summary>
+<div class="qa-body"><p>It shouldn't if the composable is preserved through configuration change — but if you're recreating the Activity with <code>setContent</code> in <code>onCreate</code>, every config change re-runs <code>onCreate</code> → recomposes everything → <code>LaunchedEffect(Unit)</code> restarts. The fix: hold state in a ViewModel; the composable reads state from there and the effect doesn't need to re-fire.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q114. How would you implement a Compose-friendly bottom sheet that supports drag-to-dismiss?</summary>
+<div class="qa-body"><p>Use Material3's <code>ModalBottomSheet</code> with <code>rememberModalBottomSheetState</code>. For full custom: <code>AnchoredDraggable</code>, <code>swipeable</code>, or build with <code>Modifier.draggable</code> + your own animation logic. Senior take: prefer the library — anchored draggable is mature and accessibility-friendly.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q115. How would you implement a sticky header in <code>LazyColumn</code>?</summary>
+<div class="qa-body"><p><code>stickyHeader { }</code> within a <code>LazyColumn</code>. Each <code>stickyHeader</code> is pinned to the top while its section is visible. Note: <code>stickyHeader</code> is on <code>LazyListScope</code>, available in <code>LazyColumn</code> (and <code>LazyRow</code> with caveats).</p></div></details>
+
+<!-- ============================================
+     ARCHITECTURE
+     ============================================ -->
+<h2 class="qa-section-title">Architecture (116–135)</h2>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q116. MVVM vs MVI in one sentence each?</summary>
+<div class="qa-body"><p>MVVM: ViewModel exposes state via observable streams; view observes; events flow back via methods. MVI: strict UDF — Intent → Reducer → State → View, with side effects on a separate channel.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q117. What's a Repository?</summary>
+<div class="qa-body"><p>The single source of truth for a data type. Coordinates between data sources (network, DB, in-memory cache) and exposes domain models (not entities/DTOs).</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q118. What is Clean Architecture?</summary>
+<div class="qa-body"><p>A layering approach: presentation depends on domain; data depends on domain. <strong>Domain has no Android dependency</strong>. Inner layers know nothing about outer (the Dependency Rule).</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q119. Why use Use Cases?</summary>
+<div class="qa-body"><p>Encapsulate business logic that's reused across screens, composes multiple repos, or has non-trivial logic worth unit-testing. Skip them when the VM just calls a single repo method passthrough.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q120. When would you choose MVI over MVVM?</summary>
+<div class="qa-body"><p>State-heavy screens (player, multi-step forms, search, complex animation states). When "what's the screen showing right now?" becomes hard to answer with separate flows. The single-state-object discipline pays off there.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q121. What's the offline-first pattern?</summary>
+<div class="qa-body"><p>DB is the source of truth for the UI. UI observes <code>dao.observeAll()</code> as a Flow. Repository's <code>refresh()</code> writes through DB → UI auto-updates. WorkManager handles background sync. This guarantees no UI/cache drift.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q122. Why multi-module?</summary>
+<div class="qa-body"><p>Build speed (parallel compilation, unchanged modules cached), enforced layer boundaries (the build won't let UI call into data layer if you didn't declare the dep), explicit API surface, reusability across app variants.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q123. <code>api</code> vs <code>implementation</code> dependency in Gradle?</summary>
+<div class="qa-body"><p><code>implementation</code>: dep is internal — consumers of this module don't see it. <code>api</code>: dep is exposed — consumers see it transitively. Default to <code>implementation</code>; use <code>api</code> only when types from the dep appear in your module's public API.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q124. What's "dependency inversion" in mobile architecture?</summary>
+<div class="qa-body"><p>Define <em>interfaces</em> in the inner (domain) layer; <em>implementations</em> live in outer (data) layer. The data layer depends inward on domain, not the other way. Lets you swap implementations and unit-test domain without Android.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q125. How do you avoid circular module dependencies?</summary>
+<div class="qa-body"><p>Define interfaces in the inner-most module that needs them; have outer modules implement. Use a <code>:core:common</code> module for shared types. Feature modules depend only on <code>:domain</code>, <code>:design-system</code>, <code>:common</code> — never on each other.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q126. How do you handle one-shot events in MVI without losing them on rotation?</summary>
+<div class="qa-body"><p><code>SharedFlow(replay=0, extraBufferCapacity=1, BufferOverflow.DROP_OLDEST)</code>. Collected from a <code>LaunchedEffect(Unit)</code> in Compose or <code>repeatOnLifecycle</code> in XML. Replay=0 means new collectors don't re-fire old events; extraBufferCapacity=1 covers brief gaps.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q127. What's a SingleLiveEvent and why is it deprecated?</summary>
+<div class="qa-body"><p>An old hack to deliver one-shot events through LiveData (which always replays the latest value). It's brittle, hard to compose, doesn't handle multiple observers. Replaced by <code>SharedFlow(replay=0)</code> or a <code>Channel</code> exposed as Flow.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q128. How do you handle a screen with multiple independent data sources?</summary>
+<div class="qa-body"><p>Combine in the VM with <code>combine(flow1, flow2, flow3) { a, b, c -&gt; ScreenState(a, b, c) }</code>, exposed as <code>StateFlow</code>. UI sees one state object. Each source can fail/refresh independently.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q129. What's SDUI?</summary>
+<div class="qa-body"><p>Server-Driven UI. Backend returns layout descriptors (modules, items); client renders generically. Lets product change the UI without an app release. Tradeoff: client must support all module types in advance; new types require app update.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q130. How do you handle pagination in MVI?</summary>
+<div class="qa-body"><p>Paging 3 emits <code>PagingData&lt;T&gt;</code> as a Flow. In Compose: <code>vm.pager.collectAsLazyPagingItems()</code>. State is internal to PagingData — your ViewModel exposes <code>val pager: Flow&lt;PagingData&lt;Item&gt;&gt; = ... .cachedIn(viewModelScope)</code>. Loading/error states surfaced via <code>loadState</code>.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q131. What anti-patterns should you call out in an architecture review?</summary>
+<div class="qa-body"><p>(1) Fat ViewModel (extract use cases). (2) Repository returning DTOs (map to domain). (3) SingleLiveEvent (use SharedFlow). (4) Bare <code>collectAsState</code> (lifecycle-aware). (5) Activity holding the data (use ViewModel). (6) Singleton <code>object Repo</code> (use DI). (7) Multiple sources of truth (drift bugs).</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q132. Defend MVVM over MVI for a 50-screen app.</summary>
+<div class="qa-body"><p>"For a 50-screen app, MVI's boilerplate per screen is high. I'd default to MVVM — single VM with multiple StateFlows — and lift to MVI only on the screens where state interactions are truly complex (player, multi-step forms). The discipline of state hoisting and unidirectional flow can be applied without the full MVI ceremony. Mixing is fine — it's a per-screen choice."</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q133. How do you architect for an app that needs to support both phone and Android TV with shared business logic?</summary>
+<div class="qa-body"><p>Multi-module: <code>:core-domain</code>, <code>:core-data</code>, <code>:core-network</code> shared; <code>:ui-phone</code>, <code>:ui-tv</code> separate; <code>:app-phone</code>, <code>:app-tv</code> entry points. Build variants for platform-specific resources. Use <code>internal</code> visibility liberally. ViewModels are typically shared; only the UI layer differs.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q134. How would you split a monolith into multi-module mid-flight (without halting feature work)?</summary>
+<div class="qa-body"><p>Strangler-fig: start by extracting <code>:core</code> first (network, DB, design-system) — least churn. Then peel one feature at a time off into <code>:feature:X</code>. Use <code>internal</code> to enforce module-only visibility. Keep the original module as a "legacy" landing zone. Run alongside features for 2-3 quarters.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q135. Defend Use Cases vs "VM directly calls Repo."</summary>
+<div class="qa-body"><p>"Use cases shine when (1) logic is reused across multiple VMs, (2) it composes multiple repos, (3) it has non-trivial logic worth unit-testing in isolation. For simple passthrough, they're bloat. I make the choice <em>per-feature</em>, not as dogma. The honest test: 'does extracting this use case make any caller cleaner or any test easier?' If no — skip it."</p></div></details>
+
+<!-- ============================================
+     HILT / DI
+     ============================================ -->
+<h2 class="qa-section-title">Hilt / DI (136–155)</h2>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q136. What is dependency injection?</summary>
+<div class="qa-body"><p>A pattern where a class receives its dependencies from outside (constructor/setter/field) rather than constructing them itself. Decouples implementation, improves testability.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q137. What does <code>@HiltAndroidApp</code> do?</summary>
+<div class="qa-body"><p>Annotates the Application class. Triggers Hilt code generation for the app component (the root of the DI graph).</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q138. What does <code>@AndroidEntryPoint</code> do?</summary>
+<div class="qa-body"><p>Annotates an Activity/Fragment/Service/Receiver/View — enables field injection. The class becomes a member-injectable Hilt entry point.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q139. <code>@Inject constructor</code> — what does it do?</summary>
+<div class="qa-body"><p>Tells Hilt how to construct this class. Hilt resolves the constructor's parameters from the graph.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q140. <code>@Provides</code> vs <code>@Binds</code>?</summary>
+<div class="qa-body"><p><code>@Provides</code>: function in an <code>object</code> module returning the binding — works for any expression. <code>@Binds</code>: abstract function in an <code>abstract</code> module mapping interface to impl — more efficient (Dagger doesn't generate a factory class). Use <code>@Binds</code> for interface→impl, <code>@Provides</code> for configured types.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q141. List Hilt's components in scope-order.</summary>
+<div class="qa-body"><p>SingletonComponent → ActivityRetainedComponent → ViewModelComponent OR ActivityComponent → FragmentComponent → ViewComponent (or ViewWithFragmentComponent). Plus ServiceComponent.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q142. Can a <code>@Singleton</code> dep be injected into <code>@ActivityScoped</code>?</summary>
+<div class="qa-body"><p>Yes. Wider scope into narrower is allowed. The reverse (<code>@ActivityScoped</code> into <code>@Singleton</code>) is forbidden — narrower into wider doesn't make sense (the dep would outlive its scope).</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q143. What's a <code>@Qualifier</code>?</summary>
+<div class="qa-body"><p>A custom annotation to disambiguate same-type bindings. <code>@IoDispatcher</code> vs <code>@MainDispatcher</code> for <code>CoroutineDispatcher</code>. Without qualifiers, Hilt would see "duplicate binding" for two bindings of the same type.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q144. How do you inject into a non-Hilt class?</summary>
+<div class="qa-body"><p><code>@EntryPoint</code> + <code>@InstallIn</code> — declare an interface with the bindings you need. <code>EntryPointAccessors.fromApplication(ctx, MyEntryPoint::class.java)</code>. Used for legacy code or third-party callbacks.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q145. What is <code>@HiltViewModel</code>?</summary>
+<div class="qa-body"><p>Annotates a ViewModel for Hilt to provide. In a Fragment: <code>val vm: MyVm by viewModels()</code>. In Compose: <code>val vm: MyVm = hiltViewModel()</code>. Hilt + Navigation Compose auto-wires <code>SavedStateHandle</code> with route args.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q146. What is assisted injection?</summary>
+<div class="qa-body"><p>For classes that need both DI'd deps and runtime args. <code>@AssistedInject constructor(val repo: Repo, @Assisted val userId: String)</code> + <code>@AssistedFactory interface Factory { fun create(userId: String): MyClass }</code>. Use when SavedStateHandle isn't appropriate.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q147. Multibinding — <code>@IntoSet</code> and <code>@IntoMap</code>?</summary>
+<div class="qa-body"><p>Collect impls into a <code>Set</code> or <code>Map</code>. <code>@Binds @IntoSet</code> to bind multiple AnalyticsTracker impls into one Set. <code>@Binds @IntoMap @StringKey("home")</code> to bind keyed Routers into a Map. Useful for plugin-style architecture.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q148. How do you integrate Hilt with WorkManager?</summary>
+<div class="qa-body"><p><code>@HiltWorker class MyWorker @AssistedInject constructor(@Assisted ctx: Context, @Assisted params: WorkerParameters, deps...)</code>. In Application: implement <code>Configuration.Provider</code>, inject <code>HiltWorkerFactory</code>, set in <code>workManagerConfiguration</code>. Disable the default WorkManager initializer in AndroidManifest.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q149. What's <code>@TestInstallIn</code>?</summary>
+<div class="qa-body"><p>Replaces a production module in tests. <code>@TestInstallIn(components = [SingletonComponent::class], replaces = [RepoModule::class])</code>. Tests bind fakes via this test module instead of the production one.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q150. Why <code>@Binds</code> over <code>@Provides</code> for interface→impl?</summary>
+<div class="qa-body"><p><code>@Binds</code> is more efficient — Dagger can generate just a forwarding call instead of a factory class. Forces you to express the binding declaratively (no construction logic). For most interface→impl bindings, prefer <code>@Binds</code>.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q151. What does Hilt generate at compile time?</summary>
+<div class="qa-body"><p>Components for each scope you use, factory classes for each <code>@Inject constructor</code>, member-injection methods for <code>@AndroidEntryPoint</code>-annotated classes, and module-validation code. All visible in the build's <code>generated/</code> directory.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q152. Why does <code>@Inject lateinit var x: Foo</code> in a non-<code>@AndroidEntryPoint</code> Activity throw at runtime?</summary>
+<div class="qa-body"><p>Hilt generates the member-injection code only for classes annotated <code>@AndroidEntryPoint</code>. Without the annotation, no code generation, no injection — <code>x</code> stays uninitialized.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q153. Hilt vs Koin vs manual DI?</summary>
+<div class="qa-body"><p>Hilt: compile-time graph (Dagger), Android-only, build-time errors. Koin: runtime DSL, KMP-friendly, runtime errors. Manual DI (constructor injection + a few wiring functions): no library, simplest, harder to scale. For Android-only large apps: Hilt. For KMP shared modules: Koin or manual.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q154. How do you debug "MissingBinding"?</summary>
+<div class="qa-body"><p>Compile error tells you which type and which graph it's missing from. (1) Check the type has <code>@Inject constructor</code> OR a <code>@Provides</code>/<code>@Binds</code>. (2) Check the module is <code>@InstallIn</code> the right component. (3) Check qualifiers match if any. (4) Check no version mismatch (KSP vs kapt confusion).</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q155. Can you have circular dependencies in Hilt?</summary>
+<div class="qa-body"><p>Direct cycles fail to compile. Use <code>dagger.Lazy&lt;T&gt;</code> or <code>Provider&lt;T&gt;</code> to break the cycle by deferring resolution. Common case: <code>TokenAuthenticator</code> needs <code>AuthApi</code> which needs OkHttpClient which has the Authenticator — wrap one side in <code>Lazy</code>.</p></div></details>
+
+<!-- ============================================
+     JETPACK
+     ============================================ -->
+<h2 class="qa-section-title">Jetpack Libraries (156–185)</h2>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q156. ViewModel — what survives, what doesn't?</summary>
+<div class="qa-body"><p>Survives configuration change (rotation). Does NOT survive process death. <code>SavedStateHandle</code> survives both — Bundle-based, small data only.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q157. <code>LiveData</code> vs <code>StateFlow</code>?</summary>
+<div class="qa-body"><p>LiveData: lifecycle-aware (auto-pauses off-screen). StateFlow: not lifecycle-aware on its own; needs <code>repeatOnLifecycle</code> or <code>collectAsStateWithLifecycle</code>. New code prefers StateFlow for Compose interop and Flow operators.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q158. Why Room over plain SQLite?</summary>
+<div class="qa-body"><p>Compile-time SQL verification, type-safe queries, automatic Flow emission on table change, transactions via annotations, type converters, migration helpers, schema export for migration testing. Plain SQLite gives you string queries and runtime crashes when schema drifts.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q159. What is WorkManager for?</summary>
+<div class="qa-body"><p>Deferrable, guaranteed background work — sync, upload, indexing. Survives app restart, device reboot. Picks the right backend internally. Use over JobScheduler/AlarmManager.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q160. DataStore vs SharedPreferences?</summary>
+<div class="qa-body"><p>DataStore: async (Flow-based), transactional, type-safe (proto). SharedPreferences: synchronous (main-thread risk), no schema. Use DataStore for new code; migrate from SharedPreferences as you touch each surface.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q161. How do you write a Room migration?</summary>
+<div class="qa-body"><p><code>val MIGRATION_1_2 = object : Migration(1, 2) { override fun migrate(db) = db.execSQL("ALTER TABLE...") }</code>. Add to <code>Room.databaseBuilder().addMigrations(MIGRATION_1_2)</code>. Set <code>exportSchema=true</code> and check the generated JSON into Git.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q162. How do you observe joined data with Room?</summary>
+<div class="qa-body"><p><code>@Transaction</code> + <code>@Relation</code> on a composed data class returned from a <code>@Query</code> that returns <code>Flow</code>. The transaction ensures a consistent snapshot.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q163. WorkManager constraints?</summary>
+<div class="qa-body"><p><code>NetworkType.UNMETERED</code>, <code>requiresCharging</code>, <code>requiresBatteryNotLow</code>, <code>requiresStorageNotLow</code>, <code>requiresDeviceIdle</code>. Combined into a <code>Constraints</code> object on the request.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q164. Expedited work?</summary>
+<div class="qa-body"><p>For ASAP background work that can run as a foreground service if needed. <code>setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)</code> + override <code>getForegroundInfo</code>. User-visible importance required.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q165. Can WorkManager run while the app is killed?</summary>
+<div class="qa-body"><p>Yes — WorkManager persists the queue to disk; the OS schedules its execution, even after process death and reboot.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q166. Preferences DataStore vs Proto DataStore?</summary>
+<div class="qa-body"><p>Preferences: untyped key-value, like SharedPreferences but async/Flow. Proto: typed schema (protobuf), better for structured app state, type-safe at compile time. Choose proto for any non-trivial state.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q167. How do you migrate from SharedPreferences to DataStore?</summary>
+<div class="qa-body"><p><code>preferencesDataStore("settings", produceMigrations = { ctx -&gt; listOf(SharedPreferencesMigration(ctx, "old_prefs")) })</code>. First read of DataStore migrates and deletes the old prefs file.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q168. How do you do type-safe Navigation in Compose?</summary>
+<div class="qa-body"><p>Nav 2.8+: <code>@Serializable data class DetailRoute(val id: String)</code>; <code>composable&lt;DetailRoute&gt; { entry -&gt; val args = entry.toRoute&lt;DetailRoute&gt;() }</code>. Compile-time arg type checking.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q169. Sketch a Room schema for a Playlist with songs (many-to-many).</summary>
+<div class="qa-body"><pre><code class="language-kotlin">@Entity data class PlaylistEntity(@PrimaryKey val id: String, val name: String, ...)
+@Entity data class SongEntity(@PrimaryKey val id: String, val title: String, ...)
+@Entity(primaryKeys = ["playlistId", "songId"])
+data class CrossRef(val playlistId: String, val songId: String, val position: Int)
+data class PlaylistWithSongs(
+    @Embedded val playlist: PlaylistEntity,
+    @Relation(parentColumn = "id", entityColumn = "id",
+        associateBy = Junction(CrossRef::class, "playlistId", "songId"))
+    val songs: List&lt;SongEntity&gt;
+)</code></pre></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q170. How do you implement infinite scroll with Paging 3 + offline-first?</summary>
+<div class="qa-body"><p>Pager with <code>RemoteMediator</code>: DB is source of truth. Mediator fetches network for next page, writes to DB. <code>pagingSourceFactory = { db.dao().pagingSource() }</code> reads back from DB. UI sees one Flow.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q171. How do you handle Coil image cache sizing?</summary>
+<div class="qa-body"><p>In <code>Application : ImageLoaderFactory</code>, configure <code>memoryCache { maxSizePercent(0.25) }</code> (25% of heap) and <code>diskCache { maxSizeBytes(100MB) }</code>. Cap memory to leave room on low-end devices.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q172. What's <code>RemoteMediator.LoadType</code>?</summary>
+<div class="qa-body"><p>REFRESH (initial / pull-to-refresh), APPEND (next page), PREPEND (previous, often unused for forward-only feeds). Your mediator decides what to fetch for each type.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q173. How do you avoid main-thread DB I/O with Room?</summary>
+<div class="qa-body"><p>DAOs return <code>Flow</code> (cold, runs upon collect; collected from a coroutine on IO dispatcher) or are <code>suspend</code> functions. Room rejects synchronous calls on main by default — <code>allowMainThreadQueries()</code> only in tests.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q174. What's <code>WorkManager.beginUniqueWork</code> vs <code>enqueueUniqueWork</code>?</summary>
+<div class="qa-body"><p>Both ensure only one chain with the given name runs at a time. <code>beginUniqueWork</code> returns a continuation you can chain (<code>then(...)</code>). <code>enqueueUniqueWork</code> takes a single request directly.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q175. How does Room's invalidation tracker work?</summary>
+<div class="qa-body"><p>Room maintains an internal table tracking changes. DAO Flow queries register against the tables they touch. On change, Room re-runs the query and emits a new value into the Flow. Cheaper than a manual cursor loop and lifecycle-safe.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q176. How do you handle a Room migration that reshapes data (not just adds a column)?</summary>
+<div class="qa-body"><p>(1) Create the new table with the desired shape. (2) Copy data from old → new with whatever transformation needed (SQL <code>INSERT INTO new SELECT ... FROM old</code>). (3) Drop the old table. (4) Rename new → old. Test with the schema export — Room verifies the resulting schema matches version N.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q177. WorkManager backoff strategy — linear vs exponential?</summary>
+<div class="qa-body"><p>Linear: <code>delay = initial × attempt</code>. Exponential: <code>delay = initial × 2^(attempt-1)</code>. Exponential for transient failures (server overload). Linear for predictable retry cadence. Configure with <code>setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)</code>.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q178. How do you save scroll position across navigation?</summary>
+<div class="qa-body"><p>Compose: <code>rememberLazyListState()</code> survives within a screen; for cross-screen, hoist into a <code>SavedStateHandle</code> in VM or <code>rememberSaveable</code>. XML: SavedStateHandle in VM; or rely on Fragment's view state restoration.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q179. How do you do deep links in Navigation Compose?</summary>
+<div class="qa-body"><p><code>composable&lt;Route&gt;(deepLinks = listOf(navDeepLink { uriPattern = "myapp://detail/{id}" }))</code>. App Links require domain verification (digital asset link).</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q180. <code>Application</code> vs <code>ApplicationContext</code>?</summary>
+<div class="qa-body"><p><code>Application</code> is the singleton class. <code>ApplicationContext</code> is its <code>Context</code> view (<code>application.applicationContext</code>). Always inject <code>@ApplicationContext Context</code>, not raw <code>Application</code> — easier to fake in tests.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q181. Why <code>viewLifecycleOwner</code> in Fragments?</summary>
+<div class="qa-body"><p>A Fragment can outlive its view (back stack). <code>this</code> as LifecycleOwner ties observers to the Fragment lifecycle (longer than the view). <code>viewLifecycleOwner</code> ties to the view, so observers stop when the view dies. Always use <code>viewLifecycleOwner</code> for UI-bound observers.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q182. How do you observe navigation results going BACK (returning data to the previous screen)?</summary>
+<div class="qa-body"><p>Compose: use the previous entry's <code>SavedStateHandle</code>: <code>navController.previousBackStackEntry?.savedStateHandle?.set("key", value)</code>; on the previous screen, observe via <code>currentBackStackEntry?.savedStateHandle?.getStateFlow("key", default)</code>.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q183. <code>WorkManager.ExistingWorkPolicy</code> — KEEP / REPLACE / APPEND?</summary>
+<div class="qa-body"><p>KEEP: if work with this name is queued/running, no-op. REPLACE: cancel existing and enqueue new. APPEND: chain after existing. APPEND_OR_REPLACE: append if any pending, replace if all completed.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q184. How do you cap a Coil image's memory cost?</summary>
+<div class="qa-body"><p>Set the request's target size with <code>.size(Size(width, height))</code> — Coil decodes at that size, not the source's. Use <code>Modifier.size</code> in Compose; AsyncImage respects layout constraints. Critical for grid views with many small images.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q185. How would you implement a sync engine that handles offline edits + conflicts?</summary>
+<div class="qa-body"><p>Each entity has <code>id</code> (client UUID), <code>serverId</code>, <code>version</code>, <code>status</code> (PENDING_CREATE/UPDATE/DELETE/SYNCED). SyncWorker walks pending → POST/PATCH/DELETE → on 409 conflict, run resolution (last-write-wins / user prompt / merge). Pull deltas via <code>since</code> timestamp. Mark synced; reset versions.</p></div></details>
+
+<!-- ============================================
+     NETWORKING
+     ============================================ -->
+<h2 class="qa-section-title">Networking & Auth (186–205)</h2>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q186. What is REST?</summary>
+<div class="qa-body"><p>An architectural style for HTTP APIs. Resources identified by URLs; operations via standard verbs (GET/POST/PUT/PATCH/DELETE); stateless (each request stands alone). Status codes signal outcome (2xx success, 4xx client error, 5xx server error).</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q187. What does Retrofit do?</summary>
+<div class="qa-body"><p>Converts a Kotlin interface annotated with HTTP method annotations into a typed HTTP client at runtime. Handles serialization via converter factories.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q188. What is OkHttp?</summary>
+<div class="qa-body"><p>The HTTP client Retrofit sits on top of. Handles connection pooling, gzip, HTTP/2, redirects, caching, interceptors.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q189. What's GSON?</summary>
+<div class="qa-body"><p>Google's JSON library — converts JSON ↔ Java/Kotlin objects via reflection. Common in legacy code; for new Kotlin code prefer <code>kotlinx.serialization</code> or Moshi (compile-time codegen, faster, Kotlin-aware).</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q190. Why kotlinx.serialization over Gson?</summary>
+<div class="qa-body"><p>Compile-time codegen (KSP) — faster cold start, no reflection. Kotlin-aware: handles default args, nullability, sealed classes, value classes natively. Multiplatform-ready. Smaller APK (no reflection lib).</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q191. How do you add an Authorization header to every request?</summary>
+<div class="qa-body"><p>OkHttp Interceptor — append <code>Authorization: Bearer $token</code> to the request before forwarding: <code>chain.proceed(chain.request().newBuilder().header(...).build())</code>.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q192. Interceptor vs Authenticator?</summary>
+<div class="qa-body"><p>Interceptor: runs on every request — add headers, logging, retry. Authenticator: runs on 401 — refresh token + retry the original request. Both apply at the OkHttpClient level.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q193. How do you log requests/responses?</summary>
+<div class="qa-body"><p><code>HttpLoggingInterceptor</code> with <code>level = BODY</code> in debug, <code>NONE</code> in release. Never log <code>BODY</code> in release — leaks PII and tokens.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q194. What is OAuth 2.0 PKCE?</summary>
+<div class="qa-body"><p>Proof Key for Code Exchange — the mobile-safe OAuth flavor. Mobile apps can't safely store a client secret; PKCE replaces it with a per-flow random verifier. App generates verifier, sends SHA256 hash as <code>code_challenge</code>, exchanges code + verifier for tokens.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q195. Where do you store OAuth tokens?</summary>
+<div class="qa-body"><p><code>EncryptedSharedPreferences</code> (Jetpack Security) — backed by Android Keystore so the encryption key is hardware-isolated. Never plain SharedPreferences or files.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q196. What's certificate pinning?</summary>
+<div class="qa-body"><p>Hardcoding the expected server cert hash so a rogue CA can't MITM. <code>CertificatePinner</code> on OkHttpClient or via <code>network_security_config.xml</code>. Pin to <strong>multiple keys</strong> (current + backup) — single-key pin can brick the app on cert rotation.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q197. How do you handle concurrent 401s during token refresh?</summary>
+<div class="qa-body"><p>Wrap the refresh in a <code>Mutex.withLock</code>. After acquiring, compare current token against the expired one — if different, another caller already refreshed; just retry with the new token. If same, do the refresh.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q198. Why use idempotency keys?</summary>
+<div class="qa-body"><p>POST is not naturally idempotent — retrying after a network drop can create duplicates. Send <code>Idempotency-Key: &lt;UUID&gt;</code>; server dedupes. The same key MUST be reused on retry (otherwise dedup fails).</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q199. Cursor vs page-number pagination — which and why?</summary>
+<div class="qa-body"><p>Cursor: stable under concurrent inserts/deletes (server returns <code>nextCursor</code>; client sends it back). Page-number: simple but unstable — a new item inserted between pages causes "skip" or "duplicate" rows. Prefer cursor for production.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q200. How do you secure WebView?</summary>
+<div class="qa-body"><p>Disable <code>setAllowFileAccess</code>, <code>setAllowFileAccessFromFileURLs</code>, <code>setAllowUniversalAccessFromFileURLs</code>. Avoid <code>@JavascriptInterface</code> unless absolutely needed (annotated method opens an attack surface). Validate redirected URLs against an allowlist. Use <code>WebViewAssetLoader</code> for serving local content.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q201. How would you implement an OkHttp interceptor that retries 5xx with exponential backoff?</summary>
+<div class="qa-body"><pre><code class="language-kotlin">class RetryInterceptor(private val maxRetries: Int = 3) : Interceptor {
+    override fun intercept(chain: Chain): Response {
+        var attempt = 0
+        var response: Response
+        while (true) {
+            response = chain.proceed(chain.request())
+            if (response.code !in 500..599 || attempt &gt;= maxRetries) return response
+            response.close()
+            attempt++
+            Thread.sleep((1L shl (attempt - 1)) * 500L)   // 500, 1000, 2000ms
+        }
+    }
+}</code></pre></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q202. Walk through the full PKCE flow.</summary>
+<div class="qa-body"><p>(1) App generates <code>code_verifier</code> (random 43-128 chars). (2) Computes <code>code_challenge = BASE64URL(SHA256(verifier))</code>. (3) Opens Chrome Custom Tab → auth URL with <code>code_challenge</code>, <code>code_challenge_method=S256</code>, <code>state</code>. (4) User logs in → server redirects with <code>code</code> + <code>state</code>. (5) App validates state matches, POSTs <code>{code, code_verifier, redirect_uri, client_id}</code> to /token. (6) Server validates <code>SHA256(verifier) == challenge</code>, returns access + refresh tokens. (7) App stores in EncryptedSharedPreferences.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q203. What's refresh token rotation?</summary>
+<div class="qa-body"><p>Each <code>/refresh</code> call returns BOTH a new access token AND a new refresh token. The old refresh token is revoked server-side. If the old one is used (or seen replayed by an attacker), server detects compromise and invalidates the family — forcing re-auth. Mitigates refresh token theft.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q204. How does HTTP/2 differ from HTTP/1.1 for mobile apps?</summary>
+<div class="qa-body"><p>HTTP/2: multiplexes multiple requests over a single TCP connection (no more per-domain connection limits), header compression (HPACK), server push (rare on mobile). For Android/OkHttp: free benefit on supported servers — fewer connection re-establishments, lower latency on mobile networks.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q205. How do you secure a deep link that takes a userId?</summary>
+<div class="qa-body"><p>Validate the userId server-side against the current session (the link could be shared). Use <strong>App Links</strong> (with digital asset link verification) so only your app handles your domain — prevents another app intercepting. Treat all URL params as untrusted user input.</p></div></details>
+
+<!-- ============================================
+     ANDROID CORE
+     ============================================ -->
+<h2 class="qa-section-title">Android SDK Core (206–225)</h2>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q206. List the Activity lifecycle methods in order.</summary>
+<div class="qa-body"><p>onCreate → onStart → onResume → (interactive) → onPause → onStop → onDestroy. From stopped: onRestart → onStart → onResume.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q207. What's the Fragment lifecycle?</summary>
+<div class="qa-body"><p>onAttach → onCreate → onCreateView → onViewCreated → onStart → onResume → onPause → onStop → onDestroyView → onDestroy → onDetach.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q208. What is an Intent?</summary>
+<div class="qa-body"><p>A messaging object — a request to start an activity, deliver a broadcast, or start a service. Explicit (specifies the target class) or implicit (system picks the handler).</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q209. What are the four core Android components?</summary>
+<div class="qa-body"><p>Activity (UI screen), Service (background work), BroadcastReceiver (event listener), ContentProvider (cross-app data).</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q210. Configuration change vs process death — what survives?</summary>
+<div class="qa-body"><p>Config change (rotation): ViewModel survives; <code>onSaveInstanceState</code> Bundle survives. Process death: only the Bundle / SavedStateHandle survives — ViewModel is recreated.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q211. Standard launch mode vs singleTop?</summary>
+<div class="qa-body"><p>Standard: always create a new instance (A→A→A allowed). singleTop: if activity already on top, reuse + fire <code>onNewIntent</code>; otherwise create new. Use singleTop for screens reachable via notification to avoid stacking duplicates.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q212. singleTask vs singleInstance?</summary>
+<div class="qa-body"><p>singleTask: one instance across the task; if exists anywhere in the stack, bring to top + clear above. singleInstance: lives alone in its own task — no other activity in this task. singleInstance is rare (system dialogs); singleTask for "Home" / launcher entry.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q213. App opens A → B → C. Notification opens A with singleTask. Stack now?</summary>
+<div class="qa-body"><p>Stack: just <strong>A</strong>. singleTask brings A to top and clears B, C. <code>onNewIntent</code> fires on the existing A.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q214. <code>FLAG_ACTIVITY_CLEAR_TOP</code> — what does it do?</summary>
+<div class="qa-body"><p>Pops every activity above the existing instance of the target activity. Combined with <code>FLAG_ACTIVITY_NEW_TASK</code> + <code>FLAG_ACTIVITY_CLEAR_TASK</code> for "go home and clear stack."</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q215. Foreground service vs background service vs bound service?</summary>
+<div class="qa-body"><p>Foreground: persistent notification, OS keeps process alive (music, location). Background: hidden, killed eagerly on Android 8+ (use WorkManager instead). Bound: lives only while clients are bound (IPC).</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q216. Why are static BroadcastReceivers restricted on Android 8+?</summary>
+<div class="qa-body"><p>Implicit broadcasts can wake many apps simultaneously, draining battery. Android 8+ limits which implicit broadcasts can be statically registered. Use dynamic registration with explicit lifecycle, or migrate to alternative mechanisms (NetworkCallback, ProcessLifecycleOwner, FCM).</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q217. What's <code>FLAG_IMMUTABLE</code> on PendingIntent and why required on Android 12+?</summary>
+<div class="qa-body"><p>Immutable PendingIntent prevents another app from modifying the wrapped intent (e.g., changing the target component or adding extras). API 31+ requires you to explicitly choose <code>IMMUTABLE</code> or <code>MUTABLE</code> — used to be implicit. <code>MUTABLE</code> only when truly needed (e.g., inline notification reply where the system fills in the result).</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q218. How does Doze mode affect your app?</summary>
+<div class="qa-body"><p>Device unplugged + screen off + stationary → OS defers background CPU/network. Wakes briefly periodically. Foreground services and high-priority FCM bypass. Implication: WorkManager handles this; avoid <code>setExactAndAllowWhileIdle</code> alarms unless you need wall-clock precision.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q219. What is App Standby?</summary>
+<div class="qa-body"><p>OS bucketing of apps based on usage frequency: active / working set / frequent / rare / restricted. Lower buckets get tighter restrictions on jobs, alarms, FCM. Implication: don't expect frequent background execution if user rarely opens your app.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q220. <code>onSaveInstanceState</code> — when does it run?</summary>
+<div class="qa-body"><p>Before <code>onStop</code> when the OS might destroy the activity (rotation, going to background where memory might be reclaimed). NOT called when user explicitly finishes the activity (back press, finish()). Stored in a Bundle restored to <code>onCreate</code> / <code>onRestoreInstanceState</code> if recreated.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q221. How would you structure init order in <code>Application.onCreate</code>?</summary>
+<div class="qa-body"><p>Light only: required SDK config that must run before first activity. Defer everything else via App Startup library or post-first-frame coroutine. Crashlytics — install early. Analytics SDK — initialize lazily on first event. DI graph — Hilt is lazy by default.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q222. Trace what happens when user rotates the device on a Compose screen.</summary>
+<div class="qa-body"><p>Activity is destroyed (onPause→onStop→onDestroy). New Activity created (onCreate). <code>setContent { }</code> runs again. ViewModel survives (stored in <code>ActivityRetainedComponent</code>). <code>rememberSaveable</code> values restored from Bundle. <code>remember</code> values lost (re-initialized). LaunchedEffect with the same keys runs again.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q223. What's the difference between <code>android:configChanges</code> and not declaring it?</summary>
+<div class="qa-body"><p>Without it: Activity is recreated on the listed config changes. With <code>configChanges="orientation|screenSize"</code>: <code>onConfigurationChanged</code> is called instead — the Activity persists. Use sparingly — defeats lifecycle assumptions; can hide bugs in state restoration.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q224. Difference between Application Context and Activity Context?</summary>
+<div class="qa-body"><p>Activity Context: tied to Activity lifecycle, has theme + window. Application Context: app lifetime, no theme/window. Use Application context for long-lived references (singletons, repos) to avoid leaking the Activity. Use Activity context for UI work (dialogs, themed inflation).</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q225. How do you migrate a Service-heavy app to WorkManager?</summary>
+<div class="qa-body"><p>Audit each Service: (1) If user-visible long work — keep as foreground service (with <code>foregroundServiceType</code>). (2) If deferrable background — replace with WorkManager request. (3) If one-shot post-event — replace with <code>OneTimeWorkRequest</code>. (4) If bound service for IPC — keep. Test on Android 8+ to verify background restrictions don't break flows.</p></div></details>
+
+<!-- ============================================
+     PERFORMANCE
+     ============================================ -->
+<h2 class="qa-section-title">Performance & Profiling (226–245)</h2>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q226. Cold / warm / hot start?</summary>
+<div class="qa-body"><p>Cold: process newly created (Application.onCreate runs). Warm: process exists, Activity recreated. Hot: process + Activity exist, just brought to foreground.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q227. How do you measure cold start?</summary>
+<div class="qa-body"><p><code>adb shell am start -W -n pkg/.MainActivity</code> for quick. <strong>Macrobenchmark StartupBenchmark</strong> for stable, CI-friendly numbers. Profiler "System Trace" for one-time deep dive.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q228. Frame budget at 60Hz?</summary>
+<div class="qa-body"><p>16.6ms. At 90Hz: 11.1ms. At 120Hz: 8.3ms. Anything past budget → dropped frame → user-perceptible jank.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q229. What are Baseline Profiles?</summary>
+<div class="qa-body"><p>AOT compile hints shipped with the APK. ART pre-compiles those code paths so they don't pay JIT cost on first execution. Generated via Macrobenchmark. Often 20-40% cold start improvement.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q230. Top tactics for cold start?</summary>
+<div class="qa-body"><p>(1) Baseline Profiles + R8. (2) Defer SDK init via App Startup library. (3) Trim Application.onCreate. (4) Lazy DI graph (Hilt is by default). (5) Don't block main on disk/network in onCreate. (6) SplashScreen API correctly.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q231. Common jank sources?</summary>
+<div class="qa-body"><p>Heavy work on main (JSON parsing, large bitmap decode), Compose unstable parameters, RecyclerView <code>onBindViewHolder</code> doing I/O, overdraw, bitmap loading without sampling.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q232. What is JankStats?</summary>
+<div class="qa-body"><p>An AndroidX library for runtime jank detection in production-like builds. Reports per-frame data with metadata you set. Useful for collecting jank metrics from real users.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q233. What is StrictMode?</summary>
+<div class="qa-body"><p>Debug-only enforcement of best practices. ThreadPolicy: detect disk reads/writes/network on main thread. VmPolicy: detect leaked Closeables, leaked Activities, etc. Catches bugs before they ANR or leak in production.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q234. Common memory leak sources?</summary>
+<div class="qa-body"><p>Singletons holding Activity/Context, anonymous inner classes, listeners not unregistered, GlobalScope.launch capturing Activity, ExoPlayer not released, RxJava subscriptions not disposed (legacy), unbounded bitmap caches.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q235. What does R8 do?</summary>
+<div class="qa-body"><p>Code shrinking + obfuscation + optimization. Default in release with <code>minifyEnabled true</code>. Combined with <code>shrinkResources true</code> for APK size reduction. Requires ProGuard rules for reflection-heavy code.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q236. ANR triggers?</summary>
+<div class="qa-body"><p>UI thread blocked &gt; 5s for input. BroadcastReceiver onReceive &gt; 10s. Service onStart/onStartCommand &gt; 20s. Look at main thread stack at the moment of ANR (Play Console Vitals or <code>/data/anr/traces.txt</code> on rooted devices).</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q237. APK size — top reductions?</summary>
+<div class="qa-body"><p>R8 + resource shrinking, App Bundles (per-device APKs), WebP + vector drawables, dynamic feature modules, audit large transitives, language-specific splits via Bundles.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q238. Compose-specific perf knobs?</summary>
+<div class="qa-body"><p>Stable parameters (<code>@Immutable</code>), <code>derivedStateOf</code> for derived booleans, lazy list <code>key</code>+<code>contentType</code>, function references over inline lambdas, Compose Compiler reports in CI.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q239. How do you track production performance?</summary>
+<div class="qa-body"><p>Play Console Vitals (ANR, crash rate, slow rendering, slow start). JankStats library for richer per-frame data. Crashlytics for crash trends. Custom: Conviva for player health, Dynatrace/NewRelic for app traces.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q240. What's TTID vs TTFD?</summary>
+<div class="qa-body"><p>Time to Initial Display: first frame drawn. Time to Full Display: content fully populated. Mark TTFD with <code>reportFullyDrawn()</code> from your Activity/Compose. Macrobenchmark distinguishes them.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q241. How do you debug an OOM in production?</summary>
+<div class="qa-body"><p>Reproduce locally → Profiler heap dump at the point of OOM. Group instances by class — anything &gt;100MB, anything growing unboundedly. Common: bitmap caches, String pools, leaked Activities. Verify fix with a 7-day Crashlytics window post-release.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q242. How do Baseline Profiles work under the hood?</summary>
+<div class="qa-body"><p>The profile is a binary list of method signatures + flags (hot, startup, post-startup). At install time, ART compiles those methods AOT (ahead of time), generating optimized native code. On first execution, those methods skip JIT cost. The profile ships in <code>baseline.prof</code> within the APK.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q243. How would you reduce startup time on a 10-screen app?</summary>
+<div class="qa-body"><p>Steps in order: (1) Macrobenchmark to establish baseline. (2) Generate Baseline Profiles for the cold-start path. (3) Audit Application.onCreate — defer all SDK init via App Startup. (4) Migrate to kotlinx.serialization if Gson is on the cold path. (5) Network: cache + prefetch hot manifests. (6) Compose: stability annotations, eliminate non-skippable parents. (7) R8 + resource shrinking. Verify each step with Macrobenchmark.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q244. What's the difference between heap allocation and JIT in terms of startup cost?</summary>
+<div class="qa-body"><p>Heap allocations are fast in steady state but contribute to GC pressure during startup if you allocate aggressively. JIT compilation costs CPU on first execution of a method. Baseline Profiles target the JIT cost (AOT-compile critical paths). For allocations, look at <code>Application.onCreate</code> for any avoidable churn.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q245. How do you regression-test performance in CI?</summary>
+<div class="qa-body"><p>Macrobenchmark module with StartupBenchmark + targeted scroll/render benchmarks. Run on a fixed device (or device farm) on each commit. Compare numbers vs baseline; alert on &gt;10% regression. Compose Compiler reports also CI-checked.</p></div></details>
+
+<!-- ============================================
+     PLAYER
+     ============================================ -->
+<h2 class="qa-section-title">Video Player (246–260)</h2>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q246. Why ExoPlayer over MediaPlayer?</summary>
+<div class="qa-body"><p>ExoPlayer: open-source, customizable, consistent across OS versions, supports HLS/DASH/SmoothStreaming/DRM out of the box, handles ABR. MediaPlayer: OS-tied, limited customization, behavior varies by OEM, no full ABR.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q247. HLS vs DASH?</summary>
+<div class="qa-body"><p>HLS: Apple, .m3u8 manifest, .ts/.mp4 segments, native iOS support. DASH: MPEG, .mpd XML, .mp4 segments, no native iOS. Modern: HLS+CMAF works almost everywhere — single packaging serves both.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q248. What is ABR?</summary>
+<div class="qa-body"><p>Adaptive Bitrate. Player measures bandwidth on segment downloads and buffer health, picks a bitrate from the manifest's variants. Switches up if buffer healthy + bandwidth allows; down if buffer drains.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q249. Widevine DRM levels?</summary>
+<div class="qa-body"><p>L1: hardware-backed (TEE) — most secure, allows HD/4K. L2: mixed. L3: software only — typically SD; HD often blocked by content owners.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q250. CSAI vs SSAI?</summary>
+<div class="qa-body"><p>CSAI: client fetches ad and pauses content during break — separate fetch, vulnerable to ad blockers, easy per-user personalization. SSAI: server stitches ads into the stream — single continuous playback, no buffer at break, harder ad-block, harder personalization (per-user manifests).</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q251. What are ad quartile beacons?</summary>
+<div class="qa-body"><p>HTTP fire-and-forget pings to ad partners at lifecycle moments: impression/start, firstQuartile (25%), midpoint (50%), thirdQuartile (75%), complete (100%), plus click/error/skip. Servers use these for billing and measurement.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q252. How do you do offline DRM playback?</summary>
+<div class="qa-body"><p>(1) Download stream segments via <code>DownloadManager</code>. (2) Pre-fetch and persist the Widevine license via <code>OfflineLicenseHelper</code>. (3) On playback, hand the license keyId to player via <code>DrmConfiguration.setKeySetId()</code>.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q253. How would you architect a player module?</summary>
+<div class="qa-body"><p>Wrap ExoPlayer in <code>PlayerController</code> interface. Inject via Hilt. Expose <code>StateFlow&lt;PlaybackState&gt;</code> driven by <code>Player.Listener</code> callbacks. Compose UI via <code>AndroidView { PlayerView }</code> + <code>DisposableEffect</code> for release. Decouples business logic and tests from the SDK; easy to swap.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q254. What player health metrics do you track?</summary>
+<div class="qa-body"><p>TTFF (time to first frame), rebuffer ratio (rebuffer time / total play time), bitrate distribution, error count by type (DRM/network/decoder). Report to Conviva or Bitmovin Analytics, plus internal events.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q255. How do you handle a 4G→Wifi mid-playback?</summary>
+<div class="qa-body"><p>ExoPlayer recovers automatically — segments fail, retry, continue. ABR re-evaluates bandwidth on the new connection. If retries exhaust, surface a recoverable error and call <code>player.prepare()</code> again.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q256. How do you do PiP with ExoPlayer?</summary>
+<div class="qa-body"><p>Manifest: <code>android:supportsPictureInPicture="true"</code> on the activity. <code>configChanges="screenSize|smallestScreenSize|screenLayout|orientation"</code>. Call <code>enterPictureInPictureMode(params)</code>. Override <code>onPictureInPictureModeChanged</code> to hide/show controls. Player keeps playing.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q257. What's MediaSession and why use it?</summary>
+<div class="qa-body"><p>Exposes playback state to the system: lock screen, Bluetooth headsets, Wear, Auto, Cast. Single source of truth for playback. Required if you want media controls outside the app. Media3's <code>MediaSessionService</code> is the modern API.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q258. How would you A/B test players?</summary>
+<div class="qa-body"><p>Behind a feature flag, swap the <code>PlayerController</code> impl. Cohort A gets ExoPlayer; cohort B gets Bitmovin. Compare TTFF, rebuffer ratio, error rate. Roll forward or back based on metrics. Important: ad lifecycle and analytics must work with both impls — wire through <code>PlayerController</code>.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q259. How would you debug a "DRM license error 6004"?</summary>
+<div class="qa-body"><p>Look up code (varies — usually a license server response). Check: (1) device security level (L1 vs L3 mismatch with content). (2) Network — is the license URL reachable? (3) Auth headers — is your token valid? (4) Provisioning — has the device been provisioned by Widevine ProvisioningServer? (5) Time — device clock skew can break DRM.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q260. SSAI vs CSAI — when should I choose which for a streaming product?</summary>
+<div class="qa-body"><p>SSAI for live + premium content where ad-block circumvention matters and seamless playback is critical. CSAI when you need fine-grained per-impression targeting that's hard to do server-side, or when your ad backend isn't SSAI-capable. Hybrid is common: SSAI for video pre-rolls, CSAI for display/banner ads in the UI.</p></div></details>
+
+<!-- ============================================
+     SYSTEM DESIGN BEHAVIORAL
+     ============================================ -->
+<h2 class="qa-section-title">System Design + Behavioral (261–280)</h2>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q261. How do you start an HLD round?</summary>
+<div class="qa-body"><p>Clarify scope first (5-8 minutes — never skip): scale, online/offline, real-time, platforms, auth. Then list functional + non-functional reqs. Sketch architecture. Pick a deep-dive area. Articulate tradeoffs throughout.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q262. Design a Twitter-like feed.</summary>
+<div class="qa-body"><p>Cursor-pagination (stable). Image prefetching (next 3 items). Cache: LRU for recent ~500 posts. Optimistic likes. Pull-to-refresh: re-fetch from cursor=null, prepend. Read receipts: count when item visible &gt;2s + &gt;50% on screen.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q263. Design an offline-first notes app.</summary>
+<div class="qa-body"><p>Room is source of truth. Each entity has clientUUID + serverId + version + status. WorkManager SyncWorker drains pending creates/updates/deletes. Conflict: last-write-wins or 409+prompt. UI observes Flow from DAO.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q264. Design an image loader.</summary>
+<div class="qa-body"><p>Memory cache (LruCache, ~1/8 heap) → disk cache (LRU on disk) → network (OkHttp). Cache key = url + size + transformations. Cancel on view recycle (track requests by target). Decode on Default dispatcher. Bind on Main.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q265. Design a chat client.</summary>
+<div class="qa-body"><p>WebSocket inbound. Room for persistence. Send queue with WorkManager + client UUIDs (idempotency). Reconnect with exponential backoff + "since lastDeliveredId" replay. Pagination via keyset on messageId DESC.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q266. Design analytics integration usable from both Compose and XML.</summary>
+<div class="qa-body"><p><code>AnalyticsTracker</code> interface. Hilt multibinds multiple impls (NewRelic, Crashlytics, internal). <code>AnalyticsHub</code> fans out, off-main, swallows failures. Compose: <code>CompositionLocal</code>. XML: base Fragment with <code>onResume</code> firing screen event.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q267. Design push notifications end-to-end.</summary>
+<div class="qa-body"><p>FCM token registered on app start; server side subscribes to topics or stores device tokens. Notification channels (Android 8+) created at app start. Deep links via TaskStackBuilder. Silent push for sync. Privacy: redact on lockscreen via <code>setVisibility</code>.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q268. Design a photo upload pipeline.</summary>
+<div class="qa-body"><p>WorkManager foreground service (user-visible long work). Resumable upload via chunked PUT (S3 multipart or Tus). Persist chunk progress so reboot resumes. Notification with progress. Constraints: <code>UNMETERED</code> if user toggles wifi-only.</p></div></details>
+
+<details class="qa diff-q-advanced"><summary><span class="diff-pill diff-advanced">Advanced</span> Q269. Design a video streaming app like Tubi.</summary>
+<div class="qa-body"><p>See system-design page section 3. Key parts: SDUI for home rows, ExoPlayer/Media3 + Widevine + HLS+CMAF + SSAI, beacon tracking, continue-watching with offline-first DB, PKCE auth, custom analytics ingestion, multi-module structure.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q270. Design a feature flag system.</summary>
+<div class="qa-body"><p>Local cache (DataStore) — synchronous read at app start. Remote (Firebase Remote Config or LaunchDarkly). Refresh policy: on app start + every 12h. QA override via developer settings. Type-safe accessors per flag. Fallback to default if remote fetch fails.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q271. Two devices edit the same note offline. How do you reconcile?</summary>
+<div class="qa-body"><p>Three options to articulate: (1) Last-write-wins (simple, lossy). (2) Version-based 409 + user prompt (better UX). (3) Three-way merge (Notion/Figma-level, complex). Pick one per product and acknowledge alternatives. Server-generated content hash dedupes identical edits.</p></div></details>
+
+<details class="qa diff-q-extreme"><summary><span class="diff-pill diff-extreme">Extreme</span> Q272. How would you handle a 10× user-count spike?</summary>
+<div class="qa-body"><p>Backend scaling is primary (CDN, caching layer, sharding). Mobile-side: more aggressive caching, batched API calls (or GraphQL with sparse fields), feature flags for risky rollouts, robust telemetry, A/B test infra, baseline profiles for cold start at p95.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q273. Tell me about a tough technical problem you've solved. (TR4)</summary>
+<div class="qa-body"><p>See <a href="star-stories.html">STAR Stories</a>. Story 1 (EPG rebuild) or Story 2 (ad stack) — pick whichever closer to the interviewer's domain. For FOX, lean ad stack — DRM/SSAI is most relevant.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q274. Tell me about a disagreement with your manager. (TR4)</summary>
+<div class="qa-body"><p>Story 8 (search caching). Frame as: data → proposal → compromise. Don't paint manager as antagonist; show collaboration ending in shared decision.</p></div></details>
+
+<details class="qa diff-q-intermediate"><summary><span class="diff-pill diff-intermediate">Intermediate</span> Q275. Tell me about a failure. (TR4)</summary>
+<div class="qa-body"><p>Story 7 (disabled flaky test → real bug). Own it cleanly. Show what you learned, what process you changed, how it played out long-term.</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q276. Why FOX?</summary>
+<div class="qa-body"><p>"DTC streaming at scale — Tubi, FOX Sports, FOX News all push different problems. My current player work (DRM, SSAI, ABR) is directly relevant. I want to grow on a deeper Android engineering bench."</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q277. Why are you leaving Dish?</summary>
+<div class="qa-body"><p>"Growth move. I've delivered what I set out to — full ownership of player module, multi-module migration, ad stack. Natural next step is a larger DTC platform with a deeper bench."</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q278. What's your first 30 days at FOX?</summary>
+<div class="qa-body"><p>"Listen, ramp, ship something small. Read the player module top to bottom. Pair with senior engineers to understand conventions. Pick up a small bug to learn build/test/release. Avoid pushing big architectural opinions in week 1."</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q279. Where do you see yourself in 5 years?</summary>
+<div class="qa-body"><p>"Senior staff level — leading architecture for a major Android product or platform team. Deepening into video/streaming or scaling Android orgs."</p></div></details>
+
+<details class="qa diff-q-basic"><summary><span class="diff-pill diff-basic">Basic</span> Q280. What's your weakness?</summary>
+<div class="qa-body"><p>Real one with mitigation: "I lean on AI tooling more than I should — I've made it a habit this past month to write features by hand first, then use AI for review or edge cases." Don't say "I'm a perfectionist" — bar raisers groan.</p></div></details>
+
+<div class="footer">
+<p>Practice protocol: cycle through this page once per day until interview. Mark questions where you stumble; redo the next day. <a href="index.html">Back to overview</a>.</p>
+</div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jetpack Compose · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Jetpack Compose — internals, side effects, performance</h1>
+<p class="lead">From recomposition mechanics to <span class="signal">stability annotations</span> to <span class="signal">side effect APIs</span>. Plus Compose vs XML, theming, navigation, and pagination.</p>
+
+<div class="buzzwords">
+  <span>declarative UI</span>
+  <span>recomposition skipping</span>
+  <span>stability inference</span>
+  <span>@Immutable / @Stable</span>
+  <span>derivedStateOf to gate recomposition</span>
+  <span>state hoisting</span>
+  <span>unidirectional data flow</span>
+  <span>collectAsStateWithLifecycle</span>
+  <span>CompositionLocal</span>
+  <span>slot table</span>
+  <span>positional memoization</span>
+  <span>Modifier composition order</span>
+</div>
+
+<h2>1. Why Compose over XML — the senior answer</h2>
+
+<div class="callout senior">
+  <span class="label">Locked-in answer</span>
+  <p>Compose is a <strong>declarative UI toolkit</strong>: you describe what UI should look like for a given state, and the runtime diffs and updates the underlying nodes. Compared to XML + View hierarchy:</p>
+  <ul>
+    <li><strong>State-driven</strong> — UI follows state automatically; no <code>findViewById</code>, no manual <code>setText</code>. Eliminates a whole class of "stale view" bugs.</li>
+    <li><strong>Composable functions</strong> are testable, previewable, reusable as plain Kotlin functions — not XML resources.</li>
+    <li><strong>Less boilerplate</strong> — RecyclerView's adapter / ViewHolder dance becomes a few lines with <code>LazyColumn</code>.</li>
+    <li><strong>Animations</strong> are first-class via <code>animate*AsState</code>, <code>updateTransition</code>; no AnimatorSet XML files.</li>
+    <li><strong>Type-safe theming</strong> via Material 3 + <code>CompositionLocal</code> — versus AppCompat-themes-as-strings.</li>
+    <li><strong>Interop</strong> — drop <code>ComposeView</code> in XML or <code>AndroidView</code> in Compose; you can migrate incrementally.</li>
+  </ul>
+  <p><strong>Caveats to mention</strong> — initial learning curve for stability/recomposition; tooling for very complex custom layouts is still maturing; large lists need explicit keys to perform.</p>
+</div>
+
+<h2>2. The mental model — composition, recomposition, slot table</h2>
+
+<div class="definition"><strong>Composition</strong> = the tree of <code>@Composable</code> calls that describes the UI for a given state. <strong>Recomposition</strong> = re-running parts of that tree when state changes. <strong>Slot table</strong> = the runtime data structure storing the position of each composable so Compose knows where to <em>put</em> the new output (and what <code>remember</code> values belong to that position).</div>
+
+<p>Three pillars:</p>
+<ol>
+  <li><strong>Composition</strong> — the tree of <code>@Composable</code> calls that produces the UI description.</li>
+  <li><strong>Recomposition</strong> — re-running parts of the composition when state changes.</li>
+  <li><strong>Slot table</strong> — the runtime data structure that tracks <em>where</em> each composable lives, enabling <span class="signal-phrase">positional memoization</span> across re-runs.</li>
+</ol>
+
+<div class="callout senior">
+  <span class="label">Senior phrase</span>
+  <p>"Compose uses <span class="signal-phrase">positional memoization</span> in the slot table — <code>remember</code> values are keyed by their call-site location in the composition tree, not by name. That's why two <code>remember { 0 }</code> calls in the same composable body produce two independent values."</p>
+</div>
+
+<h2>3. Recomposition rules</h2>
+<ol>
+  <li>A composable <em>recomposes</em> when its inputs change OR it reads a <code>State</code> whose value changed.</li>
+  <li>A composable is <strong>skipped</strong> if all parameters are <span class="signal">stable</span> AND none have changed.</li>
+  <li>If a parameter changes, only that composable (and any descendant whose own inputs change) re-runs.</li>
+</ol>
+
+<h2>4. Stability — the perf gotcha</h2>
+
+<p>A type is <strong>stable</strong> if Compose can trust <code>equals</code> to mean "rendered output should be the same." Stable types let Compose skip recomposition.</p>
+
+<table>
+<thead><tr><th>Type</th><th>Stable?</th></tr></thead>
+<tbody>
+<tr><td>Primitives, <code>String</code></td><td>Yes</td></tr>
+<tr><td><code>data class</code> with all-stable <code>val</code> fields</td><td>Yes</td></tr>
+<tr><td><code>data class</code> with <code>var</code> fields</td><td><strong>No</strong></td></tr>
+<tr><td>Lambda references (function references)</td><td>Yes</td></tr>
+<tr><td><code>List&lt;T&gt;</code>, <code>Map&lt;K,V&gt;</code>, <code>Set&lt;T&gt;</code></td><td><strong>No</strong> (interfaces — implementation could be mutable)</td></tr>
+<tr><td>Types annotated <code>@Immutable</code> or <code>@Stable</code></td><td>Yes (you take responsibility)</td></tr>
+<tr><td><code>kotlinx.collections.immutable.ImmutableList&lt;T&gt;</code></td><td>Yes</td></tr>
+<tr><td><code>MutableState</code>, <code>State</code></td><td>Yes</td></tr>
+</tbody>
+</table>
+
+<pre><code class="language-kotlin">// UNSTABLE — List interface; Compose can't skip
+data class Filter(val tags: List&lt;String&gt;)
+
+// STABLE — annotation tells Compose "trust me"
+@Immutable
+data class Filter(val tags: List&lt;String&gt;)
+
+// Or use ImmutableList for true immutability
+data class Filter(val tags: ImmutableList&lt;String&gt;)</code></pre>
+
+<div class="callout senior">
+  <span class="label">Senior diagnostic phrase</span>
+  <p>"I run the <span class="signal-phrase">Compose Compiler reports</span> in CI — they output a stability-and-skippability report per composable. When a screen is sluggish, that report is my first stop. Then Layout Inspector for recomposition counts."</p>
+</div>
+
+<h2>5. The <code>remember</code> family</h2>
+<table>
+<thead><tr><th>API</th><th>Lives across</th><th>Re-init when</th></tr></thead>
+<tbody>
+<tr><td><code>remember { ... }</code></td><td>recomposition</td><td>composable leaves the composition</td></tr>
+<tr><td><code>remember(key) { ... }</code></td><td>recomposition</td><td><code>key</code> changes</td></tr>
+<tr><td><code>rememberSaveable</code></td><td>recomp + config + process death</td><td>composable removed</td></tr>
+<tr><td><code>rememberCoroutineScope()</code></td><td>recomposition</td><td>composable leaves</td></tr>
+<tr><td><code>rememberUpdatedState(value)</code></td><td>recomp</td><td>always points to latest <code>value</code></td></tr>
+</tbody>
+</table>
+
+<pre><code class="language-kotlin">@Composable fun Form() {
+    var name by rememberSaveable { mutableStateOf("") }   // survives process death
+    TextField(name, { name = it })
+}</code></pre>
+
+<h2>6. Side effect APIs — every one, with use cases</h2>
+
+<table>
+<thead><tr><th>API</th><th>Use when</th></tr></thead>
+<tbody>
+<tr><td><code>LaunchedEffect(key)</code></td><td>run a coroutine; restarts when key changes</td></tr>
+<tr><td><code>DisposableEffect(key)</code></td><td>resource that needs cleanup; <code>onDispose { ... }</code> required</td></tr>
+<tr><td><code>SideEffect { }</code></td><td>sync Compose state to non-Compose code; runs after every successful composition</td></tr>
+<tr><td><code>produceState</code></td><td>turn non-Compose source into <code>State&lt;T&gt;</code></td></tr>
+<tr><td><code>derivedStateOf { }</code></td><td>derive State from other State; downstream recomposes only when result changes</td></tr>
+<tr><td><code>snapshotFlow { }</code></td><td>turn Compose State reads into a Flow</td></tr>
+<tr><td><code>rememberCoroutineScope()</code></td><td>scope for coroutines tied to composable lifetime; trigger from event handlers (not init)</td></tr>
+<tr><td><code>rememberUpdatedState</code></td><td>fix stale-closure bug in long-lived effects</td></tr>
+</tbody>
+</table>
+
+<h3>LaunchedEffect — coroutine on enter / key change</h3>
+<pre><code class="language-kotlin">@Composable fun ScreenA(id: String, vm: MyVm = hiltViewModel()) {
+    LaunchedEffect(id) {        // restarts when id changes
+        vm.load(id)
+    }
+}</code></pre>
+
+<h3>DisposableEffect — resource cleanup</h3>
+<pre><code class="language-kotlin">@Composable fun PlayerScreen(player: ExoPlayer) {
+    DisposableEffect(player) {
+        val listener = object : Player.Listener { /* ... */ }
+        player.addListener(listener)
+        onDispose { player.removeListener(listener) }
+    }
+}</code></pre>
+
+<h3>derivedStateOf — gate recomposition</h3>
+<pre><code class="language-kotlin">@Composable fun Feed(listState: LazyListState) {
+    val showFab by remember {
+        derivedStateOf { listState.firstVisibleItemIndex == 0 }   // recomposes downstream only when boolean flips
+    }
+    if (showFab) ScrollFab()
+}</code></pre>
+<div class="code-explain">Why this isn't just <code>val showFab = listState.firstVisibleItemIndex == 0</code>: <code>firstVisibleItemIndex</code> changes <strong>every time the user scrolls</strong> (every pixel). Without <code>derivedStateOf</code>, the surrounding composable would recompose hundreds of times per second. With it, Compose tracks the <em>derived</em> boolean and only triggers downstream recomposition when it actually flips (true→false or false→true). Massive performance win on scroll-driven booleans.</div>
+
+<h3>rememberUpdatedState — stale closure fix</h3>
+<pre><code class="language-kotlin">@Composable fun Timer(onFinish: () -&gt; Unit) {
+    val current by rememberUpdatedState(onFinish)
+    LaunchedEffect(Unit) {
+        delay(5000)
+        current()                // always latest, even if parent re-passed onFinish
+    }
+}</code></pre>
+<div class="code-explain">The bug this prevents: <code>LaunchedEffect(Unit)</code> only runs once when the composable enters the composition. Inside that coroutine, the <code>onFinish</code> lambda is captured by closure. If the parent passes a <em>new</em> <code>onFinish</code> on a later recomposition (e.g., a fresh lambda each time), the LaunchedEffect's coroutine is still using the <em>old</em> one. <code>rememberUpdatedState</code> stores the lambda in a <code>State&lt;T&gt;</code> wrapper that's updated on every composition. Reading <code>current</code> inside the coroutine always sees the latest version.</div>
+
+<h3>snapshotFlow — Compose State → Flow</h3>
+<pre><code class="language-kotlin">LaunchedEffect(listState) {
+    snapshotFlow { listState.firstVisibleItemIndex }
+        .filter { it &gt; 10 }
+        .distinctUntilChanged()
+        .collect { analytics.scrolledPast(it) }
+}</code></pre>
+
+<h2>7. State hoisting — the pattern</h2>
+
+<p>Push state up to the lowest common parent. Pass <code>state</code> + <code>onEvent</code> down. Stateless composables → easier preview, test, reuse.</p>
+
+<pre><code class="language-kotlin">// Stateless (preferred for reuse)
+@Composable fun Counter(count: Int, onInc: () -&gt; Unit, modifier: Modifier = Modifier) {
+    Row(modifier) {
+        Text("$count")
+        Button(onClick = onInc) { Text("+") }
+    }
+}
+
+// Stateful wrapper at the leaf level
+@Composable fun StatefulCounter() {
+    var count by remember { mutableIntStateOf(0) }
+    Counter(count, { count++ })
+}</code></pre>
+
+<h2>8. <code>LazyColumn</code> / <code>LazyRow</code> — the hot path</h2>
+<pre><code class="language-kotlin">LazyColumn {
+    items(notes, key = { it.id }, contentType = { "note" }) { note -&gt;
+        NoteRow(note)
+    }
+}</code></pre>
+
+<div class="callout warn">
+  <span class="label">Always provide <code>key</code></span>
+  <p>Without keys, Compose treats item N at position 5 as "the same" across reorderings — leading to wrong recomposition, scroll jumps, animations targeting the wrong items. Provide <code>key = { it.id }</code> always. <code>contentType</code> helps view-pool reuse for heterogeneous lists.</p>
+</div>
+
+<h2>9. Modifiers — order matters</h2>
+<pre><code class="language-kotlin">Box(Modifier.padding(16.dp).background(Color.Red))   // padding around red bg
+Box(Modifier.background(Color.Red).padding(16.dp))   // red bg, padding inside</code></pre>
+
+<p>Read modifiers <strong>left-to-right, outside-to-inside</strong>. The leftmost modifier wraps everything to its right.</p>
+
+<h2>10. <code>CompositionLocal</code> — implicit downward props</h2>
+<pre><code class="language-kotlin">val LocalAnalytics = staticCompositionLocalOf&lt;AnalyticsTracker&gt; { error("Missing analytics") }
+
+CompositionLocalProvider(LocalAnalytics provides analytics) { App() }
+
+@Composable fun ScreenA() {
+    val a = LocalAnalytics.current
+    LaunchedEffect(Unit) { a.screen("home") }
+}</code></pre>
+
+<table>
+<thead><tr><th></th><th><code>compositionLocalOf</code></th><th><code>staticCompositionLocalOf</code></th></tr></thead>
+<tbody>
+<tr><td>Reads tracked</td><td>Yes — only readers recompose on change</td><td>No — all descendants recompose</td></tr>
+<tr><td>Best for</td><td>frequently changing values</td><td>rarely changing (theme, density)</td></tr>
+</tbody>
+</table>
+
+<h2>11. Theming — Material 3 + tokens</h2>
+<pre><code class="language-kotlin">@Composable fun AppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -&gt; Unit) {
+    val colorScheme = if (darkTheme) darkColorScheme() else lightColorScheme()
+    MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+}
+
+// Inside a composable
+val color = MaterialTheme.colorScheme.primary
+val style = MaterialTheme.typography.titleMedium</code></pre>
+
+<h2>12. Navigation Compose</h2>
+<pre><code class="language-kotlin">// Type-safe (Nav 2.8+)
+@Serializable data object HomeRoute
+@Serializable data class NoteDetailRoute(val id: String)
+
+NavHost(navController, startDestination = HomeRoute) {
+    composable&lt;HomeRoute&gt; { HomeScreen(onOpen = { id -&gt; navController.navigate(NoteDetailRoute(id)) }) }
+    composable&lt;NoteDetailRoute&gt; { entry -&gt;
+        val args = entry.toRoute&lt;NoteDetailRoute&gt;()
+        NoteDetailScreen(args.id)
+    }
+}
+
+// Older string routes
+composable("note/{id}", arguments = listOf(navArgument("id") { type = NavType.StringType })) { entry -&gt;
+    NoteDetailScreen(entry.arguments?.getString("id")!!)
+}</code></pre>
+
+<h3>Nav features</h3>
+<ul>
+  <li><strong>Deep links</strong>: <code>navDeepLink { uriPattern = "myapp://note/{id}" }</code> in the composable.</li>
+  <li><strong>Single top</strong>: <code>navOptions { launchSingleTop = true }</code>.</li>
+  <li><strong>Pop up to</strong>: <code>popUpTo("home") { inclusive = false }</code>.</li>
+  <li><strong>Result back</strong>: previous entry's <code>SavedStateHandle</code> for returning data.</li>
+</ul>
+
+<h2>13. Pagination in Compose — Paging 3</h2>
+<pre><code class="language-kotlin">// In ViewModel
+val pagedItems: Flow&lt;PagingData&lt;Note&gt;&gt; = Pager(
+    config = PagingConfig(pageSize = 20, prefetchDistance = 5),
+    pagingSourceFactory = { NotesPagingSource(api) }
+).flow.cachedIn(viewModelScope)
+
+// In Compose
+@Composable fun NotesList(vm: NotesVm = hiltViewModel()) {
+    val items = vm.pagedItems.collectAsLazyPagingItems()
+    LazyColumn {
+        items(count = items.itemCount, key = items.itemKey { it.id }) { i -&gt;
+            val note = items[i] ?: return@items   // null while loading
+            NoteRow(note)
+        }
+        when (val s = items.loadState.append) {
+            is LoadState.Loading -&gt; item { Spinner() }
+            is LoadState.Error   -&gt; item { ErrorRow(s.error) { items.retry() } }
+            else -&gt; Unit
+        }
+    }
+}</code></pre>
+
+<h2>14. Compose performance — the toolkit</h2>
+
+<ul>
+  <li><strong>Layout Inspector</strong> → enable "Show recomposition counts" — anything > 1 per scroll is suspect.</li>
+  <li><strong>Compose Compiler reports</strong> → per-function stability/skippability.</li>
+  <li><strong>Macrobenchmark + Baseline Profiles</strong> → cold start + first-frame.</li>
+  <li><strong>Modifier.composed</strong> → use sparingly, allocates per composition.</li>
+  <li>Avoid creating lambdas in body when used as parameters to stable composables — extract with <code>remember { { ... } }</code> if needed.</li>
+  <li><code>rememberSaveable</code> only for things you'd be sad to lose; everything else <code>remember</code>.</li>
+  <li>For heavy custom drawing: <code>Modifier.drawWithCache { onDrawWithContent { } }</code>.</li>
+</ul>
+
+<h2>15. Compose vs XML — a practical compare</h2>
+
+<div class="code-compare">
+<div>
+<h4>XML + View binding</h4>
+<pre><code class="language-kotlin">// activity_main.xml — 30 lines
+class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
+    override fun onCreate(s: Bundle?) {
+        super.onCreate(s)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.tvName.text = "Hello"
+        binding.btnGo.setOnClickListener {
+            binding.tvName.text = "Clicked"
+        }
+    }
+}</code></pre>
+</div>
+<div>
+<h4>Compose</h4>
+<pre><code class="language-kotlin">class MainActivity : ComponentActivity() {
+    override fun onCreate(s: Bundle?) {
+        super.onCreate(s)
+        setContent {
+            var name by remember { mutableStateOf("Hello") }
+            Column {
+                Text(name)
+                Button({ name = "Clicked" }) { Text("Go") }
+            }
+        }
+    }
+}</code></pre>
+</div>
+</div>
+
+<h3>When XML is still right</h3>
+<ul>
+  <li>Massive existing codebase mid-migration.</li>
+  <li>Specific custom <code>View</code> with hardware-accelerated paths that matter.</li>
+  <li><code>RecyclerView</code> with extreme custom <code>ViewHolder</code> reuse for performance edge cases (rare in 2024+).</li>
+</ul>
+
+<h2>16. Compose with XML — interop both ways</h2>
+<pre><code class="language-kotlin">// XML in Compose — embed legacy View
+AndroidView(
+    factory = { ctx -&gt; LegacyVideoView(ctx).apply { setUrl(url) } },
+    update = { it.setUrl(url) }
+)
+
+// Compose in XML — embed Composable in a layout
+&lt;androidx.compose.ui.platform.ComposeView
+    android:id="@+id/cv"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" /&gt;
+// in code:
+binding.cv.setContent { MyComposable() }</code></pre>
+
+<h2>17. Common bugs & fixes</h2>
+
+<details class="qa">
+<summary>Q. My composable recomposes every time anything changes — why?</summary>
+<div class="qa-body"><p>Likely an unstable parameter — a <code>List</code>, a <code>Map</code>, or a data class with a <code>var</code> field. Run Compose Compiler reports; mark the type <code>@Immutable</code> or use <code>ImmutableList</code>. Also check: are you passing a fresh lambda each composition? Either ignore (function refs are stable) or extract with <code>remember</code>.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. My LaunchedEffect runs forever / not at all.</summary>
+<div class="qa-body"><p>Forever: probably a key that changes on every recomposition (e.g., new lambda each time). Use <code>Unit</code> or stable keys. Not at all: key never changes after first comp. Use <code>key = Unit</code> for "run once on enter."</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. My snackbar fires twice.</summary>
+<div class="qa-body"><p>You're collecting a Flow inside a <code>LaunchedEffect</code> that restarts on recomposition. Fix: collect with <code>LaunchedEffect(Unit)</code> and use a <code>SharedFlow</code> with <code>replay = 0</code> for events.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. My LazyColumn jumps to top when items update.</summary>
+<div class="qa-body"><p>Missing <code>key</code>. Without keys, Compose can't identify items across updates and treats them as new at the same position.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. State change in StateFlow doesn't trigger Compose.</summary>
+<div class="qa-body"><p>Are you using <code>collectAsState</code> or <code>collectAsStateWithLifecycle</code>? Bare <code>flow.collect</code> in a <code>LaunchedEffect</code> won't subscribe Compose to the value. Also: is StateFlow actually emitting? It dedupes by equality.</p></div>
+</details>
+
+<h2>18. Senior signal phrases for Compose</h2>
+<ul>
+  <li>"<span class="signal-phrase">Recomposition skipping requires stability</span> — without it, every parent change cascades."</li>
+  <li>"<span class="signal-phrase">derivedStateOf to gate recomposition</span> when reading scroll position."</li>
+  <li>"<span class="signal-phrase">I lift state, leave leaves stateless</span> — easier to preview and test."</li>
+  <li>"<span class="signal-phrase">collectAsStateWithLifecycle</span>, never bare <code>collectAsState</code>."</li>
+  <li>"<span class="signal-phrase">CompositionLocal for cross-cutting</span> concerns; props for everything else."</li>
+  <li>"<span class="signal-phrase">@Immutable on stable data</span> models is part of our linting now."</li>
+</ul>
+
+<div class="footer">Next: <a href="architecture.html">Architecture (MVVM/MVI/Clean) →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Android SDK Core · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Android SDK Core</h1>
+<p class="lead">The foundation: <span class="signal">Activity / Fragment lifecycles</span>, every <span class="signal">launch mode</span>, Services, Broadcast Receivers, Content Providers, Intents, and the Application class.</p>
+
+<div class="buzzwords">
+  <span>configuration change vs process death</span>
+  <span>back stack mutation</span>
+  <span>singleTop deduplication</span>
+  <span>singleTask task affinity</span>
+  <span>foreground vs background service</span>
+  <span>dynamic vs manifest receivers</span>
+  <span>LocalBroadcastManager (deprecated)</span>
+  <span>Intent vs PendingIntent</span>
+  <span>FLAG_IMMUTABLE on Android 12+</span>
+  <span>doze mode + app standby</span>
+</div>
+
+<div class="definition"><strong>Activity</strong> = a single screen with its own lifecycle (onCreate → onResume → onPause → onDestroy). <strong>Fragment</strong> = a reusable UI piece embedded in an Activity, with a separate <em>view lifecycle</em>. <strong>Service</strong> = long-running background work without UI (foreground for user-visible, bound for IPC). <strong>BroadcastReceiver</strong> = listener for system or app-wide events (boot complete, network change, custom). <strong>ContentProvider</strong> = a data interface other apps can query. <strong>Intent</strong> = a message describing an action ("open this URL", "share this text"); explicit (you name the target) or implicit (the system picks).</div>
+
+<h2>1. The four core components</h2>
+<table>
+<thead><tr><th>Component</th><th>Use for</th></tr></thead>
+<tbody>
+<tr><td><strong>Activity</strong></td><td>UI screen with lifecycle</td></tr>
+<tr><td><strong>Service</strong></td><td>Long-running background work without UI</td></tr>
+<tr><td><strong>Broadcast Receiver</strong></td><td>React to system or app-wide events</td></tr>
+<tr><td><strong>Content Provider</strong></td><td>Cross-app data sharing (rarely used in modern apps)</td></tr>
+</tbody>
+</table>
+
+<h2>2. Activity lifecycle — full cycle</h2>
+
+<pre><code>onCreate    — view binding, ViewModel attach. Bundle for process-death restore.
+onStart     — Activity becomes visible (but not interactive yet).
+onResume    — Activity is in foreground, receiving input.
+            ─── (USER INTERACTS) ───
+onPause     — losing focus (dialog, multi-window, going home). Save lightweight state.
+onStop      — no longer visible. Heavier teardown OK.
+onRestart   — back from stopped (returning to this activity).
+onDestroy   — final cleanup. Always pairs with onCreate IF not killed unexpectedly.</code></pre>
+
+<h3>State diagram (simplified)</h3>
+<pre><code>onCreate → onStart → onResume ↔ (foreground)
+                     ↓
+                 onPause → onStop
+                     ↓        ↓
+                 onResume   onRestart → onStart → onResume
+                     ↓
+                 onDestroy</code></pre>
+
+<h3>Configuration change vs process death</h3>
+<table>
+<thead><tr><th>Trigger</th><th>What happens</th><th>What survives</th></tr></thead>
+<tbody>
+<tr><td>Rotation, font scale, theme switch</td><td>Activity recreated</td><td>ViewModel survives. <code>onSaveInstanceState</code> Bundle restored.</td></tr>
+<tr><td>Process death (background, low memory)</td><td>Process killed; on return, Activity recreated</td><td>ViewModel <strong>does NOT</strong> survive. Only the <code>onSaveInstanceState</code> Bundle / <code>SavedStateHandle</code> survives.</td></tr>
+<tr><td>User backs out</td><td>Activity destroyed for good</td><td>Nothing.</td></tr>
+</tbody>
+</table>
+
+<pre><code class="language-kotlin">class MainActivity : ComponentActivity() {
+    private val vm: HomeVm by viewModels()           // survives config change
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // savedInstanceState is non-null on rebirth (rotation OR process death)
+        // For rotation, vm has data. For process death, only the Bundle.
+        setContent { HomeScreen(vm) }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("scrollKey", lastVisibleId)
+    }
+}</code></pre>
+
+<div class="callout senior">
+  <span class="label">Senior phrase</span>
+  <p>"For state I'd be sad to lose I use <span class="signal-phrase">SavedStateHandle</span> in the ViewModel — survives both config change AND process death. ViewModel-only state survives rotation but <strong>not</strong> background-kill. UI-only state (text input, scroll position) goes in <code>rememberSaveable</code>."</p>
+</div>
+
+<h2>3. Fragment lifecycle</h2>
+
+<pre><code>onAttach        — fragment attached to host activity
+onCreate        — instance created (before view)
+onCreateView    — inflate the view
+onViewCreated   — view ready, bind UI
+onStart         — visible
+onResume        — foreground
+onPause
+onStop
+onDestroyView   — view destroyed (fragment may live on, e.g., in back stack)
+onDestroy       — fragment destroyed
+onDetach        — detached from activity</code></pre>
+
+<div class="callout warn">
+  <span class="label">The view-vs-fragment lifecycle gotcha</span>
+  <p>A fragment can outlive its view (back stack). Use <strong><code>viewLifecycleOwner</code></strong> for UI-bound observers, <strong>not <code>this</code></strong>. Otherwise observers leak when the view is destroyed but the fragment persists.</p>
+</div>
+
+<pre><code class="language-kotlin">override fun onViewCreated(v: View, s: Bundle?) {
+    viewLifecycleOwner.lifecycleScope.launch {
+        repeatOnLifecycle(Lifecycle.State.STARTED) {
+            vm.state.collect { render(it) }
+        }
+    }
+}</code></pre>
+
+<h2>4. Launch modes — every one with concrete example</h2>
+
+<p>Set in AndroidManifest <code>android:launchMode</code> or via Intent flags. Affects how the activity is added to the task back stack.</p>
+
+<table>
+<thead><tr><th>Mode</th><th>Behavior</th><th>Use case</th></tr></thead>
+<tbody>
+<tr><td><code>standard</code></td><td>(default) Always create a new instance. Stack: A → A → A allowed.</td><td>Most screens.</td></tr>
+<tr><td><code>singleTop</code></td><td>If activity is already at the top of the stack, reuse it (fires <code>onNewIntent</code>). Else create new.</td><td>Notification → screen that's already on top (avoid stacking duplicates).</td></tr>
+<tr><td><code>singleTask</code></td><td>Single instance across the task. If exists anywhere in the stack, bring to top + clear above. Fires <code>onNewIntent</code>.</td><td>Home / launcher activity. Browser entry point.</td></tr>
+<tr><td><code>singleInstance</code></td><td>Like singleTask but lives alone in its own task. No other activity can join its task.</td><td>System dialogs, lock screen — almost never used in apps.</td></tr>
+</tbody>
+</table>
+
+<h3>Concrete scenarios</h3>
+
+<pre><code class="language-kotlin">// Scenario: tap a notification when the same screen is already on top.
+// AndroidManifest:
+&lt;activity android:name=".DetailActivity" android:launchMode="singleTop" /&gt;
+
+// In DetailActivity, override onNewIntent to update the existing instance:
+override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)        // important — getIntent() will return new one
+    val newId = intent.getStringExtra("id")
+    vm.load(newId)
+}</code></pre>
+
+<h3>Intent flags — runtime equivalents</h3>
+<pre><code class="language-kotlin">// FLAG_ACTIVITY_SINGLE_TOP — same as singleTop just for this navigation
+intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+
+// FLAG_ACTIVITY_CLEAR_TOP — pop everything above the existing instance of this activity
+intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+
+// Common combo: "go back to home, clearing stack"
+intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK</code></pre>
+
+<h3>"Trace the stack" drill — what's on the stack?</h3>
+
+<details class="qa">
+<summary>Q. App opens A → B → C. Tap notification that opens A again with <code>android:launchMode="singleTask"</code>. What's on the stack?</summary>
+<div class="qa-body"><p>Stack: <strong>A</strong>. <code>singleTask</code> brings A to top and <strong>clears everything above it</strong> (B, C destroyed). <code>onNewIntent</code> fires on A.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. Same but <code>singleTop</code>?</summary>
+<div class="qa-body"><p>Stack: A → B → C → <strong>A</strong>. <code>singleTop</code> only dedupes if already at the top. Since C is on top, a new A is pushed. (No <code>onNewIntent</code>; new <code>onCreate</code>.)</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. With FLAG_ACTIVITY_CLEAR_TOP and standard launch mode, what's on the stack?</summary>
+<div class="qa-body"><p>Stack: <strong>A</strong>. CLEAR_TOP pops B and C. With <code>standard</code>, A is also recreated by default — unless you also set <code>FLAG_ACTIVITY_SINGLE_TOP</code> or A's launch mode is <code>singleTop</code>/<code>singleTask</code>, in which case <code>onNewIntent</code> fires on the existing A.</p></div>
+</details>
+
+<h2>5. Tasks &amp; back stack — the senior framing</h2>
+
+<p>A <strong>task</strong> is a stack of activities the user navigates through. Each task has its own back-stack. Tasks are isolated — pressing back in one doesn't pop another. Multi-window or recents shows tasks, not activities.</p>
+
+<p><strong>Task affinity</strong> (manifest <code>android:taskAffinity</code>) — by default, all your activities share an affinity (your package). <code>singleTask</code>/<code>FLAG_ACTIVITY_NEW_TASK</code> uses affinity to decide which task to use.</p>
+
+<h2>6. Services — foreground / background / bound</h2>
+
+<table>
+<thead><tr><th>Service type</th><th>Lifecycle</th><th>Use for</th></tr></thead>
+<tbody>
+<tr><td><strong>Foreground service</strong></td><td>Persistent notification; OS keeps the process alive</td><td>Music playback, location tracking, video processing</td></tr>
+<tr><td><strong>Background service</strong></td><td>Hidden; killed eagerly by OS on Android 8+ (heavily restricted)</td><td>Almost never — use WorkManager instead</td></tr>
+<tr><td><strong>Bound service</strong></td><td>Lives only while clients are bound</td><td>IPC, exposing API to other components</td></tr>
+</tbody>
+</table>
+
+<h3>Foreground service for media playback</h3>
+<pre><code class="language-kotlin">class PlaybackService : MediaSessionService() {     // Media3 type
+    private lateinit var session: MediaSession
+
+    override fun onCreate() {
+        super.onCreate()
+        val player = ExoPlayer.Builder(this).build()
+        session = MediaSession.Builder(this, player).build()
+    }
+
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = session
+
+    override fun onDestroy() {
+        session.release()
+        super.onDestroy()
+    }
+}
+
+// AndroidManifest
+&lt;service
+    android:name=".PlaybackService"
+    android:exported="true"
+    android:foregroundServiceType="mediaPlayback"&gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="androidx.media3.session.MediaSessionService"/&gt;
+    &lt;/intent-filter&gt;
+&lt;/service&gt;</code></pre>
+
+<div class="callout senior">
+  <span class="label">Background service restrictions (Android 8+ / Oreo)</span>
+  <p>If your app is in the background, <strong>you cannot start a regular Service</strong> — the OS will throw <code>IllegalStateException</code>. Use: (1) <strong>WorkManager</strong> for deferrable work, (2) <strong>Foreground service</strong> with notification for user-visible long work, (3) <strong>JobIntentService</strong> (deprecated; use WorkManager).</p>
+</div>
+
+<h2>7. Broadcast Receivers</h2>
+
+<h3>Manifest-declared (statically registered)</h3>
+<pre><code>&lt;receiver android:name=".BootReceiver" android:exported="true"&gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.intent.action.BOOT_COMPLETED" /&gt;
+    &lt;/intent-filter&gt;
+&lt;/receiver&gt;</code></pre>
+
+<p>Useful for system-wide events. <strong>Heavily restricted on Android 8+</strong> — most implicit broadcasts can't be received via manifest anymore (e.g., <code>CONNECTIVITY_CHANGE</code>).</p>
+
+<h3>Dynamically registered</h3>
+<pre><code class="language-kotlin">val receiver = object : BroadcastReceiver() {
+    override fun onReceive(ctx: Context, intent: Intent) {
+        if (intent.action == ConnectivityManager.CONNECTIVITY_ACTION) {
+            handleConnectivityChange()
+        }
+    }
+}
+ContextCompat.registerReceiver(
+    ctx, receiver,
+    IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION),
+    ContextCompat.RECEIVER_NOT_EXPORTED
+)
+// don't forget to unregister in onStop / onDestroy</code></pre>
+
+<div class="callout warn">
+  <span class="label">Modern alternatives</span>
+  <p>For app-internal events: <strong>SharedFlow / EventBus / DI singleton</strong>. Old code used <code>LocalBroadcastManager</code> — <strong>deprecated</strong>. For network state: <code>ConnectivityManager.NetworkCallback</code>. For lifecycle events: <code>ProcessLifecycleOwner</code>.</p>
+</div>
+
+<h2>8. Content Providers (briefly)</h2>
+
+<p>Used to share data across app boundaries (e.g., <code>ContactsContract</code>, <code>MediaStore</code>). Modern apps rarely create their own. Common consumer use:</p>
+
+<pre><code class="language-kotlin">val cursor = ctx.contentResolver.query(
+    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+    arrayOf(MediaStore.Images.Media._ID, MediaStore.Images.Media.DISPLAY_NAME),
+    null, null,
+    "${MediaStore.Images.Media.DATE_ADDED} DESC"
+)</code></pre>
+
+<p>If asked: "I'd reach for a Content Provider only if I needed to expose data to <em>other apps</em>. Within my app, I use Room or DataStore."</p>
+
+<h2>9. Intents — explicit, implicit, and PendingIntent</h2>
+
+<h3>Explicit Intent (you know the target)</h3>
+<pre><code class="language-kotlin">val i = Intent(ctx, DetailActivity::class.java).apply {
+    putExtra("id", noteId)
+}
+ctx.startActivity(i)</code></pre>
+
+<h3>Implicit Intent (system picks the handler)</h3>
+<pre><code class="language-kotlin">val share = Intent(Intent.ACTION_SEND).apply {
+    type = "text/plain"
+    putExtra(Intent.EXTRA_TEXT, "Check this out: $url")
+}
+ctx.startActivity(Intent.createChooser(share, "Share via"))</code></pre>
+
+<h3>PendingIntent — for notifications, alarms, widgets</h3>
+<pre><code class="language-kotlin">val pi = PendingIntent.getActivity(
+    ctx, 0,
+    Intent(ctx, DetailActivity::class.java).apply { putExtra("id", id) },
+    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE   // IMMUTABLE required Android 12+
+)</code></pre>
+
+<div class="callout senior">
+  <span class="label">FLAG_IMMUTABLE — Android 12+</span>
+  <p>Required on API 31+. Prevents another app from modifying the wrapped intent. <strong>FLAG_MUTABLE</strong> only when you genuinely need it (e.g., for inline notification reply where the system fills in the result).</p>
+</div>
+
+<h2>10. The Application class</h2>
+
+<pre><code class="language-kotlin">@HiltAndroidApp
+class App : Application(), Configuration.Provider {
+    @Inject lateinit var workerFactory: HiltWorkerFactory
+    @Inject lateinit var crashReporter: CrashReporter
+
+    override fun onCreate() {
+        super.onCreate()
+        // Keep this method LIGHT — every ms here is cold start time
+        crashReporter.install()
+        // Defer heavier init to App Startup library or post-first-frame
+    }
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .setMinimumLoggingLevel(android.util.Log.INFO)
+            .build()
+}</code></pre>
+
+<h3>App Startup library — defer init</h3>
+<pre><code class="language-kotlin">class TelemetryInitializer : Initializer&lt;Telemetry&gt; {
+    override fun create(ctx: Context): Telemetry = Telemetry(ctx)
+    override fun dependencies() = emptyList&lt;Class&lt;out Initializer&lt;*&gt;&gt;&gt;()
+}
+
+// AndroidManifest
+&lt;provider
+    android:name="androidx.startup.InitializationProvider"
+    android:authorities="${applicationId}.androidx-startup"
+    android:exported="false"
+    tools:node="merge"&gt;
+    &lt;meta-data
+        android:name="com.x.TelemetryInitializer"
+        android:value="androidx.startup" /&gt;
+&lt;/provider&gt;</code></pre>
+
+<h2>11. Process lifecycle (Android &amp; you)</h2>
+
+<p>Your app's process can be killed at any time when in the background. Priority order:</p>
+<ol>
+  <li>Foreground (visible Activity, foreground service) — protected.</li>
+  <li>Visible (Activity behind a translucent dialog) — protected.</li>
+  <li>Service running — moderate protection.</li>
+  <li>Background activity — low protection.</li>
+  <li>Empty — first to be killed.</li>
+</ol>
+
+<h3>ProcessLifecycleOwner</h3>
+<pre><code class="language-kotlin">class App : Application(), DefaultLifecycleObserver {
+    override fun onCreate() {
+        super.onCreate()
+        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+    }
+    override fun onStart(o: LifecycleOwner) { /* app foregrounded */ }
+    override fun onStop(o: LifecycleOwner) { /* app backgrounded */ }
+}</code></pre>
+
+<h2>12. Doze mode &amp; App Standby</h2>
+
+<ul>
+  <li><strong>Doze</strong> — device unplugged + screen off + stationary → OS defers background CPU/network. Wakes briefly periodically. Foreground services + high-priority FCM bypass.</li>
+  <li><strong>App Standby</strong> — apps not used recently get bucketed (active / working set / frequent / rare / restricted). Lower buckets → tighter restrictions on jobs and alarms.</li>
+</ul>
+
+<p><strong>Implication for you</strong>: WorkManager handles this. Avoid <code>setExactAndAllowWhileIdle</code> alarms unless you genuinely need wall-clock precision.</p>
+
+<h2>13. Permissions — runtime &amp; install-time</h2>
+
+<pre><code class="language-kotlin">// Compose runtime permission (Accompanist or AndroidX)
+val permission = rememberPermissionState(Manifest.permission.CAMERA)
+
+LaunchedEffect(Unit) {
+    if (!permission.status.isGranted) permission.launchPermissionRequest()
+}
+
+when {
+    permission.status.isGranted -&gt; CameraScreen()
+    permission.status.shouldShowRationale -&gt; RationaleScreen { permission.launchPermissionRequest() }
+    else -&gt; PermissionDeniedScreen()
+}</code></pre>
+
+<h3>"Special" permissions to be aware of</h3>
+<ul>
+  <li><code>POST_NOTIFICATIONS</code> — runtime on Android 13+.</li>
+  <li><code>SCHEDULE_EXACT_ALARM</code> — Android 12+; needs special grant via Settings.</li>
+  <li><code>FOREGROUND_SERVICE_*</code> — typed foreground service permissions on Android 14+.</li>
+  <li><code>READ_MEDIA_IMAGES / VIDEO / AUDIO</code> — replaces <code>READ_EXTERNAL_STORAGE</code> on Android 13+.</li>
+</ul>
+
+<h2>14. Common gotchas</h2>
+
+<details class="qa">
+<summary>Q. My BroadcastReceiver runs but onReceive is "too slow."</summary>
+<div class="qa-body"><p><code>onReceive</code> runs on main; you have ~10 seconds before ANR. For longer work: enqueue a WorkManager job from <code>onReceive</code>, or use <code>goAsync()</code> + <code>finish()</code> after work completes.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. My Service is being killed even though I started it.</summary>
+<div class="qa-body"><p>Background service restrictions on Android 8+. Convert to <strong>foreground service</strong> with a notification, or move work to <strong>WorkManager</strong>.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. My PendingIntent throws on Android 12+.</summary>
+<div class="qa-body"><p>Add <code>PendingIntent.FLAG_IMMUTABLE</code> (or <code>FLAG_MUTABLE</code> if you really need mutable). API 31+ requires explicit choice.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. Activity recreated unexpectedly.</summary>
+<div class="qa-body"><p>Either configuration change (rotation, dark mode, font scale, multi-window) or process death restoration. Handle with ViewModel + SavedStateHandle. Don't override <code>configChanges</code> in manifest unless you really know what you're doing — it's a band-aid that often hides bugs.</p></div>
+</details>
+
+<h2>15. Senior signal phrases for core SDK</h2>
+<ul>
+  <li>"<span class="signal-phrase">Configuration change vs process death</span> is the lifecycle question."</li>
+  <li>"<span class="signal-phrase">SavedStateHandle survives process death</span>; ViewModel survives only configuration change."</li>
+  <li>"<span class="signal-phrase">Foreground service for user-visible long work</span>; WorkManager for deferrable."</li>
+  <li>"<span class="signal-phrase">FLAG_IMMUTABLE on Android 12+</span> for PendingIntents."</li>
+  <li>"<span class="signal-phrase">viewLifecycleOwner in fragments</span>, never <code>this</code>."</li>
+  <li>"<span class="signal-phrase">singleTop vs singleTask</span> — singleTop only dedupes when already on top."</li>
+</ul>
+
+<div class="footer">Next: <a href="performance.html">Performance & Profiling →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Coroutines & Flows · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Coroutines & Flows</h1>
+<p class="lead">The single deepest topic in modern Android. <span class="signal">Structured concurrency</span>, every dispatcher, every scope, exception handling, Flow operators, and how to test the whole stack.</p>
+
+<div class="buzzwords">
+  <span>structured concurrency</span>
+  <span>cooperative cancellation</span>
+  <span>SupervisorJob</span>
+  <span>cold vs hot streams</span>
+  <span>conflation</span>
+  <span>SharingStarted.WhileSubscribed(5000)</span>
+  <span>flowOn affects upstream</span>
+  <span>repeatOnLifecycle / collectAsStateWithLifecycle</span>
+  <span>backpressure: buffer / conflate / collectLatest</span>
+  <span>flatMapLatest cancels in-flight</span>
+  <span>NonCancellable cleanup</span>
+  <span>callbackFlow with awaitClose</span>
+</div>
+
+<h2>1. The mental model</h2>
+<p>A coroutine is a <strong>suspendable computation</strong>. Not a thread — an instance of work that runs on a thread (managed by a <span class="signal">Dispatcher</span>) and can <em>suspend</em> cheaply (no thread blocking) at <code>suspend</code> points. The runtime parks the work and frees the thread for other coroutines.</p>
+
+<div class="definition"><strong>Coroutine</strong> = a "lightweight thread" — a unit of asynchronous work that can pause and resume without holding a thread. Thousands run cheaply on a few real threads. <strong>Suspend function</strong> = a function that can pause; only callable from another suspend function or coroutine builder. <strong>Dispatcher</strong> = the thread-pool that actually runs your coroutine code.</div>
+
+<div class="callout senior">
+  <span class="label">The 4 pillars to recite</span>
+  <p><strong>(1) Suspend functions</strong> — pause/resume without blocking.
+  <strong>(2) Coroutine builders</strong> — <code>launch</code>, <code>async</code>, <code>runBlocking</code>.
+  <strong>(3) Coroutine context</strong> — <code>Job</code> + <code>Dispatcher</code> + <code>CoroutineExceptionHandler</code> + <code>CoroutineName</code>.
+  <strong>(4) Structured concurrency</strong> — parent/child relationships; failure and cancellation propagate.</p>
+</div>
+
+<h2>2. Builders — <code>launch</code> vs <code>async</code> vs <code>runBlocking</code></h2>
+<pre><code class="language-kotlin">// launch — fire and forget, returns Job
+val job: Job = scope.launch { /* ... */ }
+
+// async — returns Deferred&lt;T&gt;; await() to get result
+val deferred: Deferred&lt;User&gt; = scope.async { repo.fetch(id) }
+val user = deferred.await()
+
+// runBlocking — blocks the current thread; only for tests / main()
+fun main() = runBlocking {
+    val u = async { fetchUser() }
+    println(u.await())
+}</code></pre>
+
+<div class="callout warn">
+  <span class="label">async exception handling — the trap</span>
+  <p>Exceptions in <code>async</code> are <strong>held in the Deferred</strong> until <code>await()</code>. They don't trigger a <code>CoroutineExceptionHandler</code>. Always <code>await</code> or wrap in <code>try/catch</code>. In a <code>coroutineScope</code>, the failure still propagates to siblings via the parent.</p>
+</div>
+
+<h2>3. Dispatchers — every one</h2>
+<table>
+<thead><tr><th>Dispatcher</th><th>Threads</th><th>Use for</th></tr></thead>
+<tbody>
+<tr><td><code>Dispatchers.Main</code></td><td>Android UI thread</td><td>UI updates only</td></tr>
+<tr><td><code>Dispatchers.Main.immediate</code></td><td>Same, but skips post if already on Main</td><td>avoid an extra dispatch when already on Main</td></tr>
+<tr><td><code>Dispatchers.Default</code></td><td>shared pool sized to CPU cores</td><td>CPU-bound (parsing, sorting, hashing)</td></tr>
+<tr><td><code>Dispatchers.IO</code></td><td>shared pool, default 64 threads (or core count, whichever bigger)</td><td>blocking I/O — disk, network, JDBC</td></tr>
+<tr><td><code>Dispatchers.Unconfined</code></td><td>resumes on caller's thread</td><td>almost never use in production</td></tr>
+</tbody>
+</table>
+
+<pre><code class="language-kotlin">viewModelScope.launch {
+    val data = withContext(Dispatchers.IO) { api.fetchUsers() }   // off main
+    _state.value = data                                            // back on main
+}
+
+// limitedParallelism — carve a sub-pool from IO when you really need throttling
+val twoThreadIo = Dispatchers.IO.limitedParallelism(2)</code></pre>
+
+<div class="callout senior">
+  <span class="label">Senior framing</span>
+  <p>"I default to <code>Dispatchers.IO</code> for blocking I/O and <code>Dispatchers.Default</code> for CPU-bound work. I inject the dispatcher into classes (<code>@IoDispatcher</code>) so tests can swap a <code>StandardTestDispatcher</code> in for deterministic timing — no <code>Dispatchers.IO</code> hardcoded anywhere."</p>
+</div>
+
+<h2>4. Coroutine scopes — every one used in Android</h2>
+
+<table>
+<thead><tr><th>Scope</th><th>Cancelled when</th><th>Use case</th></tr></thead>
+<tbody>
+<tr><td><code>viewModelScope</code></td><td>ViewModel.onCleared()</td><td>VM business logic; survives config changes</td></tr>
+<tr><td><code>lifecycleScope</code></td><td>Lifecycle DESTROYED</td><td>Activity/Fragment-bound work</td></tr>
+<tr><td><code>repeatOnLifecycle(STARTED) { }</code></td><td>(re)started/stopped at STARTED</td><td>collecting Flow only while visible</td></tr>
+<tr><td><code>GlobalScope</code></td><td>never (process death only)</td><td><strong>avoid</strong> — leaks, no structured concurrency</td></tr>
+<tr><td>Custom <code>CoroutineScope(SupervisorJob() + Dispatchers.Default + handler)</code></td><td>you call <code>cancel()</code></td><td>app-scoped work (analytics, sync)</td></tr>
+<tr><td><code>coroutineScope { }</code></td><td>any child fails or scope returns</td><td>child concurrency; "all or nothing"</td></tr>
+<tr><td><code>supervisorScope { }</code></td><td>scope returns; children independent</td><td>independent children — one fail doesn't kill siblings</td></tr>
+</tbody>
+</table>
+
+<pre><code class="language-kotlin">// Application-scoped scope (singleton)
+@Singleton
+class AppScope @Inject constructor(
+    @IoDispatcher io: CoroutineDispatcher,
+    handler: CoroutineExceptionHandler
+) : CoroutineScope by CoroutineScope(SupervisorJob() + io + handler)</code></pre>
+
+<h2>5. Structured concurrency in detail</h2>
+
+<pre><code class="language-kotlin">// coroutineScope — child failure cancels siblings + propagates up
+suspend fun loadDashboard(): Dashboard = coroutineScope {
+    val a = async { api.userInfo() }
+    val b = async { api.notifications() }
+    val c = async { api.feed() }
+    Dashboard(a.await(), b.await(), c.await())
+}
+
+// supervisorScope — children independent
+suspend fun loadFeedAndAds(): Page = supervisorScope {
+    val feed = async { api.feed() }
+    val ads = async { api.ads() }
+    val feedRes = feed.await()
+    val adsRes = runCatching { ads.await() }.getOrDefault(emptyList())
+    Page(feedRes, adsRes)
+}</code></pre>
+<div class="code-explain">
+<ol>
+  <li><code>coroutineScope { }</code> — creates a child scope. <code>async { }</code> launches three concurrent coroutines. <strong>If any one fails, the others are cancelled and the exception propagates.</strong> The function returns only when all three complete.</li>
+  <li><code>supervisorScope { }</code> — same shape, but children are <strong>independent</strong>. If the ads API fails, the feed API keeps running. <code>runCatching { ads.await() }</code> catches the exception just for ads; the feed still loads. Use this when you want partial-success behavior.</li>
+</ol>
+</div>
+
+<div class="callout senior">
+  <span class="label">Senior phrase</span>
+  <p>"<span class="signal-phrase">Structured concurrency</span> means a coroutine cannot outlive its scope — that's how I avoid the <code>GlobalScope</code> footguns I saw in pre-coroutine codebases. <code>coroutineScope</code> for atomic groups, <code>supervisorScope</code> for resilient parallel fetches."</p>
+</div>
+
+<h2>6. Cancellation — cooperative</h2>
+<pre><code class="language-kotlin">val job = scope.launch {
+    while (isActive) {                  // check the cancellation flag
+        compute()
+        ensureActive()                  // alternative — throws CancellationException if cancelled
+    }
+}
+job.cancel()
+job.cancelAndJoin()                     // wait for clean shutdown</code></pre>
+
+<h3>Cleanup with <code>NonCancellable</code></h3>
+<pre><code class="language-kotlin">scope.launch {
+    try {
+        // download / process
+    } finally {
+        withContext(NonCancellable) {
+            db.persistProgress()        // must run even after cancel
+        }
+    }
+}</code></pre>
+
+<div class="callout warn">
+  <span class="label">Common cancellation bugs</span>
+  <p>(1) CPU loops that don't check <code>isActive</code> ignore cancellation. (2) <code>try { ... } catch (e: Exception) { }</code> — <strong>swallows <code>CancellationException</code></strong>! Always rethrow if you must catch <code>Throwable</code>: <code>if (e is CancellationException) throw e</code>. Or catch specific exceptions only.</p>
+</div>
+
+<h2>7. Exception handling — every flavor</h2>
+
+<h3>Inside <code>launch</code></h3>
+<pre><code class="language-kotlin">val handler = CoroutineExceptionHandler { _, e -&gt; Log.e("coro", "boom", e) }
+val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + handler)
+scope.launch { throw IOException("x") }    // caught by handler</code></pre>
+
+<h3>Inside <code>async</code></h3>
+<pre><code class="language-kotlin">val deferred = scope.async { throw IOException("x") }
+try { deferred.await() } catch (e: Exception) { /* caught here */ }
+// CoroutineExceptionHandler does NOT catch async exceptions</code></pre>
+
+<h3>Per-coroutine try/catch</h3>
+<pre><code class="language-kotlin">scope.launch {
+    try {
+        api.fetch()
+    } catch (e: IOException) {
+        showError()
+    } catch (e: CancellationException) {
+        throw e   // rethrow!
+    }
+}</code></pre>
+
+<div class="callout senior">
+  <span class="label">Senior framing</span>
+  <p>"<code>CoroutineExceptionHandler</code> only catches <strong>uncaught</strong> exceptions in <code>launch</code>. <code>async</code> defers them to <code>await()</code>. With a <code>SupervisorJob</code>, sibling coroutines aren't cancelled by one failure. I use <code>handler</code> as a global safety net for telemetry, with per-coroutine try/catch for recoverable errors."</p>
+</div>
+
+<h2>8. Suspending utilities — withTimeout, withContext, yield</h2>
+<pre><code class="language-kotlin">val r = withTimeoutOrNull(5_000) { api.slow() }   // null on timeout
+val r2 = withTimeout(5_000) { api.slow() }         // throws TimeoutCancellationException
+
+withContext(Dispatchers.IO) { /* shift dispatcher, no new coroutine */ }
+
+repeat(1_000_000) {
+    yield()        // play nice — suspend + check cancel
+    process(it)
+}</code></pre>
+
+<h2>9. Mutex & Channel</h2>
+
+<pre><code class="language-kotlin">val mutex = Mutex()
+suspend fun safeAdd(item: T) = mutex.withLock { list.add(item) }   // coroutine-friendly lock
+
+// Channel — producer/consumer
+val ch = Channel&lt;Int&gt;(capacity = Channel.BUFFERED)
+launch { for (i in 1..100) ch.send(i); ch.close() }
+launch { for (item in ch) consume(item) }</code></pre>
+
+<p>For most state/event needs, prefer <strong>Flow</strong> over <code>Channel</code>. Channels shine for true producer/consumer with fan-out semantics.</p>
+
+<h2>10. Flows — cold streams</h2>
+
+<pre><code class="language-kotlin">fun search(q: String): Flow&lt;List&lt;User&gt;&gt; = flow {
+    emit(emptyList())                       // initial loading state
+    val results = api.search(q)
+    emit(results)
+}.flowOn(Dispatchers.IO)                    // upstream runs on IO
+ .catch { e -&gt; emit(emptyList()) }          // upstream errors only
+ .onStart { /* ... */ }
+ .onCompletion { /* cleanup */ }</code></pre>
+
+<h3>Operators worth memorizing</h3>
+<table>
+<thead><tr><th>Operator</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>map { }</code></td><td>1:1 transform</td></tr>
+<tr><td><code>filter { }</code></td><td>drop emissions</td></tr>
+<tr><td><code>transform { emit(...) }</code></td><td>0..N emissions per upstream item</td></tr>
+<tr><td><code>flatMapConcat { }</code></td><td>concat inner flows sequentially</td></tr>
+<tr><td><code>flatMapMerge(concurrency = 4) { }</code></td><td>merge inner flows in parallel</td></tr>
+<tr><td><code>flatMapLatest { }</code></td><td><strong>cancel previous</strong> inner flow on new emission (search-as-you-type)</td></tr>
+<tr><td><code>combine(a, b) { x, y -&gt; ... }</code></td><td>emits when any source emits, using latest from each</td></tr>
+<tr><td><code>zip(a, b) { x, y -&gt; ... }</code></td><td>pair up; waits for both</td></tr>
+<tr><td><code>merge(a, b)</code></td><td>interleave</td></tr>
+<tr><td><code>debounce(ms)</code></td><td>drop bursts</td></tr>
+<tr><td><code>distinctUntilChanged()</code></td><td>dedupe consecutive equals</td></tr>
+<tr><td><code>take / drop / takeWhile / dropWhile</code></td><td>partial collection</td></tr>
+<tr><td><code>scan / runningReduce</code></td><td>running fold</td></tr>
+<tr><td><code>buffer / conflate / collectLatest</code></td><td>backpressure (see below)</td></tr>
+<tr><td><code>onEach / onEmpty / onStart / onCompletion</code></td><td>lifecycle hooks</td></tr>
+</tbody>
+</table>
+
+<h3>Backpressure</h3>
+<pre><code class="language-kotlin">// buffer — queue up to n items between producer and consumer
+slowFlow.buffer(64).collect { /* ... */ }
+
+// conflate — drop intermediate; consumer always sees latest
+positionFlow.conflate().collect { renderPosition(it) }
+
+// collectLatest — cancel in-progress collector when new item arrives
+queryFlow.collectLatest { q -&gt; longSearch(q) }</code></pre>
+
+<h2>11. <code>StateFlow</code> vs <code>SharedFlow</code></h2>
+
+<table>
+<thead><tr><th></th><th>StateFlow</th><th>SharedFlow</th></tr></thead>
+<tbody>
+<tr><td>Initial value required</td><td>Yes</td><td>No</td></tr>
+<tr><td>Replay to new collectors</td><td>1 (the current value)</td><td>configurable (0..N)</td></tr>
+<tr><td>Conflated</td><td>Yes (only latest survives)</td><td>configurable</td></tr>
+<tr><td>Equality dedupe</td><td>Yes — only emits if new <code>!=</code> old</td><td>No</td></tr>
+<tr><td>Use for</td><td><strong>State</strong> — UI state, settings</td><td><strong>Events</strong> — navigation, snackbar (replay=0)</td></tr>
+<tr><td><code>.value</code></td><td>read anytime</td><td>not available</td></tr>
+</tbody>
+</table>
+
+<pre><code class="language-kotlin">// StateFlow
+private val _state = MutableStateFlow&lt;UiState&gt;(UiState.Loading)
+val state: StateFlow&lt;UiState&gt; = _state.asStateFlow()
+_state.update { it.copy(isLoading = true) }      // safe atomic update
+
+// SharedFlow for one-shot events
+private val _events = MutableSharedFlow&lt;Event&gt;(replay = 0, extraBufferCapacity = 1)
+val events: SharedFlow&lt;Event&gt; = _events.asSharedFlow()
+viewModelScope.launch { _events.emit(Event.Navigate("home")) }</code></pre>
+
+<div class="callout warn">
+  <span class="label">Why isn't my SharedFlow event delivered?</span>
+  <p>Default has <code>replay=0, extraBufferCapacity=0</code>: if no collector is active, <code>emit()</code> suspends. For events, set <code>extraBufferCapacity=1</code> with <code>BufferOverflow.DROP_OLDEST</code> and use <code>tryEmit</code> for fire-and-forget.</p>
+</div>
+
+<div class="callout warn">
+  <span class="label">Why isn't my StateFlow update visible?</span>
+  <p>StateFlow uses <strong>structural equality</strong> for dedupe. If you re-set the same data class instance with the same content, no emission. Use <code>update { it.copy(...) }</code> with actual value changes, and ensure your data class's <code>equals</code> reflects all changing fields.</p>
+</div>
+
+<h2>12. <code>stateIn</code> / <code>shareIn</code> — cold to hot</h2>
+
+<pre><code class="language-kotlin">val users: StateFlow&lt;List&lt;User&gt;&gt; = repo.observeUsers()
+    .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )</code></pre>
+
+<p><span class="signal-phrase">SharingStarted.WhileSubscribed(5000)</span> — share while at least one collector; keep alive for 5s after last unsubscribe (handles config changes / brief navigation). The standard.</p>
+
+<table>
+<thead><tr><th>Strategy</th><th>Behavior</th></tr></thead>
+<tbody>
+<tr><td><code>Eagerly</code></td><td>start immediately when scope starts</td></tr>
+<tr><td><code>Lazily</code></td><td>start on first collector, never stop</td></tr>
+<tr><td><code>WhileSubscribed(timeout)</code></td><td>start on first collector, stop after timeout post-last-unsubscribe</td></tr>
+</tbody>
+</table>
+
+<h2>13. <code>flatMapLatest</code> — search-as-you-type</h2>
+<pre><code class="language-kotlin">val results: StateFlow&lt;List&lt;User&gt;&gt; = queryFlow
+    .debounce(300)
+    .distinctUntilChanged()
+    .flatMapLatest { q -&gt; if (q.isBlank()) flowOf(emptyList()) else repo.search(q) }
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())</code></pre>
+<div class="code-explain">Walk through what each operator does to the keystroke stream:
+<ol>
+  <li><code>queryFlow</code> emits the current text every time the user types a character.</li>
+  <li><code>debounce(300)</code> waits 300ms — if no new keystroke arrives in that window, the latest value passes through. Filters out bursts of typing.</li>
+  <li><code>distinctUntilChanged()</code> — if the user typed and immediately deleted (same value as before), don't re-search.</li>
+  <li><code>flatMapLatest { repo.search(q) }</code> — for each query, start a search. <strong>If a new query arrives before the previous search finishes, cancel the previous</strong> and start the new one. Saves wasted API calls.</li>
+  <li><code>stateIn(...)</code> turns the cold Flow into a hot StateFlow with an empty initial value. <code>WhileSubscribed(5000)</code> keeps the upstream alive 5s after the last collector unsubscribes — so rotating the device doesn't restart the whole pipeline.</li>
+</ol>
+</div>
+
+<h2>14. <code>callbackFlow</code> — bridge old APIs</h2>
+<pre><code class="language-kotlin">fun locationUpdates(client: FusedLocationProviderClient): Flow&lt;Location&gt; = callbackFlow {
+    val cb = object : LocationCallback() {
+        override fun onLocationResult(result: LocationResult) {
+            result.lastLocation?.let { trySend(it) }
+        }
+    }
+    client.requestLocationUpdates(LocationRequest.create(), cb, Looper.getMainLooper())
+    awaitClose { client.removeLocationUpdates(cb) }
+}</code></pre>
+
+<h2>15. Collecting Flow safely from UI</h2>
+
+<h3>In Compose</h3>
+<pre><code class="language-kotlin">// Lifecycle-aware: stops collecting in STOPPED
+val state by vm.state.collectAsStateWithLifecycle()</code></pre>
+
+<h3>In Activity/Fragment</h3>
+<pre><code class="language-kotlin">lifecycleScope.launch {
+    repeatOnLifecycle(Lifecycle.State.STARTED) {
+        vm.state.collect { render(it) }
+    }
+}</code></pre>
+
+<div class="callout senior">
+  <span class="label">Senior phrase</span>
+  <p>"Bare <code>flow.collect</code> in Activity is a <strong>resource leak waiting to happen</strong> — keeps the upstream alive in the background. <code>repeatOnLifecycle(STARTED)</code> in XML, <code>collectAsStateWithLifecycle</code> in Compose. Both stop collection when the screen leaves STARTED state."</p>
+</div>
+
+<h2>16. <code>flowOn</code> — affects upstream only</h2>
+<pre><code class="language-kotlin">flow {
+    emit(parseHeavyJson())          // runs on Default
+}.map { transform(it) }              // also Default
+ .flowOn(Dispatchers.Default)
+ .map { renderInfo(it) }             // back on caller dispatcher
+ .collect { /* ... */ }</code></pre>
+
+<h2>17. Testing coroutines</h2>
+
+<pre><code class="language-kotlin">@OptIn(ExperimentalCoroutinesApi::class)
+class FetchVmTest {
+    private val testDispatcher = StandardTestDispatcher()
+
+    @Before fun setup() { Dispatchers.setMain(testDispatcher) }
+    @After fun tearDown() { Dispatchers.resetMain() }
+
+    @Test fun `loading then success`() = runTest {
+        val vm = FetchVm(FakeRepo(), io = testDispatcher)
+        vm.load()
+        assertEquals(UiState.Loading, vm.state.value)
+        advanceUntilIdle()                    // virtual time runs to completion
+        assertEquals(UiState.Success(fakeUsers), vm.state.value)
+    }
+}</code></pre>
+
+<table>
+<thead><tr><th>Tool</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>runTest { }</code></td><td>provides TestScope with virtual time</td></tr>
+<tr><td><code>StandardTestDispatcher</code></td><td>queues tasks; you call <code>advanceTimeBy</code>, <code>advanceUntilIdle</code></td></tr>
+<tr><td><code>UnconfinedTestDispatcher</code></td><td>tasks run eagerly — simpler but masks ordering bugs</td></tr>
+<tr><td><code>Dispatchers.setMain(...)</code></td><td>swap Main for tests</td></tr>
+</tbody>
+</table>
+
+<h2>18. Common interview probes — quick fire</h2>
+
+<details class="qa">
+<summary>Q. What's the difference between launch and async?</summary>
+<div class="qa-body"><p>Both start a coroutine inside a scope. <code>launch</code> returns <code>Job</code>, fire-and-forget; uncaught exception propagates to parent immediately. <code>async</code> returns <code>Deferred&lt;T&gt;</code>; exception held until <code>await()</code>. Use <code>async</code> when you need a result; <code>launch</code> when you don't.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. What happens if a child fails inside coroutineScope?</summary>
+<div class="qa-body"><p>The failure cancels all sibling children and propagates up to the scope, which rethrows from the suspending call. Use <code>supervisorScope</code> if you want siblings to keep running.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. Cold vs hot flow?</summary>
+<div class="qa-body"><p>Cold (<code>Flow</code>): producer block runs <em>per collector</em>; no collector → no work. Hot (<code>StateFlow</code>, <code>SharedFlow</code>): emit independently of collectors; collectors see whatever is currently being emitted (or replay).</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. Why WhileSubscribed(5000)?</summary>
+<div class="qa-body"><p>Keeps the upstream alive 5s after the last collector unsubscribes — handles configuration change (rotate device) without re-fetching. Without this timeout, every rotation re-runs the upstream Flow.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you make a CPU-heavy loop cancellable?</summary>
+<div class="qa-body"><p>Call <code>ensureActive()</code> or <code>yield()</code> inside the loop. Suspending functions (e.g., delay) check cancellation automatically; pure CPU loops do not.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you handle a 401 + token refresh in coroutines?</summary>
+<div class="qa-body"><p>OkHttp <code>Authenticator</code> handles refresh + retry transparently. To dedupe concurrent 401s (multiple parallel calls hitting 401 at once), wrap the refresh in a <code>Mutex.withLock</code> so only one refresh happens.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. What's GlobalScope and when is it OK?</summary>
+<div class="qa-body"><p>A scope tied to the application process lifetime. <strong>Almost never use it</strong> — it bypasses structured concurrency. Acceptable in a library's top-level entry point if explicitly app-scoped, but better to inject a custom <code>CoroutineScope(SupervisorJob() + ...)</code> created in the Application class.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. Why does my SharedFlow not get my events?</summary>
+<div class="qa-body"><p>Default config: <code>replay = 0, extraBufferCapacity = 0</code>. With no collector, <code>emit()</code> suspends; <code>tryEmit()</code> drops. For events: <code>MutableSharedFlow(replay = 0, extraBufferCapacity = 1, onBufferOverflow = DROP_OLDEST)</code>.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. Channel vs SharedFlow for one-shot events?</summary>
+<div class="qa-body"><p>Both work. SharedFlow is the modern recommendation — better composability, less ceremony, integrates with Flow operators. Channel is fine for true producer/consumer queues with fan-out semantics, but for events from VM to UI use SharedFlow.</p></div>
+</details>
+
+<h2>19. Senior signal phrases to drop naturally</h2>
+<ul>
+  <li><span class="signal-phrase">Structured concurrency</span> — say it when explaining why you don't use GlobalScope.</li>
+  <li><span class="signal-phrase">Cooperative cancellation</span> — say it when explaining cleanup.</li>
+  <li><span class="signal-phrase">Conflation in StateFlow</span> — say it when explaining why duplicates aren't emitted.</li>
+  <li><span class="signal-phrase">Backpressure via buffer/conflate/collectLatest</span> — say it when discussing fast producers.</li>
+  <li><span class="signal-phrase">flowOn affects upstream only</span> — say it when explaining dispatcher boundaries.</li>
+  <li><span class="signal-phrase">SharingStarted.WhileSubscribed(5000)</span> — say the literal config; signals you've shipped this.</li>
+  <li><span class="signal-phrase">repeatOnLifecycle</span> / <span class="signal-phrase">collectAsStateWithLifecycle</span> — say either; shows you don't naive-collect.</li>
+  <li><span class="signal-phrase">awaitClose in callbackFlow</span> — say it when bridging callback APIs.</li>
+</ul>
+
+<div class="footer">Next: <a href="compose.html">Jetpack Compose →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

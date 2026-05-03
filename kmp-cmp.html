@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KMP / CMP Theory · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>KMP / CMP — theoretical knowledge</h1>
+<p class="lead">You don't need to have shipped KMP, but you should be able to articulate what it is, when to use it, and the tradeoffs. FOX likely won't deep-dive here.</p>
+
+<div class="buzzwords">
+  <span>Kotlin Multiplatform</span>
+  <span>Compose Multiplatform</span>
+  <span>commonMain / androidMain / iosMain</span>
+  <span>expect / actual</span>
+  <span>shared business logic, native UI</span>
+  <span>shared UI with CMP</span>
+  <span>Kotlin/Native + LLVM</span>
+</div>
+
+<h2>1. What is KMP?</h2>
+
+<p><strong>Kotlin Multiplatform</strong> lets you share Kotlin code across Android, iOS, web, desktop, and server. The Kotlin compiler targets <strong>JVM (Android/server), Native (iOS, macOS, Linux, Windows), JS, and Wasm</strong>.</p>
+
+<p>Typical adoption pattern: <span class="signal-phrase">share business logic + data + networking + DB; keep UI native</span>. Android UI in Compose, iOS UI in SwiftUI; both call the same Kotlin <code>:shared</code> module.</p>
+
+<h3>Module layout</h3>
+<pre><code>:shared                    (Kotlin Multiplatform module)
+   commonMain/             — code shared everywhere
+   commonTest/
+   androidMain/            — Android-specific (uses Android APIs)
+   iosMain/                — iOS-specific (uses iOS via Kotlin/Native)
+   jvmMain/                — server / desktop JVM
+:androidApp                (Android app — depends on :shared)
+:iosApp                    (Xcode project — links the .framework from :shared)</code></pre>
+
+<h3>expect / actual — the platform escape hatch</h3>
+<pre><code class="language-kotlin">// commonMain
+expect class Settings(name: String) {
+    fun getString(key: String, default: String): String
+    fun putString(key: String, value: String)
+}
+
+// androidMain
+actual class Settings actual constructor(name: String) {
+    private val prefs = appCtx.getSharedPreferences(name, Context.MODE_PRIVATE)
+    actual fun getString(key: String, default: String) = prefs.getString(key, default) ?: default
+    actual fun putString(key: String, value: String) { prefs.edit().putString(key, value).apply() }
+}
+
+// iosMain
+actual class Settings actual constructor(name: String) {
+    private val defaults = NSUserDefaults.standardUserDefaults
+    actual fun getString(key: String, default: String) = defaults.stringForKey(key) ?: default
+    actual fun putString(key: String, value: String) { defaults.setObject(value, key) }
+}</code></pre>
+
+<h2>2. What is CMP (Compose Multiplatform)?</h2>
+
+<p><strong>Compose Multiplatform</strong> is JetBrains's port of Compose to other platforms — desktop (JVM), iOS, web. You write the UI <strong>once</strong> in Compose; CMP renders it on each target via the appropriate backend (Android Skia, iOS Skia, Desktop Skiko, Web Wasm/Skia).</p>
+
+<p>As of 2024, <strong>CMP iOS is in stable</strong>. CMP Web is experimental.</p>
+
+<h3>Adoption shapes</h3>
+<table>
+<thead><tr><th>Shape</th><th>What you share</th></tr></thead>
+<tbody>
+<tr><td>KMP-only</td><td>Business logic + data; native UI per platform</td></tr>
+<tr><td>KMP + CMP-Desktop</td><td>Same as above + desktop port</td></tr>
+<tr><td>KMP + CMP-iOS</td><td>Business + UI on Android & iOS — single Compose UI</td></tr>
+<tr><td>KMP + CMP everywhere</td><td>Business + UI everywhere (most ambitious)</td></tr>
+</tbody>
+</table>
+
+<h2>3. Library ecosystem (mostly KMP-ready)</h2>
+
+<table>
+<thead><tr><th>Concern</th><th>KMP library</th></tr></thead>
+<tbody>
+<tr><td>Networking</td><td>Ktor Client</td></tr>
+<tr><td>JSON</td><td>kotlinx.serialization</td></tr>
+<tr><td>DB</td><td>SQLDelight (or Room KMP — newer)</td></tr>
+<tr><td>DI</td><td>Koin (Hilt is Android-only)</td></tr>
+<tr><td>Coroutines / Flow</td><td>kotlinx.coroutines</td></tr>
+<tr><td>Settings / KV store</td><td>multiplatform-settings</td></tr>
+<tr><td>Date/Time</td><td>kotlinx-datetime</td></tr>
+<tr><td>Image loading (CMP)</td><td>Coil 3 (KMP), Compose-ImageLoader</td></tr>
+</tbody>
+</table>
+
+<h2>4. When to use KMP — the senior framing</h2>
+
+<div class="callout senior">
+  <span class="label">Locked-in answer</span>
+  <p>"KMP shines when you have <strong>significant duplicated business logic across Android and iOS</strong> — state machines, validation rules, networking layer, data models, sync engines, complex calculation logic. Sharing eliminates 'fixed on Android, still broken on iOS' bug drift. <strong>I wouldn't share UI</strong> unless the team is unified — sharing UI couples your release cadence and forces design compromises. The classic shape is <span class="signal-phrase">KMP for business logic, native UI per platform</span>."</p>
+</div>
+
+<h2>5. Trade-offs to articulate</h2>
+
+<table>
+<thead><tr><th>Pro</th><th>Con</th></tr></thead>
+<tbody>
+<tr><td>Single source of truth for business logic</td><td>Build complexity (Gradle + Xcode integration)</td></tr>
+<tr><td>Reduces parity bugs</td><td>iOS build slower than native</td></tr>
+<tr><td>Re-uses Kotlin coroutines/Flow on both</td><td>iOS engineers must learn Kotlin (or Kotlin teams must own iOS bindings)</td></tr>
+<tr><td>Backed by JetBrains, growing fast</td><td>Some libraries are Android-only (Hilt, WorkManager)</td></tr>
+<tr><td>Per-target customization via expect/actual</td><td>Debugging across compiler boundaries can be tricky</td></tr>
+</tbody>
+</table>
+
+<h2>6. Common interview probes</h2>
+
+<details class="qa">
+<summary>Q. Difference between KMP and CMP?</summary>
+<div class="qa-body"><p>KMP = share Kotlin <em>logic</em> across platforms. CMP = share Compose <em>UI</em> across platforms. CMP runs <em>on top of</em> KMP — you can do KMP without CMP, but not the reverse for shared UI.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. Why not React Native or Flutter?</summary>
+<div class="qa-body"><p>RN and Flutter use a non-native UI runtime (JS bridge / Skia). KMP+native UI gives <strong>fully native UX</strong> on each platform — best fit for OS conventions, performance, accessibility. CMP-iOS is also Skia-rendered (like Flutter) — accept that tradeoff if you choose it.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How does Kotlin run on iOS?</summary>
+<div class="qa-body"><p>Kotlin/Native compiles to LLVM bitcode → native ARM/x86 binary (or .framework that Xcode links). No JVM on iOS.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. What's the iOS framework integration like?</summary>
+<div class="qa-body"><p>Build the shared module → produces a <code>.framework</code> (or <code>.xcframework</code> for multi-arch) → Xcode imports it. Swift calls Kotlin classes; Kotlin can call Objective-C / Swift via <code>cinterop</code>.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. Can you reuse Coroutines across platforms?</summary>
+<div class="qa-body"><p>Yes — <code>kotlinx.coroutines</code> is multiplatform. On iOS you typically expose a Flow as a callback wrapper (e.g., via SKIE or a manual <code>CFlow</code> wrapper) since Swift can't natively consume Kotlin Flows.</p></div>
+</details>
+
+<h2>7. If asked "have you shipped KMP?" and you haven't</h2>
+
+<div class="callout senior">
+  <span class="label">Honest framing</span>
+  <p>"I haven't shipped a KMP module to production. I've evaluated it twice — once for a shared validation layer at Dish, once for a sync engine. We didn't move forward both times because the iOS team's Swift/RxSwift codebase wasn't ready to integrate. I follow the ecosystem closely — <strong>kotlinx.coroutines, kotlinx.serialization, Ktor, SQLDelight, Koin</strong> are the typical stack. For a greenfield product I'd seriously consider it for business logic; I'd avoid CMP-iOS until the team's iOS engineers are aligned."</p>
+</div>
+
+<h2>8. Senior signal phrases</h2>
+<ul>
+  <li>"<span class="signal-phrase">Share business logic, keep UI native</span>."</li>
+  <li>"<span class="signal-phrase">expect/actual for platform escape hatches</span>."</li>
+  <li>"<span class="signal-phrase">Kotlin/Native compiles via LLVM to ARM .framework</span>."</li>
+  <li>"<span class="signal-phrase">Ktor + kotlinx.serialization + SQLDelight + Koin</span> is the canonical KMP stack."</li>
+</ul>
+
+<div class="footer">Next: <a href="star-stories.html">STAR Stories →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

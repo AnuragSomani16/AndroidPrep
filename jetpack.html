@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jetpack Libraries · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Jetpack Libraries</h1>
+<p class="lead">Everything you'll be quizzed on: <span class="signal">ViewModel</span>, a <span class="signal">full Room playlist DB</span>, <span class="signal">DataStore</span>, <span class="signal">WorkManager</span>, <span class="signal">Navigation</span>, <span class="signal">Paging 3</span>, <span class="signal">in-memory + persistent caching</span>, <span class="signal">Coil image caching</span>, plus <span class="signal">LiveData</span> for XML codebases.</p>
+
+<div class="buzzwords">
+  <span>SavedStateHandle</span>
+  <span>survives process death</span>
+  <span>SQLite under the hood</span>
+  <span>compile-time SQL verification</span>
+  <span>Flow-based DAOs</span>
+  <span>Room migrations</span>
+  <span>Preferences vs Proto DataStore</span>
+  <span>WorkManager constraints</span>
+  <span>expedited work</span>
+  <span>Paging 3 RemoteMediator</span>
+  <span>Coil memory + disk cache</span>
+  <span>cache-aside vs read-through</span>
+</div>
+
+<h2>1. ViewModel — the cornerstone</h2>
+
+<div class="definition"><strong>ViewModel</strong> = a lifecycle-aware container of UI state that survives configuration changes (rotation, theme switch). It's stored in the <code>ViewModelStore</code> attached to the Activity / Fragment / Nav backstack entry. Cleared in <code>onCleared()</code> when the owner is permanently gone. <strong>Does NOT survive process death</strong> — for that, use <code>SavedStateHandle</code> (Bundle-backed) injected into the ViewModel.</div>
+
+<p><span class="signal-phrase">ViewModel survives configuration changes</span> (rotation) but is cleared when the user explicitly leaves the screen (<code>onCleared()</code>). It does NOT survive process death — for that you need <code>SavedStateHandle</code>.</p>
+
+<pre><code class="language-kotlin">@HiltViewModel
+class HomeVm @Inject constructor(
+    private val savedState: SavedStateHandle,    // survives process death (Bundle-based)
+    private val getFeed: GetFeedUseCase
+) : ViewModel() {
+
+    // Preserved across process death
+    val query: StateFlow&lt;String&gt; = savedState.getStateFlow("query", "")
+
+    val results: StateFlow&lt;List&lt;Item&gt;&gt; = query
+        .debounce(300)
+        .flatMapLatest { q -&gt; getFeed(q) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun setQuery(q: String) { savedState["query"] = q }
+
+    override fun onCleared() {
+        super.onCleared()
+        // viewModelScope auto-cancels — usually nothing to do here
+    }
+}</code></pre>
+
+<div class="callout senior">
+  <span class="label">When to use SavedStateHandle</span>
+  <p>For state you'd be sad to lose if Android killed your process while backgrounded — search input, scroll position, multi-step form progress. Bundle-sized data only (a few KB). For larger state, persist to Room or DataStore.</p>
+</div>
+
+<h3>LiveData (for XML codebases)</h3>
+<pre><code class="language-kotlin">class LegacyVm : ViewModel() {
+    private val _name = MutableLiveData("Anu")
+    val name: LiveData&lt;String&gt; = _name
+    fun rename(n: String) { _name.value = n }
+}
+
+// XML observation — automatically respects lifecycle
+class LegacyFragment : Fragment() {
+    private val vm: LegacyVm by viewModels()
+    override fun onViewCreated(v: View, s: Bundle?) {
+        vm.name.observe(viewLifecycleOwner) { name -&gt; tv.text = name }
+    }
+}</code></pre>
+
+<table>
+<thead><tr><th></th><th>LiveData</th><th>StateFlow</th></tr></thead>
+<tbody>
+<tr><td>Lifecycle-aware</td><td>Yes — auto-pauses off screen</td><td>No on its own; needs <code>repeatOnLifecycle</code> / <code>collectAsStateWithLifecycle</code></td></tr>
+<tr><td>Initial value required</td><td>No</td><td>Yes</td></tr>
+<tr><td>Threading</td><td>Posts to main</td><td>Honors caller's dispatcher</td></tr>
+<tr><td>Recommended</td><td>Existing XML code</td><td>New code, especially Compose</td></tr>
+</tbody>
+</table>
+
+<h2>2. Room — full playlist database example</h2>
+
+<h3>Schema design — playlists with songs (many-to-many)</h3>
+
+<pre><code class="language-kotlin">// Entity 1 — playlist
+@Entity(tableName = "playlists")
+data class PlaylistEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val createdAt: Long,
+    val updatedAt: Long,
+    val coverUrl: String?,
+    val isPublic: Boolean
+)
+
+// Entity 2 — song (canonical record)
+@Entity(tableName = "songs")
+data class SongEntity(
+    @PrimaryKey val id: String,
+    val title: String,
+    val artistId: String,
+    val durationMs: Long,
+    val audioUrl: String
+)
+
+// Cross-reference table (many-to-many)
+@Entity(
+    tableName = "playlist_songs",
+    primaryKeys = ["playlistId", "songId"],
+    foreignKeys = [
+        ForeignKey(entity = PlaylistEntity::class, parentColumns = ["id"], childColumns = ["playlistId"], onDelete = ForeignKey.CASCADE),
+        ForeignKey(entity = SongEntity::class,    parentColumns = ["id"], childColumns = ["songId"],    onDelete = ForeignKey.CASCADE)
+    ],
+    indices = [Index("songId")]
+)
+data class PlaylistSongCrossRef(
+    val playlistId: String,
+    val songId: String,
+    val position: Int           // ordering within playlist
+)
+
+// Composed model — playlist with its songs
+data class PlaylistWithSongs(
+    @Embedded val playlist: PlaylistEntity,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = PlaylistSongCrossRef::class,
+            parentColumn = "playlistId",
+            entityColumn = "songId"
+        )
+    )
+    val songs: List&lt;SongEntity&gt;
+)</code></pre>
+
+<h3>DAO — Flow-based, suspend, transactional</h3>
+<pre><code class="language-kotlin">@Dao
+interface PlaylistDao {
+    @Query("SELECT * FROM playlists ORDER BY updatedAt DESC")
+    fun observeAll(): Flow&lt;List&lt;PlaylistEntity&gt;&gt;
+
+    @Transaction
+    @Query("SELECT * FROM playlists WHERE id = :id")
+    fun observeWithSongs(id: String): Flow&lt;PlaylistWithSongs?&gt;
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertPlaylist(playlist: PlaylistEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertSongs(songs: List&lt;SongEntity&gt;)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertCrossRefs(refs: List&lt;PlaylistSongCrossRef&gt;)
+
+    @Query("DELETE FROM playlist_songs WHERE playlistId = :playlistId AND songId = :songId")
+    suspend fun removeSong(playlistId: String, songId: String)
+
+    @Query("UPDATE playlist_songs SET position = :pos WHERE playlistId = :p AND songId = :s")
+    suspend fun reorder(p: String, s: String, pos: Int)
+
+    @Transaction
+    suspend fun addSongToPlaylist(playlistId: String, song: SongEntity, position: Int) {
+        upsertSongs(listOf(song))
+        upsertCrossRefs(listOf(PlaylistSongCrossRef(playlistId, song.id, position)))
+        upsertPlaylist(getPlaylist(playlistId).copy(updatedAt = System.currentTimeMillis()))
+    }
+
+    @Query("SELECT * FROM playlists WHERE id = :id")
+    suspend fun getPlaylist(id: String): PlaylistEntity
+}</code></pre>
+
+<h3>Database with TypeConverters and Migrations</h3>
+<pre><code class="language-kotlin">class Converters {
+    @TypeConverter fun fromList(list: List&lt;String&gt;): String = list.joinToString("")
+    @TypeConverter fun toList(s: String): List&lt;String&gt; = if (s.isEmpty()) emptyList() else s.split("")
+}
+
+@Database(
+    entities = [PlaylistEntity::class, SongEntity::class, PlaylistSongCrossRef::class],
+    version = 2,
+    exportSchema = true
+)
+@TypeConverters(Converters::class)
+abstract class AppDb : RoomDatabase() {
+    abstract fun playlists(): PlaylistDao
+}
+
+// Migration when you add a column
+val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE playlists ADD COLUMN isPublic INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object DbModule {
+    @Provides @Singleton
+    fun provideDb(@ApplicationContext ctx: Context): AppDb =
+        Room.databaseBuilder(ctx, AppDb::class.java, "app.db")
+            .addMigrations(MIGRATION_1_2)
+            .build()
+
+    @Provides fun playlistDao(db: AppDb): PlaylistDao = db.playlists()
+}</code></pre>
+
+<div class="callout warn">
+  <span class="label">Migration discipline</span>
+  <p>Never use <code>fallbackToDestructiveMigration()</code> in production. <strong>Always</strong> write a migration. Set <code>exportSchema = true</code> so Room generates a JSON schema per version that you check into Git — this is your migration test fixture.</p>
+</div>
+
+<h3>Senior probes on Room</h3>
+
+<details class="qa">
+<summary>Q. Why Room over plain SQLite?</summary>
+<div class="qa-body"><p><strong>Compile-time SQL verification</strong>, type-safe queries, automatic Flow emission on table change, transaction support via annotations, type converters, migration helpers, <strong>schema export for migration testing</strong>. Plain SQLite gives you string queries and runtime crashes when the schema drifts.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. Single-table vs normalized — when?</summary>
+<div class="qa-body"><p>Normalized for write-heavy / shared-across-screens (songs referenced by many playlists). Single-table denormalized for read-heavy, view-specific data (a "feed item" with embedded user info that rarely changes). For mobile apps, normalize moderately — DB size is small, joins are fast.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you observe joined data?</summary>
+<div class="qa-body"><p><code>@Transaction</code> + <code>@Relation</code> on a composed data class returned from a <code>@Query</code> that returns a <code>Flow</code>. The transaction ensures you see a consistent snapshot.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. What happens with @Query that returns Flow?</summary>
+<div class="qa-body"><p>Room's invalidation tracker registers your query against the tables it touches. When any of those tables change, Room re-runs the query and emits a new value into the Flow. Cheaper than a manual cursor loop and lifecycle-safe.</p></div>
+</details>
+
+<h2>3. DataStore — the modern preferences</h2>
+
+<h3>Preferences DataStore (key-value)</h3>
+<pre><code class="language-kotlin">private val Context.settings by preferencesDataStore("settings")
+
+private val DARK_MODE = booleanPreferencesKey("dark_mode")
+private val LAST_USER = stringPreferencesKey("last_user")
+
+class SettingsRepo @Inject constructor(@ApplicationContext private val ctx: Context) {
+    val isDarkMode: Flow&lt;Boolean&gt; = ctx.settings.data.map { it[DARK_MODE] ?: false }
+    suspend fun setDarkMode(on: Boolean) { ctx.settings.edit { it[DARK_MODE] = on } }
+}</code></pre>
+
+<h3>Proto DataStore (typed schema)</h3>
+<pre><code>// proto/user_prefs.proto
+syntax = "proto3";
+option java_multiple_files = true;
+message UserPrefs {
+  string display_name = 1;
+  bool dark_mode = 2;
+  int32 max_quality = 3;
+}</code></pre>
+
+<pre><code class="language-kotlin">object UserPrefsSerializer : Serializer&lt;UserPrefs&gt; {
+    override val defaultValue: UserPrefs = UserPrefs.getDefaultInstance()
+    override suspend fun readFrom(input: InputStream) = try { UserPrefs.parseFrom(input) }
+        catch (e: InvalidProtocolBufferException) { throw CorruptionException("...", e) }
+    override suspend fun writeTo(t: UserPrefs, output: OutputStream) = t.writeTo(output)
+}
+
+private val Context.userPrefs: DataStore&lt;UserPrefs&gt;
+    by dataStore("user_prefs.pb", UserPrefsSerializer)</code></pre>
+
+<table>
+<thead><tr><th></th><th>SharedPreferences</th><th>Preferences DataStore</th><th>Proto DataStore</th></tr></thead>
+<tbody>
+<tr><td>I/O model</td><td>Sync (main-thread risk)</td><td>Async (Flow)</td><td>Async (Flow)</td></tr>
+<tr><td>Schema</td><td>None</td><td>None (untyped keys)</td><td>Typed (proto)</td></tr>
+<tr><td>Transactional</td><td>commit/apply</td><td>Yes (atomic edit)</td><td>Yes</td></tr>
+<tr><td>Recommended</td><td>Legacy / migrate from</td><td>Simple key-value</td><td>Structured app state</td></tr>
+</tbody>
+</table>
+
+<h3>Migrating from SharedPreferences</h3>
+<pre><code class="language-kotlin">val Context.settings by preferencesDataStore(
+    name = "settings",
+    produceMigrations = { ctx -&gt; listOf(SharedPreferencesMigration(ctx, "old_prefs")) }
+)</code></pre>
+
+<h2>4. WorkManager</h2>
+
+<h3>Use cases</h3>
+<ul>
+  <li><strong>Deferrable + guaranteed</strong> background work: log upload, sync, photo upload, indexing.</li>
+  <li>Survives app restart, device reboot.</li>
+  <li>Picks the best engine internally (JobScheduler, AlarmManager).</li>
+</ul>
+
+<h3>OneTime + constraints</h3>
+<pre><code class="language-kotlin">val request = OneTimeWorkRequestBuilder&lt;UploadWorker&gt;()
+    .setConstraints(
+        Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.UNMETERED)
+            .setRequiresCharging(false)
+            .setRequiresBatteryNotLow(true)
+            .build()
+    )
+    .setInputData(workDataOf("photoId" to id))
+    .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+    .build()
+
+WorkManager.getInstance(ctx).enqueueUniqueWork(
+    "upload-$id",
+    ExistingWorkPolicy.REPLACE,
+    request
+)</code></pre>
+
+<h3>Periodic</h3>
+<pre><code class="language-kotlin">val periodic = PeriodicWorkRequestBuilder&lt;SyncWorker&gt;(15, TimeUnit.MINUTES)
+    .setConstraints(/* ... */)
+    .build()
+
+WorkManager.getInstance(ctx).enqueueUniquePeriodicWork(
+    "sync",
+    ExistingPeriodicWorkPolicy.KEEP,    // KEEP, UPDATE, CANCEL_AND_REENQUEUE
+    periodic
+)</code></pre>
+
+<h3>Expedited (Android 12+)</h3>
+<pre><code class="language-kotlin">val expedited = OneTimeWorkRequestBuilder&lt;SubmitWorker&gt;()
+    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+    .build()
+
+class SubmitWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        val notification = buildNotification("Submitting...")
+        return ForegroundInfo(NOTIFICATION_ID, notification)
+    }
+    override suspend fun doWork(): Result { /* ... */ return Result.success() }
+}</code></pre>
+
+<h3>Chaining</h3>
+<pre><code class="language-kotlin">WorkManager.getInstance(ctx)
+    .beginWith(downloadWork)
+    .then(parseWork)
+    .then(saveWork)
+    .enqueue()</code></pre>
+
+<h2>5. Navigation Component</h2>
+
+<h3>Compose (covered also on the Compose page)</h3>
+<pre><code class="language-kotlin">@Serializable data object HomeRoute
+@Serializable data class DetailRoute(val id: String)
+
+NavHost(navController, startDestination = HomeRoute) {
+    composable&lt;HomeRoute&gt; { HomeScreen() }
+    composable&lt;DetailRoute&gt; { entry -&gt;
+        val args = entry.toRoute&lt;DetailRoute&gt;()
+        DetailScreen(args.id)
+    }
+}</code></pre>
+
+<h3>XML (NavGraphFragment)</h3>
+<pre><code>&lt;!-- res/navigation/nav_main.xml --&gt;
+&lt;navigation app:startDestination="@id/home"&gt;
+    &lt;fragment android:id="@+id/home" android:name="com.x.HomeFragment"&gt;
+        &lt;action android:id="@+id/to_detail" app:destination="@id/detail" /&gt;
+    &lt;/fragment&gt;
+    &lt;fragment android:id="@+id/detail" android:name="com.x.DetailFragment"&gt;
+        &lt;argument android:name="id" app:argType="string" /&gt;
+    &lt;/fragment&gt;
+&lt;/navigation&gt;
+
+// SafeArgs (gradle plugin) generates type-safe navigation
+findNavController().navigate(HomeFragmentDirections.toDetail(id = "abc"))</code></pre>
+
+<h2>6. Paging 3 — for big lists</h2>
+
+<h3>Network-only (PagingSource)</h3>
+<pre><code class="language-kotlin">class FeedPagingSource(private val api: FeedApi) : PagingSource&lt;Int, FeedItem&gt;() {
+    override suspend fun load(params: LoadParams&lt;Int&gt;): LoadResult&lt;Int, FeedItem&gt; = try {
+        val page = params.key ?: 0
+        val response = api.feed(page = page, limit = params.loadSize)
+        LoadResult.Page(
+            data = response.items,
+            prevKey = if (page == 0) null else page - 1,
+            nextKey = if (response.items.isEmpty()) null else page + 1
+        )
+    } catch (e: IOException) { LoadResult.Error(e) }
+    override fun getRefreshKey(state: PagingState&lt;Int, FeedItem&gt;) = null
+}
+
+val pager = Pager(
+    config = PagingConfig(pageSize = 20, prefetchDistance = 5),
+    pagingSourceFactory = { FeedPagingSource(api) }
+).flow.cachedIn(viewModelScope)</code></pre>
+
+<h3>Network + DB (RemoteMediator) — offline-first paging</h3>
+<pre><code class="language-kotlin">@OptIn(ExperimentalPagingApi::class)
+class FeedRemoteMediator(
+    private val api: FeedApi,
+    private val db: AppDb
+) : RemoteMediator&lt;Int, FeedItemEntity&gt;() {
+    override suspend fun load(loadType: LoadType, state: PagingState&lt;Int, FeedItemEntity&gt;): MediatorResult {
+        return try {
+            val page = when (loadType) {
+                LoadType.REFRESH -&gt; 0
+                LoadType.PREPEND -&gt; return MediatorResult.Success(endOfPaginationReached = true)
+                LoadType.APPEND -&gt; (state.lastItemOrNull()?.page ?: 0) + 1
+            }
+            val response = api.feed(page, state.config.pageSize)
+            db.withTransaction {
+                if (loadType == LoadType.REFRESH) db.feedDao().clear()
+                db.feedDao().insertAll(response.items.map { it.toEntity(page) })
+            }
+            MediatorResult.Success(endOfPaginationReached = response.items.isEmpty())
+        } catch (e: IOException) { MediatorResult.Error(e) }
+    }
+}
+
+val pager = Pager(
+    config = PagingConfig(pageSize = 20),
+    remoteMediator = FeedRemoteMediator(api, db),
+    pagingSourceFactory = { db.feedDao().pagingSource() }
+).flow</code></pre>
+
+<h3>Compose consumption</h3>
+<pre><code class="language-kotlin">val items = vm.pager.collectAsLazyPagingItems()
+LazyColumn {
+    items(count = items.itemCount, key = items.itemKey { it.id }) { i -&gt;
+        items[i]?.let { FeedRow(it) }
+    }
+    when (val s = items.loadState.append) {
+        is LoadState.Loading -&gt; item { Spinner() }
+        is LoadState.Error   -&gt; item { ErrorRow(s.error) { items.retry() } }
+        else -&gt; Unit
+    }
+}</code></pre>
+
+<h3>XML consumption</h3>
+<pre><code class="language-kotlin">class FeedAdapter : PagingDataAdapter&lt;FeedItem, FeedVH&gt;(DIFF) {
+    override fun onBindViewHolder(h: FeedVH, pos: Int) { getItem(pos)?.let(h::bind) }
+    /* ... */
+}
+viewLifecycleOwner.lifecycleScope.launch {
+    repeatOnLifecycle(Lifecycle.State.STARTED) {
+        vm.pager.collect { adapter.submitData(it) }
+    }
+}</code></pre>
+
+<h2>7. Caching strategies — the senior view</h2>
+
+<table>
+<thead><tr><th>Cache</th><th>Where</th><th>Lifetime</th><th>Use for</th></tr></thead>
+<tbody>
+<tr><td>In-memory (LruCache)</td><td>Process</td><td>Until process killed</td><td>Hot data, parsed objects</td></tr>
+<tr><td>Disk (Room / files / OkHttp HTTP cache)</td><td>App data dir</td><td>Until uninstall / explicit clear</td><td>Offline-first, cold-start data</td></tr>
+<tr><td>OkHttp Response Cache</td><td>Disk</td><td>HTTP cache headers</td><td>Standard REST responses</td></tr>
+<tr><td>Coil image cache</td><td>Memory + disk</td><td>LRU + size-bounded</td><td>Image loading</td></tr>
+<tr><td>EncryptedSharedPreferences / EncryptedFile</td><td>Disk (encrypted)</td><td>Until uninstall</td><td>Tokens, secrets</td></tr>
+</tbody>
+</table>
+
+<h3>In-memory LRU</h3>
+<pre><code class="language-kotlin">class UserCache @Inject constructor() {
+    private val cache = object : LruCache&lt;String, User&gt;(100) {
+        override fun sizeOf(key: String, value: User): Int = 1   // count entries; for bitmaps use bytes
+    }
+    fun get(id: String): User? = cache[id]
+    fun put(user: User) { cache.put(user.id, user) }
+    fun clear() = cache.evictAll()
+}</code></pre>
+
+<h3>Cache-aside pattern (read-through with fallback)</h3>
+<pre><code class="language-kotlin">class UserRepo @Inject constructor(
+    private val api: UserApi,
+    private val dao: UserDao,
+    private val mem: UserCache
+) {
+    suspend fun get(id: String): User =
+        mem.get(id)
+            ?: dao.byId(id)?.toDomain()?.also { mem.put(it) }
+            ?: api.fetch(id).toDomain().also {
+                dao.upsert(it.toEntity())
+                mem.put(it)
+            }
+}</code></pre>
+<div class="code-explain">Reads cascade from fastest to slowest:
+<ol>
+  <li><strong>Memory cache hit</strong> — <code>mem.get(id)</code> returns immediately if present. ~microseconds.</li>
+  <li><strong>DB hit</strong> — if memory misses, <code>dao.byId(id)</code> reads from disk. ~milliseconds. <code>?.also { mem.put(it) }</code> warms the memory cache for next time.</li>
+  <li><strong>Network</strong> — if both miss, <code>api.fetch(id)</code> goes over the wire. ~hundreds of ms. We write through to <em>both</em> caches before returning so subsequent reads are fast.</li>
+</ol>
+The Elvis chain (<code>?:</code>) makes the fallback flow read top-to-bottom. If you wanted offline-first instead, you'd <strong>observe</strong> the DAO's Flow and refresh from network in the background — see <a href="scenarios.html">Scenario Drills #2</a>.
+</div>
+
+<h3>Read-through (Flow-based offline-first)</h3>
+<pre><code class="language-kotlin">fun observe(id: String): Flow&lt;User&gt; = dao.observe(id)
+    .map { it?.toDomain() ?: api.fetch(id).also { dao.upsert(it.toEntity()) }.toDomain() }
+    .distinctUntilChanged()</code></pre>
+
+<h2>8. Coil — image caching in Compose</h2>
+
+<pre><code class="language-kotlin">// In Application — global config
+class App : Application(), ImageLoaderFactory {
+    override fun newImageLoader(): ImageLoader = ImageLoader.Builder(this)
+        .memoryCache {
+            MemoryCache.Builder(this)
+                .maxSizePercent(0.25)              // 25% of app heap
+                .build()
+        }
+        .diskCache {
+            DiskCache.Builder()
+                .directory(cacheDir.resolve("image_cache"))
+                .maxSizeBytes(100 * 1024 * 1024)   // 100MB
+                .build()
+        }
+        .respectCacheHeaders(false)                 // ignore weak HTTP cache headers
+        .crossfade(true)
+        .build()
+}
+
+// In a composable
+AsyncImage(
+    model = ImageRequest.Builder(LocalContext.current)
+        .data(url)
+        .crossfade(true)
+        .placeholder(R.drawable.placeholder)
+        .error(R.drawable.error)
+        .memoryCachePolicy(CachePolicy.ENABLED)
+        .diskCachePolicy(CachePolicy.ENABLED)
+        .build(),
+    contentDescription = null,
+    modifier = Modifier.size(80.dp).clip(CircleShape)
+)</code></pre>
+
+<div class="callout senior">
+  <span class="label">Senior phrase</span>
+  <p>"Coil's <span class="signal-phrase">two-tier cache (memory LruBitmapPool + disk LRU)</span> means rapid scrolling re-uses bitmaps without decoding; the disk cache survives process death. I cap memory at <strong>25% of heap</strong> on Android to leave room for the rest of the app on low-end devices."</p>
+</div>
+
+<h2>9. Quick references for "senior signals"</h2>
+
+<ul>
+  <li>"<span class="signal-phrase">DB is the source of truth</span> — UI observes a Flow from Room."</li>
+  <li>"<span class="signal-phrase">SavedStateHandle for process-death-resilient state</span>; in-memory ViewModel state for everything else."</li>
+  <li>"<span class="signal-phrase">DataStore deprecates SharedPreferences</span> — async I/O eliminates main-thread risk."</li>
+  <li>"<span class="signal-phrase">WorkManager picks the right backend</span> — JobScheduler on API 23+, AlarmManager fallback."</li>
+  <li>"<span class="signal-phrase">Paging 3 with RemoteMediator</span> for offline-first paginated screens."</li>
+  <li>"<span class="signal-phrase">Cache-aside with memory + disk + network</span> — Repository decides the read path."</li>
+</ul>
+
+<div class="footer">Next: <a href="networking.html">Networking & Auth →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Comparisons — X vs Y · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Comparisons — X vs Y</h1>
+<p class="lead">Every "what's the difference between..." question senior interviews probe. Tables for fast lookup, plus the <span class="signal">when to choose which</span> framing for each pair.</p>
+
+<div class="callout tip">
+  <span class="label">How to read this page</span>
+  <p>Each comparison ends with a "<strong>which to use when</strong>" line — that's the senior signal. Memorize the choice criterion, not the table contents. Use Cmd-F to jump.</p>
+</div>
+
+<h2>Index</h2>
+<ul>
+  <li><a href="#state">State holders &amp; reactive types</a></li>
+  <li><a href="#coro">Coroutines &amp; concurrency</a></li>
+  <li><a href="#compose">Compose internals</a></li>
+  <li><a href="#arch">Architecture patterns</a></li>
+  <li><a href="#di">DI &amp; Hilt</a></li>
+  <li><a href="#data">Persistence &amp; data</a></li>
+  <li><a href="#net">Networking &amp; serialization</a></li>
+  <li><a href="#core">Android core SDK</a></li>
+  <li><a href="#ui">UI toolkit (Compose vs XML)</a></li>
+  <li><a href="#kotlin">Kotlin language</a></li>
+  <li><a href="#build">Build &amp; tooling</a></li>
+  <li><a href="#player">Video player</a></li>
+</ul>
+
+<!-- ============================================ -->
+<h2 id="state">State holders &amp; reactive types</h2>
+
+<h3><code>StateFlow</code> vs <code>mutableStateOf</code> (the question you asked)</h3>
+<table>
+<thead><tr><th></th><th><code>StateFlow</code> (kotlinx.coroutines)</th><th><code>mutableStateOf</code> (Compose)</th></tr></thead>
+<tbody>
+<tr><td>Where it lives</td><td>ViewModel (or any non-Compose layer)</td><td>Inside Compose runtime — only meaningful inside a composition</td></tr>
+<tr><td>Survives recomposition?</td><td>Yes — independent of UI</td><td>Yes (with <code>remember</code>)</td></tr>
+<tr><td>Survives configuration change?</td><td>Yes (lives in ViewModel)</td><td>No on its own — needs <code>rememberSaveable</code>; even then only Bundle-sized</td></tr>
+<tr><td>Visible to non-Compose code?</td><td>Yes — collectable from anywhere (Activity, Service)</td><td>No — Compose-only</td></tr>
+<tr><td>Threading</td><td>Honors the caller's dispatcher</td><td>Must be read on Main</td></tr>
+<tr><td>How UI subscribes</td><td>Compose: <code>flow.collectAsStateWithLifecycle()</code>. XML: <code>repeatOnLifecycle(STARTED) { collect { } }</code></td><td>Compose-native: <code>val x by mutableStateOf(...)</code> read directly inside <code>@Composable</code></td></tr>
+<tr><td>Equality dedupe</td><td>Yes — won't re-emit if new equals old</td><td>Yes — won't trigger recomposition if equal</td></tr>
+<tr><td>Can be combined / mapped</td><td>Full Flow operator suite</td><td>Limited — usually combine via <code>derivedStateOf</code></td></tr>
+<tr><td>Test outside Android</td><td>Yes (pure Kotlin, KMP-ready)</td><td>Needs Compose test runtime</td></tr>
+</tbody>
+</table>
+
+<div class="callout senior">
+  <span class="label">Which to use when</span>
+  <p><strong>StateFlow</strong> for state that lives in ViewModel and needs to be observable from <em>both</em> Compose and XML, or that survives configuration change. <strong>mutableStateOf</strong> for state local to a composable (text input, toggle, scroll position) — simpler, integrates natively with Compose's read-tracking. <strong>Don't mirror StateFlow into mutableStateOf inside the composable</strong> — just <code>collectAsStateWithLifecycle()</code> the StateFlow directly.</p>
+</div>
+
+<h3><code>StateFlow</code> vs <code>SharedFlow</code></h3>
+<table>
+<thead><tr><th></th><th>StateFlow</th><th>SharedFlow</th></tr></thead>
+<tbody>
+<tr><td>Initial value</td><td>Required</td><td>Optional (start empty)</td></tr>
+<tr><td>Replay to new collectors</td><td>Always 1 (the current value)</td><td>Configurable (0..N)</td></tr>
+<tr><td>Equality dedupe</td><td>Yes — won't emit if equal to current</td><td>No — every emit goes through</td></tr>
+<tr><td>Conflated</td><td>Yes — fast emits coalesce</td><td>Configurable via <code>onBufferOverflow</code></td></tr>
+<tr><td><code>.value</code> read</td><td>Yes — synchronous current value</td><td>No</td></tr>
+<tr><td>Use for</td><td><strong>State</strong> (UI state, settings)</td><td><strong>Events</strong> (snackbar, navigation)</td></tr>
+</tbody>
+</table>
+
+<div class="callout senior">
+  <span class="label">Which to use when</span>
+  <p><strong>StateFlow</strong> for "what is the screen showing right now?" — it always has an answer. <strong>SharedFlow(replay=0, extraBufferCapacity=1)</strong> for one-shot events that must NOT replay on rotation (snackbar, navigate-to-detail).</p>
+</div>
+
+<h3><code>StateFlow</code> vs <code>LiveData</code></h3>
+<table>
+<thead><tr><th></th><th>StateFlow</th><th>LiveData</th></tr></thead>
+<tbody>
+<tr><td>Library</td><td>kotlinx.coroutines (multiplatform)</td><td>androidx.lifecycle (Android-only)</td></tr>
+<tr><td>Lifecycle awareness</td><td>Not on its own — needs <code>collectAsStateWithLifecycle</code> / <code>repeatOnLifecycle</code></td><td>Built-in — auto-pauses observers off-screen</td></tr>
+<tr><td>Initial value</td><td>Required</td><td>Optional</td></tr>
+<tr><td>Operator support</td><td>Full Flow suite (combine, flatMapLatest, debounce, ...)</td><td>Limited (<code>map</code>, <code>switchMap</code>)</td></tr>
+<tr><td>Threading</td><td>Honors caller's dispatcher</td><td>Posts updates to Main</td></tr>
+<tr><td>Testable without instrumentation</td><td>Yes (pure Kotlin)</td><td>Needs <code>InstantTaskExecutorRule</code></td></tr>
+<tr><td>KMP support</td><td>Yes</td><td>No</td></tr>
+</tbody>
+</table>
+
+<div class="callout senior">
+  <span class="label">Which to use when</span>
+  <p><strong>StateFlow</strong> for new code, especially Compose-heavy or KMP-bound. <strong>LiveData</strong> only when contributing to a legacy XML codebase that's already standardized on it. The lifecycle-awareness gap is closed by <code>repeatOnLifecycle</code> + <code>collectAsStateWithLifecycle</code>.</p>
+</div>
+
+<h3><code>Channel</code> vs <code>SharedFlow</code> (for events)</h3>
+<table>
+<thead><tr><th></th><th><code>Channel</code></th><th><code>SharedFlow</code></th></tr></thead>
+<tbody>
+<tr><td>Hot / cold</td><td>Hot</td><td>Hot</td></tr>
+<tr><td>Multiple consumers</td><td>Each item delivered to exactly one consumer (fan-out)</td><td>Each item delivered to <em>all</em> active collectors (broadcast)</td></tr>
+<tr><td>Buffering</td><td>Yes — capacity, on-overflow strategy</td><td>Yes — replay + extraBufferCapacity</td></tr>
+<tr><td>Composes with Flow ops</td><td>Convert via <code>receiveAsFlow()</code></td><td>Already a Flow</td></tr>
+</tbody>
+</table>
+
+<div class="callout senior">
+  <span class="label">Which to use when</span>
+  <p>For VM → UI events use <strong>SharedFlow(replay=0, extraBufferCapacity=1, DROP_OLDEST)</strong>. <strong>Channel</strong> for true producer/consumer queues with single-delivery semantics — rare in app code.</p>
+</div>
+
+<h3><code>collectAsState</code> vs <code>collectAsStateWithLifecycle</code></h3>
+<table>
+<thead><tr><th></th><th><code>collectAsState</code></th><th><code>collectAsStateWithLifecycle</code></th></tr></thead>
+<tbody>
+<tr><td>Library</td><td>compose-runtime</td><td>lifecycle-runtime-compose (added)</td></tr>
+<tr><td>Stops collecting off-screen</td><td>No — keeps collecting in background</td><td>Yes — stops below STARTED</td></tr>
+<tr><td>Battery / CPU impact</td><td>Wastes if upstream is expensive</td><td>Cheap when hidden</td></tr>
+</tbody>
+</table>
+
+<div class="callout senior">
+  <span class="label">Which to use when</span>
+  <p>Always <strong><code>collectAsStateWithLifecycle</code></strong> for production. <code>collectAsState</code> is fine for previews / non-critical local flows.</p>
+</div>
+
+<!-- ============================================ -->
+<h2 id="coro">Coroutines &amp; concurrency</h2>
+
+<h3><code>launch</code> vs <code>async</code></h3>
+<table>
+<thead><tr><th></th><th><code>launch</code></th><th><code>async</code></th></tr></thead>
+<tbody>
+<tr><td>Returns</td><td><code>Job</code></td><td><code>Deferred&lt;T&gt;</code></td></tr>
+<tr><td>Produces a result</td><td>No (fire and forget)</td><td>Yes (<code>await()</code>)</td></tr>
+<tr><td>Uncaught exception</td><td>Propagates immediately</td><td>Held until <code>await()</code></td></tr>
+<tr><td>Caught by CoroutineExceptionHandler</td><td>Yes</td><td>No (only after await)</td></tr>
+</tbody>
+</table>
+<p><strong>Use launch</strong> for side-effect work (write to DB, fire analytics). <strong>Use async</strong> for parallel work where you need the result. Always pair <code>async</code> with <code>await</code>.</p>
+
+<h3><code>coroutineScope</code> vs <code>supervisorScope</code></h3>
+<table>
+<thead><tr><th></th><th><code>coroutineScope</code></th><th><code>supervisorScope</code></th></tr></thead>
+<tbody>
+<tr><td>Child failure cancels siblings?</td><td>Yes</td><td>No</td></tr>
+<tr><td>Failure propagates up?</td><td>Yes (rethrows)</td><td>Only if explicitly thrown by the scope itself</td></tr>
+<tr><td>Use for</td><td>"All or nothing" parallel work — atomic group</td><td>Independent parallel work that tolerates partial failure</td></tr>
+</tbody>
+</table>
+
+<h3><code>viewModelScope</code> vs <code>lifecycleScope</code> vs <code>GlobalScope</code></h3>
+<table>
+<thead><tr><th></th><th><code>viewModelScope</code></th><th><code>lifecycleScope</code></th><th><code>GlobalScope</code></th></tr></thead>
+<tbody>
+<tr><td>Cancelled when</td><td>ViewModel.onCleared()</td><td>Lifecycle DESTROYED</td><td>Never (process death only)</td></tr>
+<tr><td>Survives config change?</td><td>Yes</td><td>No</td><td>Yes (always alive)</td></tr>
+<tr><td>Use for</td><td>VM business logic — the default</td><td>View-bound work in Activity/Fragment</td><td><strong>Almost never</strong> — bypasses structured concurrency</td></tr>
+</tbody>
+</table>
+<p><strong>Default to <code>viewModelScope</code></strong>. Use <code>viewLifecycleOwner.lifecycleScope</code> in Fragments for view-bound work. <code>GlobalScope</code> is a code smell.</p>
+
+<h3>Sequential vs parallel coroutines</h3>
+<pre><code class="language-kotlin">// SEQUENTIAL — total time = sum
+val a = api.fetchA()           // wait
+val b = api.fetchB()           // then wait
+
+// PARALLEL — total time = max
+coroutineScope {
+    val a = async { api.fetchA() }
+    val b = async { api.fetchB() }
+    a.await() to b.await()
+}</code></pre>
+<p><strong>Sequential</strong> when each call depends on the previous one's result. <strong>Parallel</strong> when calls are independent. The classic bug: <code>async { }.await()</code> back-to-back — that's secretly sequential.</p>
+
+<h3><code>Mutex</code> vs <code>synchronized</code></h3>
+<table>
+<thead><tr><th></th><th><code>Mutex.withLock</code></th><th><code>synchronized</code></th></tr></thead>
+<tbody>
+<tr><td>Blocks the thread while waiting?</td><td>No — suspends the coroutine; thread is free</td><td>Yes — thread is blocked</td></tr>
+<tr><td>Reentrant?</td><td>No (by design)</td><td>Yes</td></tr>
+<tr><td>Safe inside coroutines on Main?</td><td>Yes</td><td>No — can deadlock</td></tr>
+</tbody>
+</table>
+
+<h3><code>runBlocking</code> vs <code>runTest</code></h3>
+<table>
+<thead><tr><th></th><th><code>runBlocking</code></th><th><code>runTest</code></th></tr></thead>
+<tbody>
+<tr><td>Time</td><td>Real time</td><td>Virtual time — <code>delay(10000)</code> takes microseconds</td></tr>
+<tr><td>Use for</td><td>Bridging from non-suspend (main fn, Java callers)</td><td>Coroutine unit tests</td></tr>
+<tr><td>Test dispatcher</td><td>—</td><td>Built-in TestScope</td></tr>
+</tbody>
+</table>
+<p><strong>Always <code>runTest</code></strong> for tests; <code>runBlocking</code> in tests is a beginner mistake (slow + flaky).</p>
+
+<!-- ============================================ -->
+<h2 id="compose">Compose internals</h2>
+
+<h3><code>remember</code> vs <code>rememberSaveable</code></h3>
+<table>
+<thead><tr><th></th><th><code>remember</code></th><th><code>rememberSaveable</code></th></tr></thead>
+<tbody>
+<tr><td>Survives recomposition</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Survives configuration change</td><td>No</td><td>Yes</td></tr>
+<tr><td>Survives process death</td><td>No</td><td>Yes (Bundle)</td></tr>
+<tr><td>Size constraint</td><td>None</td><td>Bundle-sized (a few KB)</td></tr>
+<tr><td>Allowed types</td><td>Anything</td><td>Parcelable, Serializable, primitives, or custom <code>Saver</code></td></tr>
+</tbody>
+</table>
+<p><strong>rememberSaveable</strong> for UI state you'd be sad to lose (text input, scroll position). <strong>remember</strong> for derived/transient state.</p>
+
+<h3><code>LaunchedEffect</code> vs <code>SideEffect</code> vs <code>DisposableEffect</code></h3>
+<table>
+<thead><tr><th></th><th><code>LaunchedEffect</code></th><th><code>SideEffect</code></th><th><code>DisposableEffect</code></th></tr></thead>
+<tbody>
+<tr><td>Runs in a coroutine</td><td>Yes</td><td>No (synchronous)</td><td>No (synchronous)</td></tr>
+<tr><td>Restarts on key change</td><td>Yes</td><td>—</td><td>Yes (with cleanup)</td></tr>
+<tr><td>Required cleanup</td><td>No (cancellation handles it)</td><td>No</td><td>Yes (<code>onDispose { }</code> mandatory)</td></tr>
+<tr><td>When it runs</td><td>Once on enter; restarts on key</td><td>After every successful composition</td><td>Once on enter; restarts on key change</td></tr>
+<tr><td>Use for</td><td>Trigger a coroutine — load data, observe one-shot effects</td><td>Sync Compose state to non-Compose code</td><td>Resources needing setup + teardown (listeners, observers)</td></tr>
+</tbody>
+</table>
+
+<h3><code>derivedStateOf</code> vs plain expression</h3>
+<pre><code class="language-kotlin">// BAD — recomposes on every scroll pixel
+val showFab = listState.firstVisibleItemIndex == 0
+
+// GOOD — recomposes only when the boolean flips
+val showFab by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }</code></pre>
+<p><strong>derivedStateOf</strong> when a derivation depends on rapidly-changing state but the derived value changes rarely. Without it, every scroll pixel triggers a recomposition. With it, only the threshold-cross does.</p>
+
+<h3><code>compositionLocalOf</code> vs <code>staticCompositionLocalOf</code></h3>
+<table>
+<thead><tr><th></th><th><code>compositionLocalOf</code></th><th><code>staticCompositionLocalOf</code></th></tr></thead>
+<tbody>
+<tr><td>Tracks reads</td><td>Yes — only readers recompose on change</td><td>No — all descendants recompose</td></tr>
+<tr><td>Cost on change</td><td>Low (per-reader)</td><td>High (whole subtree)</td></tr>
+<tr><td>Use for</td><td>Values that change often</td><td>Values that rarely change (theme, density)</td></tr>
+</tbody>
+</table>
+
+<h3><code>@Stable</code> vs <code>@Immutable</code></h3>
+<p>Both tell Compose "trust me, equality is enough to know if output is unchanged." Difference is intent:</p>
+<ul>
+  <li><strong><code>@Immutable</code></strong> — the type's public API <em>cannot</em> change after construction. Stronger contract.</li>
+  <li><strong><code>@Stable</code></strong> — the type can change, but its <code>equals</code> reflects all relevant changes (so equality means rendered-output equivalence).</li>
+</ul>
+<p>For data classes wrapping a <code>List</code>: prefer <code>@Immutable</code> (signals you guarantee the list isn't mutated).</p>
+
+<!-- ============================================ -->
+<h2 id="arch">Architecture patterns</h2>
+
+<h3>MVVM vs MVI — the deep cut</h3>
+
+<table>
+<thead><tr><th>Aspect</th><th>MVVM</th><th>MVI</th></tr></thead>
+<tbody>
+<tr><td>State exposure</td><td>Multiple flows: <code>notes</code>, <code>isLoading</code>, <code>error</code></td><td>One flow: <code>StateFlow&lt;UiState&gt;</code> sealed</td></tr>
+<tr><td>Events from UI</td><td>Method calls: <code>vm.load()</code>, <code>vm.delete(id)</code></td><td><code>vm.onIntent(Intent.Load)</code> / <code>onIntent(Intent.Delete(id))</code></td></tr>
+<tr><td>One-shot events</td><td>Often hacky — SingleLiveEvent, Channel</td><td>Dedicated <code>SharedFlow&lt;Effect&gt;</code></td></tr>
+<tr><td>"What does the screen show?"</td><td>Read multiple flows together</td><td>Look at one State object</td></tr>
+<tr><td>Reducer-style logic</td><td>No</td><td>Yes — <code>(state, intent) → newState</code></td></tr>
+<tr><td>Test reproducibility</td><td>Set up multiple flows manually</td><td>Construct one State; render in @Preview</td></tr>
+<tr><td>Boilerplate per screen</td><td>Low</td><td>Medium-high (sealed Intent, sealed Effect)</td></tr>
+<tr><td>Best for</td><td>Simple CRUD screens, most app screens</td><td>State-heavy: player, multi-step forms, search, animations</td></tr>
+<tr><td>Risk</td><td>State drift across multiple flows</td><td>Over-engineering simple screens</td></tr>
+</tbody>
+</table>
+
+<div class="callout senior">
+  <span class="label">Decision criterion</span>
+  <p>Ask yourself: <strong>"Can I reproduce any state on this screen by setting one variable?"</strong> If yes, MVVM is fine. If no — multiple flags interact (loading + error + selected + filter) — lift to MVI. <em>Mixing per-screen is normal</em>; don't pick globally.</p>
+</div>
+
+<h3>MVC vs MVVM</h3>
+<table>
+<thead><tr><th></th><th>MVC</th><th>MVVM</th></tr></thead>
+<tbody>
+<tr><td>Mediator</td><td>Controller</td><td>ViewModel + observable streams</td></tr>
+<tr><td>View knows</td><td>Controller</td><td>ViewModel</td></tr>
+<tr><td>Survives configuration change?</td><td>No (Activity = Controller, dies on rotation)</td><td>Yes (ViewModel is lifecycle-aware)</td></tr>
+<tr><td>Testability</td><td>Low (Controller couples to View)</td><td>High (VM is plain Kotlin)</td></tr>
+<tr><td>On Android</td><td>Activity ends up playing both Controller and View → "fat Activity"</td><td>Lifecycle-aware separation</td></tr>
+</tbody>
+</table>
+<p>MVC isn't a great Android fit. Move on.</p>
+
+<h3>Clean Architecture vs MVVM</h3>
+<p>They're <strong>not alternatives</strong> — they're <strong>orthogonal</strong>. MVVM is a <em>presentation</em> pattern (how UI gets its data); Clean is a <em>layering</em> pattern (where types and dependencies live). You compose them: "MVVM with Clean layering" or "MVI with Clean layering."</p>
+<table>
+<thead><tr><th></th><th>MVVM</th><th>Clean</th></tr></thead>
+<tbody>
+<tr><td>Concern</td><td>Presentation (UI ↔ state)</td><td>Layering (presentation / domain / data)</td></tr>
+<tr><td>Tells you</td><td>How the View gets its state</td><td>Where business rules vs Android types vs network code live</td></tr>
+<tr><td>Compatible with</td><td>Clean, MVI</td><td>MVVM, MVI, MVC</td></tr>
+</tbody>
+</table>
+
+<h3>Repository vs DAO</h3>
+<table>
+<thead><tr><th></th><th>DAO</th><th>Repository</th></tr></thead>
+<tbody>
+<tr><td>Layer</td><td>Data layer (lowest)</td><td>Data layer (above DAO)</td></tr>
+<tr><td>Knows about</td><td>SQL, Entity types</td><td>DAO + network + cache; returns Domain models</td></tr>
+<tr><td>Number of data sources</td><td>One — the DB</td><td>Coordinates multiple (DB, network, in-memory)</td></tr>
+<tr><td>Returns</td><td>Entities (raw DB shape)</td><td>Domain models</td></tr>
+<tr><td>Generated by</td><td>Room compiler from interface</td><td>Hand-written</td></tr>
+</tbody>
+</table>
+
+<h3>DTO vs Entity vs Domain Model</h3>
+<table>
+<thead><tr><th></th><th>DTO</th><th>Entity</th><th>Domain Model</th></tr></thead>
+<tbody>
+<tr><td>Purpose</td><td>Wire format from network</td><td>Row in the local DB</td><td>Business model used by use cases &amp; UI</td></tr>
+<tr><td>Has annotations like</td><td><code>@Serializable</code> / <code>@SerialName</code></td><td><code>@Entity</code> / <code>@PrimaryKey</code></td><td>None — pure Kotlin</td></tr>
+<tr><td>Lives in</td><td>data layer (remote)</td><td>data layer (local)</td><td>domain layer</td></tr>
+<tr><td>Mappers convert</td><td>DTO → Domain</td><td>Entity → Domain (and back)</td><td>—</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================ -->
+<h2 id="di">DI &amp; Hilt</h2>
+
+<h3>Constructor injection vs field injection</h3>
+<table>
+<thead><tr><th></th><th>Constructor injection</th><th>Field injection</th></tr></thead>
+<tbody>
+<tr><td>Where deps are declared</td><td>Constructor params</td><td><code>@Inject lateinit var</code></td></tr>
+<tr><td>Mutability of deps</td><td>Immutable (<code>val</code>)</td><td>Mutable (<code>var</code>)</td></tr>
+<tr><td>Compile-time guarantee</td><td>Yes — missing dep fails build</td><td>Runtime — uninitialized field crashes</td></tr>
+<tr><td>Easy to fake in tests</td><td>Yes — just construct with fakes</td><td>Hard — needs DI framework or reflection</td></tr>
+<tr><td>Use for</td><td>Anything you control (use cases, repos, services)</td><td>Android components Hilt can't construct (Activity, Fragment, View)</td></tr>
+</tbody>
+</table>
+
+<h3><code>@Provides</code> vs <code>@Binds</code></h3>
+<table>
+<thead><tr><th></th><th><code>@Provides</code></th><th><code>@Binds</code></th></tr></thead>
+<tbody>
+<tr><td>Module type</td><td><code>object</code></td><td><code>abstract class</code></td></tr>
+<tr><td>Function type</td><td>Concrete (returns instance)</td><td>Abstract (takes impl, returns interface)</td></tr>
+<tr><td>Generated factory</td><td>Yes (extra class per binding)</td><td>No (direct call)</td></tr>
+<tr><td>Use for</td><td>Configured types, third-party (Retrofit, OkHttp)</td><td>Interface → impl mappings</td></tr>
+</tbody>
+</table>
+
+<h3>Hilt vs Koin vs manual DI</h3>
+<table>
+<thead><tr><th></th><th>Hilt (Dagger)</th><th>Koin</th><th>Manual</th></tr></thead>
+<tbody>
+<tr><td>Wiring time</td><td>Compile-time</td><td>Runtime</td><td>Compile-time</td></tr>
+<tr><td>Errors surface</td><td>Build</td><td>App-launch / first-access</td><td>Build</td></tr>
+<tr><td>Setup overhead</td><td>Medium-high</td><td>Low (Kotlin DSL)</td><td>None (just code)</td></tr>
+<tr><td>Runtime cost</td><td>Zero (codegen)</td><td>Slight (lookup)</td><td>Zero</td></tr>
+<tr><td>Multi-platform</td><td>Android-only</td><td>KMP-friendly</td><td>Yes</td></tr>
+<tr><td>Best for</td><td>Large Android-only apps</td><td>KMP shared modules, small apps</td><td>Toy apps, tightly-controlled libraries</td></tr>
+</tbody>
+</table>
+
+<h3>Single binding vs Multibinding</h3>
+<table>
+<thead><tr><th></th><th>Single (@Binds / @Provides)</th><th>Multibinding (@IntoSet / @IntoMap)</th></tr></thead>
+<tbody>
+<tr><td>Number of impls</td><td>Exactly one</td><td>Many — collected into Set/Map</td></tr>
+<tr><td>Inject as</td><td><code>SomeType</code></td><td><code>Set&lt;SomeType&gt;</code> or <code>Map&lt;Key, SomeType&gt;</code></td></tr>
+<tr><td>Use for</td><td>Most cases</td><td>Plugin-style: analytics trackers, deep-link handlers</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================ -->
+<h2 id="data">Persistence &amp; data</h2>
+
+<h3>Room vs SharedPreferences vs DataStore</h3>
+<table>
+<thead><tr><th></th><th>SharedPreferences</th><th>DataStore (Preferences)</th><th>DataStore (Proto)</th><th>Room</th></tr></thead>
+<tbody>
+<tr><td>Async</td><td>No (sync)</td><td>Yes (Flow)</td><td>Yes (Flow)</td><td>Yes</td></tr>
+<tr><td>Schema</td><td>None (KV)</td><td>None (KV)</td><td>Typed (proto)</td><td>SQL tables</td></tr>
+<tr><td>Transactional</td><td>Limited</td><td>Yes</td><td>Yes</td><td>Full SQL transactions</td></tr>
+<tr><td>Best for</td><td>Legacy</td><td>Simple flags &amp; settings</td><td>Structured app state</td><td>Domain data, queryable, joins</td></tr>
+<tr><td>Size limit</td><td>Small (loaded in memory)</td><td>Small to medium</td><td>Small to medium</td><td>Up to GBs</td></tr>
+</tbody>
+</table>
+
+<h3>Preferences DataStore vs Proto DataStore</h3>
+<p><strong>Preferences</strong> = untyped key-value, like SharedPreferences but async. <strong>Proto</strong> = a single typed schema (protobuf), better for structured app-wide settings. Use proto when you have &gt;5 settings or want compile-time type safety.</p>
+
+<h3>Cache-aside vs Read-through vs Write-through</h3>
+<table>
+<thead><tr><th></th><th>Cache-aside</th><th>Read-through</th><th>Write-through</th></tr></thead>
+<tbody>
+<tr><td>Reads</td><td>App checks cache, falls back to source</td><td>Cache fetches from source on miss</td><td>—</td></tr>
+<tr><td>Writes</td><td>App writes to source, invalidates cache</td><td>—</td><td>App writes; cache writes through to source synchronously</td></tr>
+<tr><td>Use case</td><td>Most app caches</td><td>Library wrappers (Coil, Glide)</td><td>Offline-first patterns where the DB is the truth</td></tr>
+</tbody>
+</table>
+
+<h3>Coil vs Glide</h3>
+<table>
+<thead><tr><th></th><th>Coil</th><th>Glide</th></tr></thead>
+<tbody>
+<tr><td>Era</td><td>Modern (2020+)</td><td>Established (2014+)</td></tr>
+<tr><td>Language</td><td>Kotlin-first, coroutines-native</td><td>Java-first, callbacks/Future</td></tr>
+<tr><td>Compose support</td><td>First-class (<code>AsyncImage</code>)</td><td>Via integration lib</td></tr>
+<tr><td>Reflection</td><td>None (KSP)</td><td>Some</td></tr>
+<tr><td>KMP</td><td>Coil 3 supports KMP</td><td>No</td></tr>
+<tr><td>APK overhead</td><td>Smaller</td><td>Slightly larger</td></tr>
+</tbody>
+</table>
+
+<h3>HashMap vs LinkedHashMap vs TreeMap</h3>
+<table>
+<thead><tr><th></th><th>HashMap</th><th>LinkedHashMap</th><th>TreeMap</th></tr></thead>
+<tbody>
+<tr><td>Iteration order</td><td>None (undefined)</td><td>Insertion order (or access order)</td><td>Sorted by key</td></tr>
+<tr><td>get/put complexity</td><td>O(1) average</td><td>O(1) average</td><td>O(log n)</td></tr>
+<tr><td>Use for</td><td>Most lookups</td><td>LRU caches, ordered iteration</td><td>Sorted maps (rare on mobile)</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================ -->
+<h2 id="net">Networking &amp; serialization</h2>
+
+<h3>JSON parsers: Gson vs Moshi vs Kotlinx Serialization</h3>
+<table>
+<thead><tr><th></th><th>Gson</th><th>Moshi</th><th>Kotlinx Serialization</th></tr></thead>
+<tbody>
+<tr><td>Codegen</td><td>Reflection</td><td>KSP</td><td>KSP</td></tr>
+<tr><td>Kotlin-aware</td><td>Limited</td><td>Yes (with codegen)</td><td>First-class</td></tr>
+<tr><td>Default values</td><td>Crashes on null in non-null</td><td>Handles via codegen</td><td>Handles natively</td></tr>
+<tr><td>Sealed classes</td><td>Custom adapters</td><td>Polymorphic adapters</td><td>Native</td></tr>
+<tr><td>KMP</td><td>No</td><td>No (Square's, JVM-only)</td><td>Yes</td></tr>
+<tr><td>Maintained</td><td>Maintenance mode</td><td>Active</td><td>Active (Kotlin team)</td></tr>
+<tr><td>Recommended for</td><td>Legacy</td><td>JVM-only Kotlin apps</td><td>New Kotlin code, KMP</td></tr>
+</tbody>
+</table>
+
+<h3>OkHttp Interceptor vs Authenticator</h3>
+<table>
+<thead><tr><th></th><th>Interceptor</th><th>Authenticator</th></tr></thead>
+<tbody>
+<tr><td>Runs on</td><td>Every request</td><td>Only 401 Unauthorized response</td></tr>
+<tr><td>Use for</td><td>Headers, logging, retry on 5xx</td><td>Refresh token + retry</td></tr>
+<tr><td>Flavors</td><td>App-level + Network-level</td><td>One per OkHttpClient</td></tr>
+</tbody>
+</table>
+
+<h3>Cursor pagination vs Page-number pagination</h3>
+<table>
+<thead><tr><th></th><th>Cursor</th><th>Page number</th></tr></thead>
+<tbody>
+<tr><td>API</td><td>Server returns <code>nextCursor</code>; client sends back</td><td>Client increments <code>page</code></td></tr>
+<tr><td>Stable under concurrent inserts?</td><td>Yes</td><td>No — items shift between pages</td></tr>
+<tr><td>"Jump to page 50"</td><td>Hard</td><td>Easy</td></tr>
+<tr><td>Recommended for</td><td>Live feeds (Twitter, Tubi continue-watching)</td><td>Static catalogs</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================ -->
+<h2 id="core">Android core SDK</h2>
+
+<h3>Activity launch modes</h3>
+<table>
+<thead><tr><th></th><th><code>standard</code></th><th><code>singleTop</code></th><th><code>singleTask</code></th><th><code>singleInstance</code></th></tr></thead>
+<tbody>
+<tr><td>New instance per launch?</td><td>Always</td><td>Only if not on top</td><td>Only one across the task</td><td>Only one in its own task</td></tr>
+<tr><td><code>onNewIntent</code> when reused</td><td>Never (always new)</td><td>If reusing top instance</td><td>Always when reusing</td><td>Always when reusing</td></tr>
+<tr><td>Use for</td><td>Most screens</td><td>Notification opens screen already on top</td><td>Home / launcher entry; browser</td><td>Lock screen, system dialogs (rare)</td></tr>
+</tbody>
+</table>
+
+<h3>Foreground vs Background vs Bound Service</h3>
+<table>
+<thead><tr><th></th><th>Foreground</th><th>Background</th><th>Bound</th></tr></thead>
+<tbody>
+<tr><td>Lifecycle</td><td>Persistent notification keeps OS from killing</td><td>Killable on Android 8+ in background</td><td>Lives while clients bound</td></tr>
+<tr><td>Notification?</td><td>Required (within 5s of starting)</td><td>None</td><td>None</td></tr>
+<tr><td>Use for</td><td>Music playback, location tracking, video processing</td><td>Almost never — use WorkManager</td><td>IPC across processes / apps</td></tr>
+</tbody>
+</table>
+
+<h3>Service vs WorkManager</h3>
+<table>
+<thead><tr><th></th><th>Foreground Service</th><th>WorkManager</th></tr></thead>
+<tbody>
+<tr><td>User-visible work?</td><td>Yes (notification)</td><td>Optional (expedited can promote)</td></tr>
+<tr><td>Survives reboot?</td><td>No (must be re-started)</td><td>Yes (queue persisted)</td></tr>
+<tr><td>Network constraint</td><td>Manual</td><td>Built-in (NetworkType.CONNECTED, UNMETERED)</td></tr>
+<tr><td>Backoff/retry</td><td>Manual</td><td>Built-in (linear / exponential)</td></tr>
+<tr><td>Use for</td><td>"Right now, user-visible long task"</td><td>Deferrable, guaranteed work — sync, upload</td></tr>
+</tbody>
+</table>
+
+<h3>Manifest BroadcastReceiver vs Dynamic registration</h3>
+<table>
+<thead><tr><th></th><th>Manifest-declared</th><th>Dynamic (registerReceiver)</th></tr></thead>
+<tbody>
+<tr><td>Registered when</td><td>App installed</td><td>You call registerReceiver</td></tr>
+<tr><td>Survives app kill?</td><td>Yes (OS launches receiver)</td><td>No</td></tr>
+<tr><td>Android 8+ restrictions</td><td>Most implicit broadcasts blocked</td><td>None</td></tr>
+<tr><td>Use for</td><td>BOOT_COMPLETED, explicit broadcasts</td><td>App-internal events while app is running</td></tr>
+</tbody>
+</table>
+
+<h3>Implicit vs Explicit Intent</h3>
+<table>
+<thead><tr><th></th><th>Implicit</th><th>Explicit</th></tr></thead>
+<tbody>
+<tr><td>Targets</td><td>Action + data; system picks handler</td><td>Specific component class name</td></tr>
+<tr><td>Cross-app</td><td>Yes (share, view URL, dial number)</td><td>Within your app (or known target)</td></tr>
+<tr><td>Risk</td><td>No handler → crash; verify with <code>resolveActivity</code></td><td>None (compile-time class ref)</td></tr>
+</tbody>
+</table>
+
+<h3>Parcelable vs Serializable</h3>
+<table>
+<thead><tr><th></th><th>Parcelable</th><th>Serializable</th></tr></thead>
+<tbody>
+<tr><td>Speed</td><td>~10x faster</td><td>Slow (reflection)</td></tr>
+<tr><td>Boilerplate</td><td>Some — use <code>@Parcelize</code></td><td>Just implement Serializable</td></tr>
+<tr><td>Garbage</td><td>None at runtime</td><td>Reflective allocations</td></tr>
+<tr><td>Recommended for Android</td><td>Yes</td><td>No</td></tr>
+</tbody>
+</table>
+
+<h3>Configuration change vs Process death</h3>
+<table>
+<thead><tr><th></th><th>Configuration change</th><th>Process death</th></tr></thead>
+<tbody>
+<tr><td>Trigger</td><td>Rotation, theme switch, font scale, multi-window</td><td>OS kills app in background to reclaim memory</td></tr>
+<tr><td>ViewModel survives?</td><td>Yes</td><td>No</td></tr>
+<tr><td>SavedStateHandle survives?</td><td>Yes</td><td>Yes (Bundle-backed)</td></tr>
+<tr><td>onSaveInstanceState fires?</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Activity field survives?</td><td>No</td><td>No</td></tr>
+</tbody>
+</table>
+
+<h3><code>onSaveInstanceState</code> vs <code>SavedStateHandle</code></h3>
+<table>
+<thead><tr><th></th><th><code>onSaveInstanceState</code></th><th><code>SavedStateHandle</code></th></tr></thead>
+<tbody>
+<tr><td>Where it lives</td><td>Activity / Fragment override</td><td>ViewModel constructor parameter</td></tr>
+<tr><td>API style</td><td>Bundle</td><td>Map-like (<code>get</code>/<code>set</code>) + Flow (<code>getStateFlow</code>)</td></tr>
+<tr><td>Lifecycle-tied to</td><td>Activity / Fragment</td><td>ViewModelStoreOwner (often the Nav backstack entry)</td></tr>
+<tr><td>Modern code uses</td><td>Less; mostly for view-state</td><td>Yes — VM-side state that needs death-resilience</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================ -->
+<h2 id="ui">UI toolkit (Compose vs XML)</h2>
+
+<h3>Compose vs XML</h3>
+<table>
+<thead><tr><th></th><th>Compose</th><th>XML + Views</th></tr></thead>
+<tbody>
+<tr><td>Paradigm</td><td>Declarative</td><td>Imperative + retained tree</td></tr>
+<tr><td>Code or XML</td><td>Pure Kotlin</td><td>XML for layout + Kotlin for behavior</td></tr>
+<tr><td>State management</td><td>State drives UI; UI follows</td><td>Manual <code>setText</code>, <code>visibility</code>, etc.</td></tr>
+<tr><td>List rendering</td><td>LazyColumn (~10 lines)</td><td>RecyclerView + Adapter + ViewHolder + DiffUtil</td></tr>
+<tr><td>Animations</td><td>First-class via <code>animate*AsState</code></td><td>AnimatorSet + XML files</td></tr>
+<tr><td>Theming</td><td>MaterialTheme + tokens</td><td>AppCompat themes (string-based)</td></tr>
+<tr><td>Preview</td><td>@Preview live in IDE</td><td>Layout Editor (limited)</td></tr>
+<tr><td>Recommended for</td><td>New code</td><td>Legacy maintenance</td></tr>
+</tbody>
+</table>
+
+<h3>LazyColumn vs RecyclerView</h3>
+<table>
+<thead><tr><th></th><th>LazyColumn</th><th>RecyclerView</th></tr></thead>
+<tbody>
+<tr><td>Boilerplate</td><td>~5 lines</td><td>Adapter + ViewHolder + DiffUtil</td></tr>
+<tr><td>Item recycling</td><td>Automatic</td><td>Manual via <code>onCreateViewHolder</code></td></tr>
+<tr><td>Stability</td><td>Mature in Compose 1.4+</td><td>Battle-tested for 10 years</td></tr>
+<tr><td>Custom layouts</td><td>Inline composables</td><td>Custom LayoutManager</td></tr>
+</tbody>
+</table>
+
+<h3>AsyncImage (Coil) vs ImageView + Glide</h3>
+<table>
+<thead><tr><th></th><th><code>AsyncImage</code></th><th>ImageView + Glide</th></tr></thead>
+<tbody>
+<tr><td>Caller code</td><td>1 line</td><td>2 lines (XML + Kotlin)</td></tr>
+<tr><td>Cancellation on view recycle</td><td>Automatic</td><td>Glide handles it</td></tr>
+<tr><td>Compose-native</td><td>Yes</td><td>Need <code>AndroidView</code> wrapper</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================ -->
+<h2 id="kotlin">Kotlin language</h2>
+
+<h3><code>val</code> vs <code>var</code> vs <code>const val</code></h3>
+<table>
+<thead><tr><th></th><th><code>val</code></th><th><code>var</code></th><th><code>const val</code></th></tr></thead>
+<tbody>
+<tr><td>Reassignable?</td><td>No</td><td>Yes</td><td>No</td></tr>
+<tr><td>Compile-time constant?</td><td>No</td><td>No</td><td>Yes (inlined)</td></tr>
+<tr><td>Allowed types</td><td>Any</td><td>Any</td><td>Primitives + String only</td></tr>
+<tr><td>Where</td><td>Anywhere</td><td>Anywhere</td><td>Top-level / object / companion only</td></tr>
+</tbody>
+</table>
+
+<h3><code>lateinit</code> vs <code>by lazy</code></h3>
+<table>
+<thead><tr><th></th><th><code>lateinit</code></th><th><code>by lazy</code></th></tr></thead>
+<tbody>
+<tr><td>val/var</td><td>Only <code>var</code></td><td>Only <code>val</code></td></tr>
+<tr><td>Allowed types</td><td>Non-null reference types</td><td>Any type</td></tr>
+<tr><td>Thread safety</td><td>Not enforced</td><td>SYNCHRONIZED by default</td></tr>
+<tr><td>Set by</td><td>You, before first read</td><td>The lambda, on first access</td></tr>
+<tr><td>Use for</td><td>DI fields, view binding, test setup</td><td>Expensive init that may not be needed</td></tr>
+</tbody>
+</table>
+
+<h3>Sealed class vs Enum</h3>
+<table>
+<thead><tr><th></th><th>Enum</th><th>Sealed class / interface</th></tr></thead>
+<tbody>
+<tr><td>Members</td><td>Fixed instances, same fields</td><td>Each subclass can have different fields</td></tr>
+<tr><td>Exhaustive when?</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>State per case</td><td>Same set of fields for every case</td><td>Different per subclass — Loading has nothing, Success has data, Error has cause</td></tr>
+<tr><td>Use for</td><td>Finite enumerations: Direction, Status</td><td>UI state, Result, type hierarchies</td></tr>
+</tbody>
+</table>
+
+<h3><code>data class</code> vs regular class vs <code>value class</code></h3>
+<table>
+<thead><tr><th></th><th><code>data class</code></th><th>Regular class</th><th><code>value class</code></th></tr></thead>
+<tbody>
+<tr><td>Auto equals/hashCode/toString/copy</td><td>Yes</td><td>No</td><td>Limited</td></tr>
+<tr><td>Boxing at runtime</td><td>Yes (regular object)</td><td>Yes</td><td>None on direct calls</td></tr>
+<tr><td>Component count</td><td>From constructor</td><td>None</td><td>One</td></tr>
+<tr><td>Use for</td><td>Value-bearing types — DTOs, models, UiState</td><td>Behavior-bearing types</td><td>Type-safe primitive wrappers</td></tr>
+</tbody>
+</table>
+
+<h3><code>==</code> vs <code>===</code></h3>
+<p><code>==</code> calls <code>equals()</code> (structural). <code>===</code> is referential identity (same object). For nullables, both correctly handle nulls.</p>
+
+<h3><code>inline</code> vs <code>noinline</code> vs <code>crossinline</code></h3>
+<table>
+<thead><tr><th></th><th>Plain inline</th><th><code>noinline</code></th><th><code>crossinline</code></th></tr></thead>
+<tbody>
+<tr><td>Inlined into call site</td><td>Yes</td><td>No (opt out)</td><td>Yes</td></tr>
+<tr><td>Allows non-local <code>return</code></td><td>Yes</td><td>No</td><td><strong>No</strong> (forbidden)</td></tr>
+<tr><td>Use for</td><td>High-frequency lambdas</td><td>Pass lambda to non-inline function</td><td>Lambda captured/run elsewhere (different thread, callback)</td></tr>
+</tbody>
+</table>
+
+<h3><code>by</code> class delegation vs property delegation</h3>
+<table>
+<thead><tr><th></th><th>Class delegation</th><th>Property delegation</th></tr></thead>
+<tbody>
+<tr><td>Syntax</td><td><code>class C : I by impl</code></td><td><code>val x by Delegate()</code></td></tr>
+<tr><td>What it forwards</td><td>Interface methods</td><td>get/set on a property</td></tr>
+<tr><td>Use for</td><td>Decorators (CachedRepo wrapping Repo)</td><td>Lazy init, observable, prefs-backed</td></tr>
+</tbody>
+</table>
+
+<h3><code>typealias</code> vs <code>value class</code></h3>
+<table>
+<thead><tr><th></th><th>typealias</th><th>value class</th></tr></thead>
+<tbody>
+<tr><td>Creates a new type?</td><td>No (alias only)</td><td>Yes</td></tr>
+<tr><td>Type-safety distinction</td><td>None — <code>UserId</code> is just <code>String</code></td><td>Yes — can't pass <code>String</code> where <code>UserId</code> expected</td></tr>
+<tr><td>Use for</td><td>Readability of complex types</td><td>Type-safe wrappers around primitives</td></tr>
+</tbody>
+</table>
+
+<h3>Sequence vs Iterable</h3>
+<table>
+<thead><tr><th></th><th>Iterable</th><th>Sequence</th></tr></thead>
+<tbody>
+<tr><td>Evaluation</td><td>Eager — each operator allocates a list</td><td>Lazy — pulls one element at a time through the chain</td></tr>
+<tr><td>Per-element overhead</td><td>Low</td><td>Higher (boxing per pull)</td></tr>
+<tr><td>Best for</td><td>Small collections, simple chains</td><td>Big collections with multiple ops, early-termination (<code>first</code>, <code>take</code>)</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================ -->
+<h2 id="build">Build &amp; tooling</h2>
+
+<h3>AAB vs APK</h3>
+<table>
+<thead><tr><th></th><th>APK</th><th>AAB (App Bundle)</th></tr></thead>
+<tbody>
+<tr><td>Form</td><td>Single installable artifact</td><td>Upload format; Play splits per-device APKs</td></tr>
+<tr><td>User download size</td><td>Same for everyone</td><td>30-50% smaller (only relevant ABI/density/locale)</td></tr>
+<tr><td>Required for new Play apps</td><td>—</td><td>Yes (since 2021)</td></tr>
+</tbody>
+</table>
+
+<h3>R8 vs ProGuard</h3>
+<table>
+<thead><tr><th></th><th>ProGuard</th><th>R8</th></tr></thead>
+<tbody>
+<tr><td>Era</td><td>Pre-2018</td><td>Default since AGP 3.4</td></tr>
+<tr><td>Roles absorbed</td><td>—</td><td>Shrink + obfuscate + optimize + dex (all in one)</td></tr>
+<tr><td>Rules file</td><td>proguard-rules.pro</td><td>Same file (compatible)</td></tr>
+</tbody>
+</table>
+
+<h3>kapt vs KSP</h3>
+<table>
+<thead><tr><th></th><th>kapt</th><th>KSP</th></tr></thead>
+<tbody>
+<tr><td>Built on</td><td>Java annotation processing</td><td>Kotlin Symbol Processing</td></tr>
+<tr><td>Speed</td><td>Slow (generates Java stubs)</td><td>~2x faster</td></tr>
+<tr><td>Status</td><td>Deprecated for new code</td><td>Recommended</td></tr>
+<tr><td>Used by</td><td>Older Hilt, Room, Moshi setups</td><td>Modern Hilt, Room, Moshi, kotlinx.serialization</td></tr>
+</tbody>
+</table>
+
+<h3>api vs implementation (Gradle)</h3>
+<table>
+<thead><tr><th></th><th><code>api</code></th><th><code>implementation</code></th></tr></thead>
+<tbody>
+<tr><td>Visible to consumers</td><td>Yes — transitive</td><td>No — internal</td></tr>
+<tr><td>When to use</td><td>Types appear in your public API</td><td>Default — internal implementation deps</td></tr>
+<tr><td>Build speed</td><td>Slower (more recompile cascades)</td><td>Faster</td></tr>
+</tbody>
+</table>
+
+<h3>Build type vs Flavor (Variant)</h3>
+<table>
+<thead><tr><th></th><th>Build type</th><th>Flavor</th><th>Variant</th></tr></thead>
+<tbody>
+<tr><td>Examples</td><td>debug / release</td><td>free / paid</td><td>combination — freeDebug, paidRelease</td></tr>
+<tr><td>Differs in</td><td>Minification, signing, debuggability</td><td>Resources, code, dependencies</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================ -->
+<h2 id="player">Video player</h2>
+
+<h3>ExoPlayer vs MediaPlayer</h3>
+<table>
+<thead><tr><th></th><th>ExoPlayer</th><th>MediaPlayer</th></tr></thead>
+<tbody>
+<tr><td>Source</td><td>Open-source, customizable</td><td>OS-level black box</td></tr>
+<tr><td>HLS / DASH support</td><td>Yes</td><td>Limited</td></tr>
+<tr><td>DRM</td><td>Widevine, PlayReady, ClearKey</td><td>OS-supported only</td></tr>
+<tr><td>ABR</td><td>Built-in via TrackSelector</td><td>None</td></tr>
+<tr><td>Behavior across OS versions</td><td>Consistent</td><td>Varies by OEM</td></tr>
+</tbody>
+</table>
+
+<h3>HLS vs DASH</h3>
+<table>
+<thead><tr><th></th><th>HLS</th><th>DASH</th></tr></thead>
+<tbody>
+<tr><td>Standard</td><td>Apple</td><td>MPEG (open)</td></tr>
+<tr><td>Manifest</td><td><code>.m3u8</code> (text)</td><td><code>.mpd</code> (XML)</td></tr>
+<tr><td>Native iOS</td><td>Yes</td><td>No</td></tr>
+<tr><td>Common DRM pairing</td><td>FairPlay (iOS) / Widevine (Android)</td><td>Widevine, PlayReady</td></tr>
+</tbody>
+</table>
+
+<h3>CSAI vs SSAI</h3>
+<table>
+<thead><tr><th></th><th>CSAI (Client-Side)</th><th>SSAI (Server-Side)</th></tr></thead>
+<tbody>
+<tr><td>Where stitched</td><td>On device — player switches streams</td><td>In the master stream — single playback</td></tr>
+<tr><td>Buffering at break</td><td>Yes</td><td>No</td></tr>
+<tr><td>Ad blocker resistance</td><td>Low</td><td>High</td></tr>
+<tr><td>Per-user personalization</td><td>Easy</td><td>Hard (per-user manifests needed)</td></tr>
+</tbody>
+</table>
+
+<h2>The "decision criterion" cheat-sheet</h2>
+
+<div class="callout senior">
+  <span class="label">Memorize these one-liners</span>
+  <ul>
+    <li><strong>StateFlow</strong> for VM state, <strong>SharedFlow(replay=0)</strong> for events, <strong>mutableStateOf</strong> for composable-local UI state.</li>
+    <li><strong>LiveData</strong> only in legacy XML; everywhere else <strong>StateFlow</strong>.</li>
+    <li><strong>MVVM</strong> by default; lift to <strong>MVI</strong> when "what's the screen showing right now" requires reading 3+ flows.</li>
+    <li><strong>@Binds</strong> for interface→impl, <strong>@Provides</strong> for configured types.</li>
+    <li><strong>Constructor injection</strong> for everything you control; <strong>field injection</strong> only for Android components.</li>
+    <li><strong>Room</strong> for queryable data, <strong>DataStore</strong> for settings, <strong>EncryptedSharedPreferences</strong> for tokens.</li>
+    <li><strong>Kotlinx Serialization</strong> for new code; <strong>Gson</strong> only in legacy.</li>
+    <li><strong>WorkManager</strong> for deferrable; <strong>Foreground Service</strong> for user-visible long work.</li>
+    <li><strong>singleTop</strong> dedupes when already on top; <strong>singleTask</strong> dedupes across the task.</li>
+    <li><strong>Compose</strong> for new UI; <strong>XML</strong> for legacy maintenance and very-custom Views.</li>
+    <li><strong>HLS+CMAF+Widevine</strong> = one packaging serves Android + iOS.</li>
+  </ul>
+</div>
+
+<div class="footer">Need more comparisons? <a href="glossary.html">Glossary</a> has every term defined; <a href="mock-interview.html">Mock Interview</a> has practice questions.</div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

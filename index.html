@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Android Senior Prep — Overview</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+
+<section class="hero">
+  <span class="meta">FOX Corporation — SDE L2 / Senior Android · TR1 Monday</span>
+  <h1>Become indistinguishable from a 5-year senior in 48 hours.</h1>
+  <p class="lead">
+    A complete, opinionated study system. <span class="signal">Senior-signal phrases</span> are highlighted on every page —
+    drop them naturally and the interviewer thinks "ohh, this guy knows his stuff." Each topic is built around
+    <em>concept → why it exists → idiomatic example → senior framing → common pitfall</em>.
+  </p>
+</section>
+
+<div class="callout senior">
+  <span class="label">How to use this site</span>
+  <p>
+    <strong>1.</strong> Read each page out loud once.
+    <strong>2.</strong> Use the <a href="mock-interview.html">Mock Interview</a> page to drill answers — filter by difficulty,
+    expand answers only after attempting.
+    <strong>3.</strong> Memorize the <span class="signal">senior-signal phrases</span>; they're your tells.
+    <strong>4.</strong> Practice the <a href="star-stories.html">STAR stories</a> out loud, timed at 60–90 sec each.
+  </p>
+</div>
+
+<h2>The 4 senior-signal pillars</h2>
+
+<div class="grid-cards">
+  <div class="card"><div class="ix">PILLAR 1</div><h3>Reasoning over recall</h3>
+  <p>Juniors recite. Seniors reason from first principles, name tradeoffs, and pre-empt edge cases. Every code snippet here is paired with "why" and "what breaks it."</p></div>
+  <div class="card"><div class="ix">PILLAR 2</div><h3>Concrete numbers</h3>
+  <p>"Reduced cold start from 2.4s to 1.1s on low-end TVs" beats "improved performance" every time. The <a href="star-stories.html">STAR stories</a> have your numbers.</p></div>
+  <div class="card"><div class="ix">PILLAR 3</div><h3>Tradeoff fluency</h3>
+  <p>Every architectural choice has a cost. "MVI is great when…" "I'd avoid Hilt's @Singleton when…" Show you choose, don't follow.</p></div>
+  <div class="card"><div class="ix">PILLAR 4</div><h3>Production scars</h3>
+  <p>Talk about the bug you found in AdMob's SDK. The OOM you traced. The race the test caught. Scars beat resumes.</p></div>
+</div>
+
+<h2>The full curriculum</h2>
+
+<div class="grid-cards">
+  <div class="card"><a href="kotlin.html"><div class="ix">01</div><h3>Kotlin — basics → advanced</h3>
+  <p>Nullability, scope functions, sealed/data, inline/reified, generics, delegation, OOP, "spot the bug" exercises.</p></a></div>
+
+  <div class="card"><a href="coroutines.html"><div class="ix">02</div><h3>Coroutines & Flows</h3>
+  <p>Structured concurrency, every dispatcher, every scope, exception handlers, Flow operators, StateFlow vs SharedFlow, testing.</p></a></div>
+
+  <div class="card"><a href="android-core.html"><div class="ix">03</div><h3>Android SDK Core</h3>
+  <p>Activity/Fragment lifecycles, every launch mode with examples, Services, Broadcast Receivers, Content Providers, Intents.</p></a></div>
+
+  <div class="card"><a href="compose.html"><div class="ix">04</div><h3>Jetpack Compose</h3>
+  <p>Recomposition, stability, side effects, state hoisting, performance, Compose vs XML, theming, navigation.</p></a></div>
+
+  <div class="card"><a href="testing.html"><div class="ix">05</div><h3>Testing (Compose + XML)</h3>
+  <p>JUnit, Mockito/MockK, Compose UI tests, Espresso, coroutine testing with TestDispatcher, fakes vs mocks.</p></a></div>
+
+  <div class="card"><a href="architecture.html"><div class="ix">06</div><h3>Architecture (MVVM / MVI / Clean / MVC)</h3>
+  <p>Full examples in both Compose and XML. Multi-module structure. When to choose what. Repository pattern.</p></a></div>
+
+  <div class="card"><a href="di-hilt.html"><div class="ix">07</div><h3>Dependency Injection — Hilt</h3>
+  <p>Every annotation, every component, qualifiers, multibinding, assisted injection, Hilt+WorkManager, common pitfalls.</p></a></div>
+
+  <div class="card"><a href="jetpack.html"><div class="ix">08</div><h3>Jetpack libraries</h3>
+  <p>ViewModel, Room (full playlist DB example), DataStore, WorkManager, Navigation, Paging 3, in-memory & persistent caching, Coil.</p></a></div>
+
+  <div class="card"><a href="networking.html"><div class="ix">09</div><h3>Networking & Auth</h3>
+  <p>Retrofit + logging interceptor, JSON vs Gson vs Kotlinx Serialization, OAuth 2.0 + PKCE, secure token storage with full code.</p></a></div>
+
+  <div class="card"><a href="performance.html"><div class="ix">10</div><h3>Performance & Profiling</h3>
+  <p>Cold start, jank, memory leaks, ANR, APK size, Baseline Profiles, Macrobenchmark, Profiler workflows, every optimization.</p></a></div>
+
+  <div class="card"><a href="player.html"><div class="ix">11</div><h3>Video Player (Your Moat)</h3>
+  <p>ExoPlayer / Media3 architecture, HLS vs DASH, ABR, Widevine DRM, CSAI vs SSAI, beacons, MediaSession, PiP.</p></a></div>
+
+  <div class="card"><a href="kmp-cmp.html"><div class="ix">12</div><h3>KMP / CMP — theory</h3>
+  <p>What KMP/CMP are, expect/actual, when to choose them over native, talking-points if asked.</p></a></div>
+
+  <div class="card"><a href="system-design.html"><div class="ix">13</div><h3>HLD / LLD / Architectures</h3>
+  <p>Tubi-style streaming app, image loader, offline notes, chat client, analytics integration in Compose AND XML, full playlist DB.</p></a></div>
+
+  <div class="card"><a href="scenarios.html"><div class="ix">14</div><h3>Scenario Drills</h3>
+  <p>16 walkthroughs including the headliner: <strong>build an offline-first app end-to-end</strong> (schema with sync state, optimistic writes, WorkManager sync, idempotency keys, conflict resolution, network-aware reconnect, auth integration, offline UI banner). Plus view-not-restored on rotation, ANR diagnosis, smooth scrolling for 10K items, secure key storage, R8/AAB deep dive, leak detection, modular nav, and more.</p></a></div>
+
+  <div class="card"><a href="library.html"><div class="ix">15</div><h3>Library Publishing</h3>
+  <p>Turning a feature module into a reusable library — AAR vs JAR, the 12 things you must take care of (API stability, consumer ProGuard, manifest merging, resource prefix, SemVer, Hilt strategy), Maven Central + JitPack publishing, signing.</p></a></div>
+
+  <div class="card"><a href="comparisons.html"><div class="ix">16</div><h3>Comparisons (X vs Y)</h3>
+  <p>Every "what's the difference between..." senior interviews probe — StateFlow vs mutableStateOf, MVVM vs MVI, launch vs async, @Provides vs @Binds, Coil vs Glide, ExoPlayer vs MediaPlayer, R8 vs ProGuard, KSP vs kapt, and 50+ more. Each ends with a "which to use when" line.</p></a></div>
+
+  <div class="card"><a href="recent-features.html"><div class="ix">17</div><h3>Recent Releases (Android &amp; Compose)</h3>
+  <p>Android 14 / 15 / 16 highlights — foreground service types, edge-to-edge default, predictive back, 16KB page size — plus Compose BOM 2024.10/12 and 2025.x: Strong Skipping Mode, animateBounds, ContextualFlowRow, AutoFill API. The "I keep current" tell for TR3/TR4.</p></a></div>
+
+  <div class="card"><a href="tr1-prep.html"><div class="ix">18</div><h3>TR1 Prep Revision</h3>
+  <p>The single revision sheet for the live coding round. Movies-fetcher walked end-to-end (Clean + MVVM + MVI), suspend / exceptions / lifecycle / parallel-vs-sequential / SOLID with Android code per principle, DI samples, error states, UI updates in both Compose and XML.</p></a></div>
+
+  <div class="card"><a href="glossary.html"><div class="ix">19</div><h3>Glossary</h3>
+  <p>200+ terms defined plainly with the <strong>what / what it replaces / why use it</strong> shape — so even if you came from XML/LiveData/Java, every modern term maps back to something you know.</p></a></div>
+
+  <div class="card"><a href="mock-interview.html"><div class="ix">20</div><h3>Mock Interview — 280 Q&A</h3>
+  <p>Filterable by difficulty (Basic / Intermediate / Advanced / Extreme). Search box. Click a question, attempt aloud, then expand the answer.</p></a></div>
+
+  <div class="card"><a href="star-stories.html"><div class="ix">21</div><h3>STAR stories</h3>
+  <p>Pre-built narratives from your real Dish work. Defensive frames for the inflated areas. Numbers cheat sheet.</p></a></div>
+</div>
+
+<h2>What's new in this revision</h2>
+<ul>
+  <li><strong>Round tags in the sidebar</strong> — every page now shows which interview round(s) it targets (TR1 / TR2 / TR3 / TR4). At-a-glance prioritization.</li>
+  <li><strong>Glossary page</strong> — every term you'll hear, defined plainly and grouped by topic. Use as a sidekick.</li>
+  <li><strong>Scenario Drills page</strong> — covers the missing scenario-based questions: view restoration, offline cache, ANRs, large-list scrolling, secure key storage, R8/ProGuard, AAB vs APK, memory leaks, modular nav, ContentProvider, HashMap vs HashSet, Service vs WorkManager, APK shrinkage.</li>
+  <li><strong>Constructor vs field injection</strong> deep dive on the scenarios page (and reinforced on Hilt).</li>
+  <li><strong>Definition + code-explain callouts</strong> appear inline on key pages so dense code blocks get a plain-language follow-up.</li>
+</ul>
+
+<h2>Two-day execution plan</h2>
+
+<table>
+<thead><tr><th>Day</th><th>Morning (3h)</th><th>Afternoon (3h)</th><th>Evening (2h)</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>Day 1 — Sun</strong></td>
+  <td>Kotlin + Coroutines + Flows<br>(by hand, no AI)</td>
+  <td>Compose + Architecture + Hilt<br>(read, then mini-project)</td>
+  <td>Mock Interview Q&A<br>(Basic + Intermediate sections)</td>
+</tr>
+<tr>
+  <td><strong>Day 2 — Mon AM</strong></td>
+  <td>Networking + Performance + Player<br>+ STAR rehearsal</td>
+  <td>—</td>
+  <td>—</td>
+</tr>
+<tr>
+  <td><strong>Day 2 — Mon Interview</strong></td>
+  <td colspan="3">TR1 — show up, breathe, narrate as you code, never go silent for 10 seconds.</td>
+</tr>
+</tbody>
+</table>
+
+<div class="callout warn">
+  <span class="label">Don'ts (read these now)</span>
+  <p>Don't memorize verbatim — interviewers smell rehearsal. Don't pretend deep MVI experience if probed; scope your claim ("I used MVI patterns in our state-heavy player screens"). Don't open AI for the first hour of any coding practice — your fingers need to remember Kotlin without help.</p>
+</div>
+
+<div class="callout tip">
+  <span class="label">Day-of checklist (Monday morning)</span>
+  <p>Test dev env 1h before · Notepad ready for diagrams · Water + bathroom done · Read STAR story #1 once (then close it) · Breathe. You actually know this stuff — you just needed a refresh.</p>
+</div>
+
+<div class="footer">
+  <p>Built specifically for Anurag's FOX Corp interview · Use freely · Do not redistribute</p>
+</div>
+
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

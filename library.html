@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Publishing as an Android Library · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Publishing your project as an Android library</h1>
+<p class="lead">Turning a feature module into a reusable library — when, how, and the dozen things you must take care of (API stability, ProGuard rules, manifest merging, dependency exposure, signing, versioning).</p>
+
+<div class="definition"><strong>Android Library</strong> = a packaged module other apps can depend on. Output is an <strong>AAR</strong> (Android Archive) — a zip containing compiled bytecode, resources (themes, drawables, layouts), AndroidManifest fragment, and assets. Distributed via Maven Central, JitPack, internal Artifactory, or copied as a file. Replaces "copy-paste this code into every app" with a versioned, single-source artifact.</div>
+
+<div class="buzzwords">
+  <span>AAR vs JAR</span>
+  <span>com.android.library plugin</span>
+  <span>api vs implementation exposure</span>
+  <span>consumer ProGuard rules</span>
+  <span>manifest merging</span>
+  <span>resource prefix to avoid collisions</span>
+  <span>minSdk compatibility</span>
+  <span>SemVer for libraries</span>
+  <span>Maven Publish + signing</span>
+  <span>POM + Gradle Module Metadata</span>
+</div>
+
+<h2>1. AAR vs JAR — when each</h2>
+
+<table>
+<thead><tr><th></th><th>JAR</th><th>AAR</th></tr></thead>
+<tbody>
+<tr><td>Format</td><td>Plain Java archive (Kotlin/Java bytecode + META-INF)</td><td>Zip with classes.jar + res/ + AndroidManifest.xml + assets/ + jni/</td></tr>
+<tr><td>Use for</td><td>Pure Kotlin/Java logic, no Android types</td><td>Anything Android — references Context, has resources, declares manifest entries, ships native libs</td></tr>
+<tr><td>Plugin</td><td><code>java-library</code> or <code>kotlin("jvm")</code></td><td><code>com.android.library</code></td></tr>
+<tr><td>Build output</td><td><code>build/libs/foo.jar</code></td><td><code>build/outputs/aar/foo-release.aar</code></td></tr>
+</tbody>
+</table>
+
+<div class="callout senior">
+  <span class="label">Senior framing</span>
+  <p>"For pure logic that doesn't touch Android, I ship a <strong>JAR</strong> — easier to consume from non-Android JVM apps too. For anything that needs <code>Context</code>, ships drawables, registers a <code>BroadcastReceiver</code>, or has its own manifest entries, I ship an <strong>AAR</strong>."</p>
+</div>
+
+<h2>2. Convert a feature module to a library</h2>
+
+<pre><code class="language-kotlin">// build.gradle.kts (the module)
+plugins {
+    id("com.android.library")               // not "com.android.application"
+    kotlin("android")
+    id("com.google.devtools.ksp")
+    id("maven-publish")                      // for publishing
+}
+
+android {
+    namespace = "com.fox.player"             // unique package — used to generate R class
+    compileSdk = 34
+
+    defaultConfig {
+        minSdk = 24                          // be conservative; consumers must support this or higher
+        consumerProguardFiles("consumer-rules.pro")
+        // No applicationId — libraries don't have one
+    }
+
+    buildFeatures {
+        buildConfig = true                    // enable BuildConfig if needed
+        compose = true                        // if you ship composables
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()                  // attach sources for IDE step-through
+            withJavadocJar()
+        }
+    }
+}
+
+dependencies {
+    // api: exposed to consumers — they see this transitively
+    api("androidx.media3:media3-exoplayer:1.3.0")
+
+    // implementation: hidden from consumers — they can't accidentally depend on it
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+}</code></pre>
+
+<div class="code-explain">
+<ol>
+  <li><strong><code>com.android.library</code></strong> instead of <code>application</code> tells AGP to build an <code>.aar</code> instead of an APK.</li>
+  <li><strong><code>namespace</code></strong> must be globally unique (reverse-DNS). It defines where R, BuildConfig, generated Hilt code goes. Two libraries with the same namespace would collide on consumer classpath.</li>
+  <li><strong><code>consumerProguardFiles</code></strong> ships a ProGuard rules file <em>with the AAR</em>. Consumers automatically apply your rules when they enable R8. Critical if your library uses reflection (Gson, Moshi, retrofit interfaces).</li>
+  <li><strong><code>api</code> vs <code>implementation</code></strong> is the most important call. <code>api</code> means consumers see Media3 transitively — they can use ExoPlayer types in their code without declaring it themselves. <code>implementation</code> hides OkHttp — consumers don't accidentally couple to your network choice. <strong>Default to <code>implementation</code>.</strong></li>
+  <li><strong>No <code>applicationId</code></strong> — libraries don't ship as standalone apps. Everything is namespaced under your <code>namespace</code>.</li>
+</ol>
+</div>
+
+<h2>3. The 12 things you MUST take care of</h2>
+
+<h3>3.1 — API surface design</h3>
+
+<p>Once a class is <code>public</code> in version 1.0, you've signed a contract. Breaking it forces every consumer to update their code on upgrade.</p>
+
+<div class="callout warn">
+  <span class="label">Mark internals correctly</span>
+  <p>Make every class, function, and property <code>internal</code> by default. Only promote to <code>public</code> when consumers genuinely need it. Use <code>@RestrictTo(LIBRARY_GROUP)</code> for cross-module-but-not-public types.</p>
+</div>
+
+<pre><code class="language-kotlin">// Library API surface
+class PlayerController(/* ... */) {                    // public — consumers can construct
+    fun play() { /* ... */ }
+    fun pause() { /* ... */ }
+    internal fun rawPlayer(): ExoPlayer = exo          // internal — only this module sees it
+}
+
+@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+class PlayerInternals { /* ... */ }                     // public bytecode, but only your modules can call</code></pre>
+
+<h3>3.2 — Hide your transitive dependencies</h3>
+
+<p>If you mark a dep as <code>api</code>, every consumer is locked to your version of it. Upgrading the dep across consumers becomes painful. Use <code>implementation</code> unless the consumer is meant to interact with that library's types directly.</p>
+
+<h3>3.3 — Consumer ProGuard rules</h3>
+
+<pre><code># consumer-rules.pro — ships INSIDE the AAR; consumers auto-apply when minifying
+# Keep your public API
+-keep public class com.fox.player.PlayerController { public *; }
+
+# Keep classes referenced from XML (custom views, attrs)
+-keep public class com.fox.player.ui.** extends android.view.View { public &lt;init&gt;(...); }
+
+# If you ship Retrofit interfaces or @Serializable types
+-keep,allowobfuscation,allowshrinking interface com.fox.player.api.**
+-keepclassmembers @kotlinx.serialization.Serializable class * { *; }</code></pre>
+
+<div class="callout warn">
+  <span class="label">Consumer rules vs project rules</span>
+  <p><code>proguardFiles</code> applies only when YOUR module is built (rarely matters for libraries). <code>consumerProguardFiles</code> applies on the <em>consuming app</em> when it minifies. Always use the consumer flavor for library rules.</p>
+</div>
+
+<h3>3.4 — Manifest merging</h3>
+
+<p>Your library's <code>AndroidManifest.xml</code> gets merged into the consumer's manifest. Anything you declare (permissions, services, providers, intent filters) <em>shows up in their app</em>.</p>
+
+<pre><code>&lt;!-- library AndroidManifest.xml --&gt;
+&lt;manifest xmlns:tools="http://schemas.android.com/tools"&gt;
+    &lt;!-- Required for your library --&gt;
+    &lt;uses-permission android:name="android.permission.INTERNET" /&gt;
+
+    &lt;application&gt;
+        &lt;service android:name=".PlaybackService"
+            android:foregroundServiceType="mediaPlayback"
+            tools:node="merge" /&gt;
+    &lt;/application&gt;
+&lt;/manifest&gt;</code></pre>
+
+<div class="callout warn">
+  <span class="label">Merge gotchas</span>
+  <p>(1) Don't ask for permissions consumers don't need — surprises them at install time. (2) Avoid declaring an <code>&lt;application&gt;</code> block unless required. (3) For optional providers/services, document them; let consumers opt-in via their own manifest if possible. (4) Use <code>tools:node="remove"</code> in consumer manifest to strip unwanted entries.</p>
+</div>
+
+<h3>3.5 — Resource prefix to avoid collisions</h3>
+
+<pre><code class="language-kotlin">android {
+    resourcePrefix = "fox_player_"          // every res/ name must start with this prefix
+}</code></pre>
+
+<p>Without a prefix, <code>colors.xml</code> defining <code>primary</code> would clobber the consumer's <code>primary</code> on resource merge. With <code>fox_player_primary</code>, no collision possible.</p>
+
+<h3>3.6 — minSdk and version compatibility</h3>
+
+<p>Your library's <code>minSdk</code> sets a floor for every consumer. <strong>Don't bump it casually</strong> — pick the lowest you can support, document it, only raise on a major version. Use <code>VERSION.SDK_INT</code> guards inside the library to handle older devices gracefully.</p>
+
+<h3>3.7 — Versioning (SemVer)</h3>
+
+<table>
+<thead><tr><th>Bump</th><th>When</th></tr></thead>
+<tbody>
+<tr><td><strong>MAJOR</strong> (1.0.0 → 2.0.0)</td><td>Breaking API change — removed/renamed public method, changed signature, raised minSdk</td></tr>
+<tr><td><strong>MINOR</strong> (1.0.0 → 1.1.0)</td><td>New public API, backward-compatible</td></tr>
+<tr><td><strong>PATCH</strong> (1.0.0 → 1.0.1)</td><td>Bug fix, no API change</td></tr>
+</tbody>
+</table>
+
+<div class="callout senior">
+  <span class="label">Senior phrase</span>
+  <p>"<span class="signal-phrase">SemVer is a contract with consumers</span> — major bumps require a migration guide. We use <strong>binary compatibility validator</strong> (Kotlin's <code>kotlinx-binary-compatibility-validator</code>) in CI to catch accidental breaks at PR time, not at release time."</p>
+</div>
+
+<h3>3.8 — Compose-specific concerns</h3>
+
+<ul>
+  <li>Public composables should accept a <code>Modifier = Modifier</code> param so consumers can size/style them.</li>
+  <li>Don't lock consumers to a Material version — let them theme from outside via <code>MaterialTheme</code>.</li>
+  <li>Annotate stable types with <code>@Immutable</code> / <code>@Stable</code> so consumers' Compose Compiler can optimize.</li>
+  <li>Provide previews — <code>@Preview</code>-annotated functions help consumers see what your composables look like in their IDE.</li>
+</ul>
+
+<h3>3.9 — Lifecycle of your singletons</h3>
+
+<p>Don't create static singletons that hold <code>Application</code> context. Either:</p>
+<ol>
+  <li>Provide a <strong>builder/init function</strong> consumers call from their <code>Application.onCreate</code>.</li>
+  <li>Use <strong>App Startup</strong> library — declare an <code>Initializer</code> in your library's manifest; consumers don't have to remember to init.</li>
+  <li>If using Hilt, ship an <strong>EntryPoint interface</strong> that consumers' Hilt graph satisfies.</li>
+</ol>
+
+<h3>3.10 — Don't bundle Hilt — provide for it</h3>
+
+<p>If your library uses Hilt internally, you constrain consumers to Hilt. Better:</p>
+<ul>
+  <li>Use plain constructor injection inside the library (no Hilt annotations).</li>
+  <li>Expose factory functions or builder objects.</li>
+  <li>Optionally provide a <strong>separate <code>:foo-hilt</code> artifact</strong> with Hilt modules for consumers who use Hilt.</li>
+</ul>
+
+<h3>3.11 — Native libs (.so)</h3>
+
+<p>If you ship JNI / native, place .so files under <code>src/main/jniLibs/&lt;abi&gt;/</code>. Specify ABI filters so you don't pad the AAR with architectures consumers don't need.</p>
+
+<h3>3.12 — Test artifacts separately</h3>
+
+<p>Ship <code>:foo</code> (production AAR) and <code>:foo-test</code> (testing helpers — fakes, test doubles). Consumers add <code>testImplementation</code> on the test artifact. Keeps test code out of release APKs.</p>
+
+<h2>4. Publishing — the gradle config</h2>
+
+<pre><code class="language-kotlin">// build.gradle.kts
+publishing {
+    publications {
+        create&lt;MavenPublication&gt;("release") {
+            groupId = "com.fox"
+            artifactId = "player-core"
+            version = "1.2.0"
+
+            afterEvaluate {
+                from(components["release"])
+            }
+
+            pom {
+                name.set("FOX Player Core")
+                description.set("Player abstraction over ExoPlayer / Bitmovin")
+                url.set("https://github.com/fox/android-player")
+                licenses {
+                    license {
+                        name.set("Apache-2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+                developers {
+                    developer { id.set("anurag"); name.set("Anurag Somani") }
+                }
+                scm {
+                    url.set("https://github.com/fox/android-player")
+                    connection.set("scm:git:git://github.com/fox/android-player.git")
+                }
+            }
+        }
+    }
+
+    repositories {
+        // Maven Central
+        maven {
+            name = "sonatype"
+            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = providers.gradleProperty("sonatypeUsername").orNull
+                password = providers.gradleProperty("sonatypePassword").orNull
+            }
+        }
+
+        // Or internal Artifactory
+        maven {
+            name = "internal"
+            url = uri("https://artifactory.fox.com/repo")
+            credentials { /* ... */ }
+        }
+    }
+}</code></pre>
+
+<div class="code-explain">
+<ol>
+  <li><strong><code>create&lt;MavenPublication&gt;("release")</code></strong> defines the publication. <code>groupId:artifactId:version</code> is the coordinate consumers use to depend on you.</li>
+  <li><strong><code>from(components["release"])</code></strong> tells Gradle which build variant to publish — usually only release, sometimes both.</li>
+  <li><strong><code>pom { }</code></strong> is the metadata Maven Central requires — name, description, license, developers, SCM. Without it, Sonatype rejects your upload.</li>
+  <li><strong><code>repositories { maven { ... } }</code></strong> declares where to publish. Maven Central + your internal Artifactory are common.</li>
+</ol>
+</div>
+
+<h3>Signing (required for Maven Central)</h3>
+
+<pre><code class="language-kotlin">plugins {
+    id("signing")
+}
+
+signing {
+    val signingKey = providers.gradleProperty("signing.key").orNull
+    val signingPassword = providers.gradleProperty("signing.password").orNull
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign(publishing.publications)
+}</code></pre>
+
+<p>Maven Central requires every artifact be GPG-signed. Generate a key once with <code>gpg --gen-key</code>, upload its public part to a keyserver, configure in <code>~/.gradle/gradle.properties</code>.</p>
+
+<h3>Publish</h3>
+
+<pre><code>./gradlew :player-core:publish                  # all repos
+./gradlew :player-core:publishToSonatype        # just Sonatype
+./gradlew :player-core:publishReleasePublicationToMavenLocal   # for local consumer testing</code></pre>
+
+<h2>5. JitPack — for quick GitHub-published libraries</h2>
+
+<p>If Maven Central is overkill, JitPack builds AARs from your GitHub tags on demand. Consumers add:</p>
+
+<pre><code class="language-kotlin">// settings.gradle.kts (consumer)
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+
+// app build.gradle.kts (consumer)
+implementation("com.github.fox:android-player:1.2.0")</code></pre>
+
+<p>Trade-offs: zero ops; first build can be slow as JitPack compiles; GPL on free tier (private repos cost). Good for OSS / internal experiments; not great for production-grade SLA.</p>
+
+<h2>6. Consumer-facing checklist (run before each release)</h2>
+
+<ul>
+  <li>API surface stable (no accidental <code>public</code> on internals — run <code>kotlinx-binary-compatibility-validator</code>).</li>
+  <li>Dependencies are <code>implementation</code> by default; only <code>api</code> for types in public API.</li>
+  <li>Consumer ProGuard rules cover all reflection-heavy paths.</li>
+  <li>No surprise permissions in manifest.</li>
+  <li>Resource prefix set; no collisions with consumers.</li>
+  <li><code>minSdk</code> is the lowest you can support.</li>
+  <li>Sample app builds against the published AAR (proves it works end-to-end).</li>
+  <li>CHANGELOG.md updated; SemVer bump correct.</li>
+  <li>README has install snippet for both Gradle Kotlin DSL and Groovy.</li>
+  <li>Sources JAR + Javadoc JAR attached so IDE navigation works.</li>
+  <li>License file present in repo and POM.</li>
+  <li>Smoke test: published artifact can be consumed in a fresh project.</li>
+</ul>
+
+<h2>7. Common library interview probes</h2>
+
+<details class="qa">
+<summary>Q. AAR vs JAR — when which?</summary>
+<div class="qa-body"><p>JAR for pure Kotlin/Java with no Android dependencies (faster build, JVM consumers possible). AAR for anything Android-aware — references Context, ships resources, declares manifest entries, has native libs.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. What's the difference between <code>api</code> and <code>implementation</code> dep?</summary>
+<div class="qa-body"><p><code>api</code>: dep is exposed transitively — consumers see it. <code>implementation</code>: dep is hidden — consumers don't see it. Default to <code>implementation</code>; only use <code>api</code> when types from that dep appear in your library's public API.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. What's <code>consumerProguardFiles</code> for?</summary>
+<div class="qa-body"><p>ProGuard rules shipped <em>inside</em> the AAR. When the consumer enables R8, your rules auto-apply. Critical if your library uses reflection (Gson types, Retrofit interfaces, kotlinx.serialization classes).</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you avoid resource name collisions?</summary>
+<div class="qa-body"><p><code>android { resourcePrefix = "fox_player_" }</code>. Then every <code>R.color</code>, <code>R.drawable</code>, <code>R.string</code> in your library must start with that prefix — Gradle enforces it. Consumers can't accidentally clobber your resources.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you handle Hilt in a library?</summary>
+<div class="qa-body"><p>Avoid bundling Hilt — it constrains consumers. Use plain constructor injection internally. If consumers want Hilt convenience, ship a separate <code>:foo-hilt</code> artifact with Hilt modules. Or expose factory functions and let consumers wire DI their way.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. SemVer — when do you bump major?</summary>
+<div class="qa-body"><p>Any breaking API change: removed/renamed public symbol, changed signature, raised <code>minSdk</code>, behavior change that consumers can detect. Use binary compatibility validator in CI to catch accidents.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. What goes in <code>pom { }</code> and why?</summary>
+<div class="qa-body"><p>Name, description, license, developers, SCM URL. Maven Central <strong>requires</strong> these for ingest — without them Sonatype rejects the upload. Also helps tools like Renovate / Dependabot show meaningful info about your library to humans.</p></div>
+</details>
+
+<h2>8. The 30-second monologue</h2>
+
+<div class="callout senior">
+  <span class="label">Say this if asked "how do you publish your code as a library?"</span>
+  <p>"I switch the module to <span class="signal-phrase">com.android.library</span> for AAR output, set a <span class="signal-phrase">resourcePrefix</span> to avoid resource collisions, ship <span class="signal-phrase">consumerProguardFiles</span> so my reflection-heavy paths survive consumer R8, mark internals <code>internal</code> by default, default deps to <code>implementation</code> over <code>api</code> to hide transitive choices, and follow <span class="signal-phrase">SemVer</span> with a binary compatibility validator in CI. For Maven Central I configure <code>maven-publish</code> with full POM metadata, GPG-sign artifacts, and ship a sources JAR for IDE step-through. Hilt I avoid bundling — I use constructor injection internally and ship an optional <code>-hilt</code> artifact for convenience."</p>
+</div>
+
+<div class="footer">Next: <a href="tr1-prep.html">TR1 Prep Revision →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

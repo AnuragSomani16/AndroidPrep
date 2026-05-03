@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dependency Injection — Hilt · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Dependency Injection — Hilt</h1>
+<p class="lead">Every annotation, every component, qualifiers, multibinding, assisted injection, and the integration points (WorkManager, Compose, Navigation). Built on Dagger 2 — Hilt is opinionated wiring on top.</p>
+
+<div class="buzzwords">
+  <span>compile-time DI graph</span>
+  <span>component hierarchy</span>
+  <span>scoped vs unscoped</span>
+  <span>@Binds beats @Provides for interfaces</span>
+  <span>qualifier annotations</span>
+  <span>multibinding (@IntoSet / @IntoMap)</span>
+  <span>assisted injection</span>
+  <span>SavedStateHandle wiring</span>
+  <span>Hilt + WorkManager bridge</span>
+  <span>ApplicationContext qualifier</span>
+</div>
+
+<div class="definition"><strong>Dependency Injection (DI)</strong> = a class receives its collaborators from outside (constructor / setter / field) rather than constructing them itself. <strong>Hilt</strong> = Google's DI library for Android, built on top of Dagger 2. It generates the boilerplate Dagger components for the standard Android lifecycle owners (Application, Activity, ViewModel, Fragment) so you don't have to. The DI graph is verified at <strong>compile time</strong> — missing bindings fail the build, not the app.</div>
+
+<h2>1. Why DI — and why Hilt over plain Dagger</h2>
+
+<div class="callout senior">
+  <span class="label">Senior framing</span>
+  <p>"DI gives me <strong>decoupling</strong> (depend on interfaces), <strong>testability</strong> (swap real for fake), <strong>lifecycle-aware object graphs</strong>, and a <strong>single source of truth</strong> for how dependencies are constructed. Hilt is opinionated DI on top of Dagger — it generates the boilerplate Dagger components for the standard Android lifecycle owners (Application, Activity, ViewModel) so I get scoped graphs without writing them myself. <strong>Compile-time wiring</strong> means errors surface at build time, not runtime — unlike service locators or runtime-reflection DI."</p>
+</div>
+
+<h2>2. Setup — the 3 things to remember</h2>
+<pre><code class="language-kotlin">// build.gradle (app)
+plugins {
+    id("dagger.hilt.android.plugin")
+    id("com.google.devtools.ksp")     // KSP, not kapt — kapt is deprecated for new code
+}
+dependencies {
+    implementation("com.google.dagger:hilt-android:2.50")
+    ksp("com.google.dagger:hilt-android-compiler:2.50")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation("androidx.hilt:hilt-work:1.1.0")
+    ksp("androidx.hilt:hilt-compiler:1.1.0")
+}
+
+// Application class
+@HiltAndroidApp
+class App : Application()
+
+// Manifest
+&lt;application android:name=".App" ... /&gt;</code></pre>
+
+<h2>3. The annotations — every one</h2>
+
+<table>
+<thead><tr><th>Annotation</th><th>Goes on</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>@HiltAndroidApp</code></td><td>Application class</td><td>Triggers code generation; entry point of the DI graph</td></tr>
+<tr><td><code>@AndroidEntryPoint</code></td><td>Activity, Fragment, View, Service, BroadcastReceiver</td><td>Allows field injection into that component</td></tr>
+<tr><td><code>@HiltViewModel</code></td><td>ViewModel</td><td>Hilt provides this VM via the ViewModelComponent</td></tr>
+<tr><td><code>@Inject constructor(...)</code></td><td>Class constructor</td><td>Hilt knows how to construct this class</td></tr>
+<tr><td><code>@Module</code></td><td>Class/Object</td><td>Holds <code>@Provides</code> / <code>@Binds</code> — used for things you can't <code>@Inject</code></td></tr>
+<tr><td><code>@InstallIn(...)</code></td><td>Module</td><td>Which component (scope) the bindings belong to</td></tr>
+<tr><td><code>@Provides</code></td><td>fun in object module</td><td>Returns an instance — for any expression</td></tr>
+<tr><td><code>@Binds</code></td><td>abstract fun in abstract module</td><td>Maps interface → impl (more efficient than @Provides for this case)</td></tr>
+<tr><td><code>@Qualifier</code></td><td>Custom annotation</td><td>Disambiguate same-type bindings</td></tr>
+<tr><td><code>@Singleton</code> / <code>@ActivityScoped</code> / etc.</td><td>Class or @Provides fn</td><td>Lifetime of the binding within the component</td></tr>
+<tr><td><code>@AssistedInject</code> + <code>@Assisted</code> + <code>@AssistedFactory</code></td><td>Class / param / interface</td><td>Mix runtime + DI'd args</td></tr>
+<tr><td><code>@IntoSet</code> / <code>@IntoMap</code> / <code>@StringKey</code> / <code>@ClassKey</code></td><td>Provide function</td><td>Multibinding — collect impls into Set/Map</td></tr>
+<tr><td><code>@EntryPoint</code></td><td>Interface</td><td>Get bindings from non-Hilt classes (rare)</td></tr>
+<tr><td><code>@ApplicationContext</code> / <code>@ActivityContext</code></td><td>Constructor param</td><td>Pre-defined qualifiers for Context</td></tr>
+</tbody>
+</table>
+
+<h2>4. The component (scope) hierarchy</h2>
+
+<pre><code>SingletonComponent           — @Singleton                — application lifetime
+  └─ ActivityRetainedComponent — @ActivityRetainedScoped  — survives config changes
+        └─ ViewModelComponent  — @ViewModelScoped         — viewmodel lifetime
+        └─ ActivityComponent   — @ActivityScoped          — activity lifetime
+              └─ FragmentComponent — @FragmentScoped      — fragment lifetime
+                    └─ ViewComponent — @ViewScoped        — view lifetime
+              └─ ViewWithFragmentComponent
+  └─ ServiceComponent          — @ServiceScoped           — service lifetime</code></pre>
+
+<div class="callout senior">
+  <span class="label">Scope rule</span>
+  <p>"<strong>Wider scope can be injected into narrower; not vice versa.</strong> A <code>@Singleton</code> can be injected anywhere. A <code>@FragmentScoped</code> can NOT be injected into a <code>@Singleton</code> — its lifetime would be wrong."</p>
+</div>
+
+<h2>5. The 4 module patterns you'll be quizzed on</h2>
+
+<h3>Pattern 1 — <code>@Provides</code> for third-party / configured types</h3>
+<pre><code class="language-kotlin">@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun provideJson() = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttp(authInterceptor: AuthInterceptor): OkHttpClient =
+        OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                        else HttpLoggingInterceptor.Level.NONE
+            })
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(client: OkHttpClient, json: Json): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://api.example.com/")
+            .client(client)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+
+    @Provides @Singleton fun userApi(r: Retrofit): UserApi = r.create()
+}</code></pre>
+<div class="code-explain">
+<ol>
+  <li><strong><code>@Module</code></strong> — declares this object holds bindings. <strong><code>@InstallIn(SingletonComponent::class)</code></strong> — these bindings live for the application lifetime.</li>
+  <li><strong><code>@Provides</code></strong> on each function — Hilt calls these functions to <em>create</em> the bound type. Parameters of the function are themselves resolved from the graph (Hilt finds <code>OkHttpClient</code> from another binding to give to <code>provideRetrofit</code>).</li>
+  <li><strong><code>@Singleton</code></strong> — the result is cached for the lifetime of the SingletonComponent. Without it, every injection would call the function again.</li>
+  <li><strong>Order doesn't matter</strong> — Hilt's compile-time resolver figures out construction order from the dependency DAG. If you forget to provide one of the params (e.g., <code>AuthInterceptor</code>), the build fails with a clear "missing binding" error.</li>
+</ol>
+</div>
+
+<h3>Pattern 2 — <code>@Binds</code> for interface → impl</h3>
+<pre><code class="language-kotlin">@Module
+@InstallIn(SingletonComponent::class)
+abstract class RepoModule {
+    @Binds @Singleton
+    abstract fun bindUserRepo(impl: UserRepoImpl): UserRepo
+
+    @Binds
+    abstract fun bindNotesRepo(impl: NotesRepoImpl): NotesRepo
+}</code></pre>
+
+<div class="callout tip">
+  <span class="label">@Binds vs @Provides</span>
+  <p>For "interface → impl with no construction logic", <code>@Binds</code> is more efficient — Dagger can skip generating a factory class. Use <code>@Provides</code> when you need to construct the instance yourself or it's a third-party type.</p>
+</div>
+
+<h3>Pattern 3 — Qualifiers (multiple bindings of same type)</h3>
+<pre><code class="language-kotlin">@Qualifier @Retention(AnnotationRetention.BINARY) annotation class IoDispatcher
+@Qualifier @Retention(AnnotationRetention.BINARY) annotation class MainDispatcher
+@Qualifier @Retention(AnnotationRetention.BINARY) annotation class DefaultDispatcher
+
+@Module
+@InstallIn(SingletonComponent::class)
+object DispatchersModule {
+    @IoDispatcher      @Provides fun io(): CoroutineDispatcher = Dispatchers.IO
+    @MainDispatcher    @Provides fun main(): CoroutineDispatcher = Dispatchers.Main
+    @DefaultDispatcher @Provides fun default(): CoroutineDispatcher = Dispatchers.Default
+}
+
+class Repo @Inject constructor(
+    @IoDispatcher private val io: CoroutineDispatcher
+) { /* ... */ }</code></pre>
+
+<h3>Pattern 4 — Multibinding (collect impls)</h3>
+<pre><code class="language-kotlin">interface AnalyticsTracker { fun screen(name: String) }
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class AnalyticsModule {
+    @Binds @IntoSet abstract fun newRelic(impl: NewRelicTracker): AnalyticsTracker
+    @Binds @IntoSet abstract fun crashlytics(impl: CrashlyticsTracker): AnalyticsTracker
+    @Binds @IntoSet abstract fun internal(impl: InternalTracker): AnalyticsTracker
+}
+
+class AnalyticsHub @Inject constructor(
+    private val trackers: Set&lt;@JvmSuppressWildcards AnalyticsTracker&gt;
+) : AnalyticsTracker {
+    override fun screen(name: String) = trackers.forEach { runCatching { it.screen(name) } }
+}</code></pre>
+
+<h3>Map multibinding</h3>
+<pre><code class="language-kotlin">@Module
+@InstallIn(SingletonComponent::class)
+abstract class FeatureRoutesModule {
+    @Binds @IntoMap @StringKey("home")
+    abstract fun home(impl: HomeRouter): Router
+    @Binds @IntoMap @StringKey("player")
+    abstract fun player(impl: PlayerRouter): Router
+}
+// inject Map&lt;String, @JvmSuppressWildcards Router&gt;</code></pre>
+
+<h2>6. Assisted injection — runtime + DI args</h2>
+<pre><code class="language-kotlin">class UserDetailsVm @AssistedInject constructor(
+    private val repo: UserRepo,
+    @Assisted val userId: String
+) : ViewModel() {
+    @AssistedFactory
+    interface Factory {
+        fun create(userId: String): UserDetailsVm
+    }
+}
+
+// Use it
+class UserActivity : AppCompatActivity() {
+    @Inject lateinit var vmFactory: UserDetailsVm.Factory
+    private val vm: UserDetailsVm by viewModels {
+        viewModelFactory {
+            initializer { vmFactory.create(intent.getStringExtra("id")!!) }
+        }
+    }
+}</code></pre>
+
+<div class="callout tip">
+  <span class="label">For ViewModels with route args, prefer SavedStateHandle</span>
+  <p>If you're on Navigation Compose, just inject <code>SavedStateHandle</code> into a normal <code>@HiltViewModel</code> — Hilt + Nav auto-wires the route args. Use Assisted only when the runtime arg can't go through SavedStateHandle.</p>
+</div>
+
+<h2>7. Hilt + ViewModel + Navigation Compose</h2>
+
+<pre><code class="language-kotlin">@HiltViewModel
+class NoteDetailVm @Inject constructor(
+    private val savedState: SavedStateHandle,
+    private val getNote: GetNoteUseCase
+) : ViewModel() {
+    private val noteId: String = checkNotNull(savedState["id"])
+    val state: StateFlow&lt;NoteDetailState&gt; = flow { emit(getNote(noteId)) }
+        .map { NoteDetailState.Success(it) as NoteDetailState }
+        .catch { emit(NoteDetailState.Error(it.message ?: "")) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), NoteDetailState.Loading)
+}
+
+// In a NavHost:
+composable("note/{id}") { entry -&gt;
+    val vm: NoteDetailVm = hiltViewModel()  // SavedStateHandle has "id" automatically
+    NoteDetailScreen(vm)
+}</code></pre>
+
+<h2>8. Hilt + WorkManager</h2>
+<pre><code class="language-kotlin">@HiltWorker
+class SyncWorker @AssistedInject constructor(
+    @Assisted ctx: Context,
+    @Assisted params: WorkerParameters,
+    private val repo: NotesRepository
+) : CoroutineWorker(ctx, params) {
+    override suspend fun doWork(): Result =
+        repo.refresh().fold(
+            onSuccess = { Result.success() },
+            onFailure = { Result.retry() }
+        )
+}
+
+// Application
+@HiltAndroidApp
+class App : Application(), Configuration.Provider {
+    @Inject lateinit var workerFactory: HiltWorkerFactory
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .setMinimumLoggingLevel(android.util.Log.INFO)
+            .build()
+}
+
+// AndroidManifest — disable default initializer
+&lt;provider
+    android:name="androidx.startup.InitializationProvider"
+    android:authorities="${applicationId}.androidx-startup"
+    tools:node="merge"&gt;
+    &lt;meta-data
+        android:name="androidx.work.WorkManagerInitializer"
+        android:value="androidx.startup"
+        tools:node="remove" /&gt;
+&lt;/provider&gt;</code></pre>
+
+<h2>9. <code>@ApplicationContext</code> and <code>@ActivityContext</code></h2>
+<pre><code class="language-kotlin">class PrefsRepo @Inject constructor(
+    @ApplicationContext private val ctx: Context   // pre-defined qualifier
+) {
+    private val prefs = ctx.getSharedPreferences("p", Context.MODE_PRIVATE)
+    /* ... */
+}
+
+class ToastHelper @Inject constructor(
+    @ActivityContext private val ctx: Context     // for activity-scoped UI
+)</code></pre>
+
+<h2>10. <code>@EntryPoint</code> — for non-Hilt callers</h2>
+<pre><code class="language-kotlin">// You have a class that's not @AndroidEntryPoint (e.g., a third-party callback)
+// and you need a binding from the SingletonComponent.
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface AnalyticsEntryPoint {
+    fun analytics(): AnalyticsHub
+}
+
+class LegacyCallback(private val appContext: Context) {
+    private val analytics = EntryPointAccessors
+        .fromApplication(appContext, AnalyticsEntryPoint::class.java)
+        .analytics()
+}</code></pre>
+
+<h2>11. Common Hilt errors and fixes</h2>
+
+<details class="qa">
+<summary>"MissingBinding: cannot be provided without an @Inject constructor or @Provides-annotated method"</summary>
+<div class="qa-body"><p>The class isn't <code>@Inject constructor</code>-annotated and there's no <code>@Provides</code>/<code>@Binds</code> for it. Add one. If it's a third-party type, write a <code>@Provides</code> in a module installed in the right component.</p></div>
+</details>
+
+<details class="qa">
+<summary>"Cannot be injected into @Singleton because it's @ActivityScoped"</summary>
+<div class="qa-body"><p>Wider scope can't depend on narrower. Either widen the dependency to <code>@Singleton</code>, or move the consumer to a narrower scope.</p></div>
+</details>
+
+<details class="qa">
+<summary>"Duplicate bindings"</summary>
+<div class="qa-body"><p>Two <code>@Provides</code> for the same type with no qualifiers. Add a <code>@Qualifier</code> to disambiguate, or remove the duplicate.</p></div>
+</details>
+
+<details class="qa">
+<summary>"@HiltAndroidApp not found at compile time"</summary>
+<div class="qa-body"><p>You forgot to set <code>android:name=".App"</code> in AndroidManifest.xml, or your Application class isn't annotated.</p></div>
+</details>
+
+<details class="qa">
+<summary>"Hilt component for AndroidEntryPoint requires a parent component"</summary>
+<div class="qa-body"><p>You annotated a Fragment with <code>@AndroidEntryPoint</code>, but its hosting Activity is missing the same annotation. Annotate the Activity too.</p></div>
+</details>
+
+<h2>12. Best practices — what seniors do differently</h2>
+
+<ul>
+  <li><strong>Inject interfaces, not impls.</strong> <code>val repo: NotesRepo</code>, not <code>val repo: NotesRepoImpl</code>. Easier to fake in tests.</li>
+  <li><strong>Inject coroutine dispatchers.</strong> Don't hardcode <code>Dispatchers.IO</code>. Inject <code>@IoDispatcher</code> so tests swap a <code>StandardTestDispatcher</code>.</li>
+  <li><strong>Avoid <code>@Singleton</code> reflexively.</strong> Only use it when the object truly should live for the whole app. Otherwise scope appropriately.</li>
+  <li><strong>Modules per concern</strong>: <code>NetworkModule</code>, <code>DatabaseModule</code>, <code>RepoModule</code>, <code>DispatchersModule</code>. Don't put everything in one giant module.</li>
+  <li><strong>Use <code>@Binds</code> for interface → impl.</strong> More efficient than <code>@Provides</code> for that case.</li>
+  <li><strong>Use multibinding</strong> for plugin-style architectures (analytics trackers, feature flag handlers, deep link routers).</li>
+  <li><strong>Don't field-inject when constructor injection works.</strong> Field injection (<code>@Inject lateinit var</code>) is for Android components you can't construct yourself (Activity, Fragment); everywhere else use constructor injection.</li>
+  <li><strong>Test modules</strong>: replace production modules in tests with <code>@TestInstallIn(replaces = [...])</code>.</li>
+</ul>
+
+<h2>13. Test setup with Hilt</h2>
+<pre><code class="language-kotlin">@HiltAndroidTest
+class NotesFlowTest {
+    @get:Rule(order = 0) val hiltRule = HiltAndroidRule(this)
+    @Inject lateinit var repo: NotesRepo
+
+    @Before fun init() { hiltRule.inject() }
+
+    @Test fun `loads notes`() = runTest {
+        // ...
+    }
+}
+
+// Replace a module with fakes for tests
+@Module
+@TestInstallIn(components = [SingletonComponent::class], replaces = [RepoModule::class])
+abstract class TestRepoModule {
+    @Binds abstract fun fake(impl: FakeNotesRepo): NotesRepo
+}</code></pre>
+
+<h2>14. Hilt vs Koin (you may be asked)</h2>
+
+<table>
+<thead><tr><th></th><th>Hilt (Dagger)</th><th>Koin</th></tr></thead>
+<tbody>
+<tr><td>Wiring</td><td>Compile-time</td><td>Runtime (service locator)</td></tr>
+<tr><td>Errors</td><td>Build-time</td><td>App-launch / first-access</td></tr>
+<tr><td>Setup</td><td>More boilerplate</td><td>Less, just Kotlin DSL</td></tr>
+<tr><td>Performance</td><td>Zero runtime cost</td><td>Slight startup + per-resolution cost</td></tr>
+<tr><td>Recommended for</td><td>Large apps, multi-module, official Google guidance</td><td>Small apps, KMP (Hilt is Android-only)</td></tr>
+</tbody>
+</table>
+
+<div class="callout senior">
+  <span class="label">Senior phrase</span>
+  <p>"For Android single-platform, I default to Hilt — <span class="signal-phrase">compile-time DI graph</span> means missing bindings fail the build, not the app. For KMP I'd consider Koin since Hilt is Android-only."</p>
+</div>
+
+<h2>15. Senior signal phrases for Hilt</h2>
+<ul>
+  <li>"<span class="signal-phrase">Compile-time DI graph</span> — errors at build, not runtime."</li>
+  <li>"<span class="signal-phrase">Wider scope into narrower</span>, never reverse."</li>
+  <li>"<span class="signal-phrase">@Binds for interfaces, @Provides for configured types</span>."</li>
+  <li>"<span class="signal-phrase">Multibinding for plugin architectures</span> — analytics, deep links."</li>
+  <li>"<span class="signal-phrase">SavedStateHandle injection wires route args</span> automatically — no Assisted needed for that case."</li>
+</ul>
+
+<div class="footer">Next: <a href="jetpack.html">Jetpack Libraries →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

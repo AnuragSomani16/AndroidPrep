@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Networking & Auth · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Networking & Auth</h1>
+<p class="lead">Retrofit + interceptors, JSON parsing libraries compared, REST patterns, OAuth 2.0 + PKCE, refresh-token rotation, and secure token storage with full code.</p>
+
+<div class="buzzwords">
+  <span>Interceptor vs Authenticator</span>
+  <span>OAuth 2.0 with PKCE</span>
+  <span>refresh token rotation</span>
+  <span>EncryptedSharedPreferences</span>
+  <span>SSL pinning via CertificatePinner</span>
+  <span>kotlinx serialization (KSP, no reflection)</span>
+  <span>logging interceptor (debug-only body)</span>
+  <span>connection pool tuning</span>
+  <span>idempotent retries on POST</span>
+  <span>5xx vs 4xx handling</span>
+</div>
+
+<div class="definition"><strong>Retrofit</strong> = a Square library that turns a Kotlin interface into an HTTP client. You annotate methods (<code>@GET</code>, <code>@POST</code>); Retrofit generates a runtime proxy. <strong>OkHttp</strong> = the underlying HTTP client. Connection pooling, gzip, HTTP/2, redirects, caching, interceptors. <strong>Interceptor</strong> = a function in OkHttp's pipeline that runs on every request (add headers, log, retry). <strong>Authenticator</strong> = a function that runs on a 401 response specifically — refreshes the token and retries the original request.</div>
+
+<h2>1. Why Retrofit + OkHttp</h2>
+
+<div class="callout senior">
+  <span class="label">Senior framing</span>
+  <p>"Retrofit converts Kotlin interfaces into HTTP clients at runtime via dynamic proxies. OkHttp under the hood handles connection pooling, gzip, HTTP/2, redirects, and caching. Together they give me <strong>type-safe API surfaces</strong>, <strong>interceptor pipelines for cross-cutting concerns</strong> (auth, logging, telemetry), and <strong>first-class coroutine integration</strong> (suspend functions return parsed types directly). Their replaceability matters too — I can swap the JSON converter without touching API code."</p>
+</div>
+
+<h2>2. Full setup with Hilt + Kotlinx Serialization</h2>
+
+<pre><code class="language-kotlin">@Serializable
+data class UserDto(
+    val id: String,
+    @SerialName("display_name") val displayName: String,
+    val avatar: String? = null
+)
+
+interface UserApi {
+    @GET("users/{id}")
+    suspend fun user(@Path("id") id: String): UserDto
+
+    @GET("users")
+    suspend fun search(@Query("q") query: String, @Query("limit") limit: Int = 20): List&lt;UserDto&gt;
+
+    @POST("users")
+    suspend fun create(@Body body: CreateUserDto): UserDto
+
+    @PATCH("users/{id}")
+    suspend fun update(@Path("id") id: String, @Body body: PatchDto): UserDto
+
+    @DELETE("users/{id}")
+    suspend fun delete(@Path("id") id: String): Response&lt;Unit&gt;
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
+    @Provides @Singleton
+    fun json() = Json {
+        ignoreUnknownKeys = true        // forward-compat: server adds field, we don't crash
+        coerceInputValues = true        // null in non-null field falls back to default
+        explicitNulls = false           // don't write nulls in serialized output
+    }
+
+    @Provides @Singleton
+    fun loggingInterceptor() = HttpLoggingInterceptor().apply {
+        level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                else HttpLoggingInterceptor.Level.NONE         // never BODY in release — leaks PII
+    }
+
+    @Provides @Singleton
+    fun okHttp(
+        auth: AuthInterceptor,
+        authenticator: TokenAuthenticator,
+        logging: HttpLoggingInterceptor
+    ): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor(auth)              // appends Authorization: Bearer ...
+        .authenticator(authenticator)       // refreshes on 401
+        .addInterceptor(logging)
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(20, TimeUnit.SECONDS)
+        .writeTimeout(20, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
+        .build()
+
+    @Provides @Singleton
+    fun retrofit(client: OkHttpClient, json: Json): Retrofit = Retrofit.Builder()
+        .baseUrl("https://api.fox.com/")
+        .client(client)
+        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+        .build()
+
+    @Provides @Singleton fun userApi(r: Retrofit): UserApi = r.create()
+}</code></pre>
+
+<h2>3. Interceptor vs Authenticator — locked-in distinction</h2>
+
+<table>
+<thead><tr><th></th><th>Interceptor</th><th>Authenticator</th></tr></thead>
+<tbody>
+<tr><td>Runs</td><td>Every request</td><td>Only on <strong>401</strong> response</td></tr>
+<tr><td>Use for</td><td>Add headers, logging, metrics, retry on 5xx</td><td>Refresh access token, retry original request</td></tr>
+<tr><td>Network or App</td><td>Both flavors</td><td>App-level only</td></tr>
+</tbody>
+</table>
+
+<h3>AuthInterceptor — adds the Bearer token</h3>
+<pre><code class="language-kotlin">class AuthInterceptor @Inject constructor(
+    private val tokens: TokenStore
+) : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val token = runBlocking { tokens.accessToken() }     // OK in interceptor (off main thread)
+        val req = if (token != null) {
+            chain.request().newBuilder()
+                .header("Authorization", "Bearer $token")
+                .build()
+        } else chain.request()
+        return chain.proceed(req)
+    }
+}</code></pre>
+
+<h3>TokenAuthenticator — refresh on 401</h3>
+<pre><code class="language-kotlin">@Singleton
+class TokenAuthenticator @Inject constructor(
+    private val tokens: TokenStore,
+    private val authApi: dagger.Lazy&lt;AuthApi&gt;    // Lazy to break Retrofit cycle
+) : Authenticator {
+
+    private val refreshMutex = Mutex()
+
+    override fun authenticate(route: Route?, response: Response): Request? {
+        val expiredToken = response.request.header("Authorization")
+            ?.removePrefix("Bearer ") ?: return null
+
+        return runBlocking {
+            refreshMutex.withLock {
+                // Another in-flight 401 may have already refreshed
+                val current = tokens.accessToken()
+                if (current != null && current != expiredToken) {
+                    return@withLock buildRequest(response.request, current)
+                }
+
+                val refresh = tokens.refreshToken() ?: return@withLock null
+                val resp = runCatching { authApi.get().refresh(RefreshDto(refresh)) }.getOrNull()
+                    ?: run { tokens.clear(); return@withLock null }
+
+                tokens.save(resp.accessToken, resp.refreshToken)
+                buildRequest(response.request, resp.accessToken)
+            }
+        }
+    }
+
+    private fun buildRequest(orig: Request, token: String) =
+        orig.newBuilder().header("Authorization", "Bearer $token").build()
+}</code></pre>
+<div class="code-explain">Walk through what happens when the access token expires:
+<ol>
+  <li>App makes a request. AuthInterceptor attaches the (expired) Bearer token.</li>
+  <li>Server responds <strong>401 Unauthorized</strong>. OkHttp invokes <code>TokenAuthenticator.authenticate()</code>.</li>
+  <li>The authenticator <strong>acquires the mutex</strong>. If 5 parallel requests all 401'd at once, only the first will hold the lock; the rest wait.</li>
+  <li>Inside the lock, it <strong>checks current token vs the expired one</strong>. If they differ, another caller already refreshed — just retry with the new token.</li>
+  <li>If still stale, call <code>/refresh</code> with the refresh token. On success, save the new pair. On failure, clear tokens (force re-login) by returning null.</li>
+  <li>Return a new <code>Request</code> with the fresh Bearer token. OkHttp retries automatically.</li>
+</ol>
+The <strong>Mutex matters</strong>: without it, all 5 parallel 401s would hammer <code>/refresh</code> simultaneously, possibly invalidating each other's tokens (server-side rotation).
+</div>
+
+<div class="callout senior">
+  <span class="label">Senior framing</span>
+  <p>"<span class="signal-phrase">Refresh under a Mutex</span> — multiple parallel requests hitting 401 simultaneously would each try to refresh. The mutex makes only the first one refresh; the rest see the new token and retry."</p>
+</div>
+
+<h2>4. JSON parsing: Kotlinx Serialization vs Gson vs Moshi</h2>
+
+<table>
+<thead><tr><th></th><th>Kotlinx Serialization</th><th>Moshi</th><th>Gson</th></tr></thead>
+<tbody>
+<tr><td>Code generation</td><td>Compile-time (KSP)</td><td>Compile-time (KSP)</td><td>Runtime reflection</td></tr>
+<tr><td>Kotlin support</td><td>First-class (default args, sealed, value class)</td><td>Good (kotlin reflect lib)</td><td>Reflection-based, fragile with default args</td></tr>
+<tr><td>Multiplatform</td><td>Yes (KMP-ready)</td><td>JVM/Android</td><td>JVM/Android</td></tr>
+<tr><td>Speed</td><td>Fast (no reflection)</td><td>Fast</td><td>Slower (reflection)</td></tr>
+<tr><td>Maturity</td><td>Modern, Kotlin-official</td><td>Square's</td><td>Google legacy — common in old codebases</td></tr>
+<tr><td>Size impact</td><td>Smaller (no reflection lib)</td><td>Smaller</td><td>Larger</td></tr>
+</tbody>
+</table>
+
+<h3>Why GSON exists / "what is Gson?"</h3>
+<p>Google's classic JSON serializer for Java/Android. <strong>JSON</strong> is a <em>format</em>; <strong>Gson</strong> is a <em>library</em> that converts between JSON text and Java/Kotlin objects. It uses runtime reflection — flexible but slower and Kotlin-unaware. Code: <code>gson.fromJson(jsonString, User::class.java)</code>.</p>
+
+<div class="callout senior">
+  <span class="label">"Why GSON?" — interview answer</span>
+  <p>"Honest answer: legacy. <strong>For a new Kotlin app I'd never pick Gson.</strong> It uses runtime reflection (slower cold start, larger app), doesn't understand Kotlin nullability or default args (you can hit "null in non-null field" crashes), and doesn't handle sealed classes natively. <span class="signal-phrase">Kotlinx Serialization with KSP</span> generates parsers at compile time — faster, type-safe, multiplatform-ready. I keep Gson around in legacy modules where I haven't migrated yet."</p>
+</div>
+
+<h2>5. Sealed classes for polymorphic JSON (kotlinx)</h2>
+<pre><code class="language-kotlin">@Serializable
+sealed interface Notification {
+    @Serializable @SerialName("message")
+    data class Message(val from: String, val text: String) : Notification
+
+    @Serializable @SerialName("like")
+    data class Like(val postId: String) : Notification
+}
+
+// Configure Json
+val json = Json { classDiscriminator = "type" }
+
+// JSON: { "type": "message", "from": "anu", "text": "hi" }</code></pre>
+
+<h2>6. Error handling pattern</h2>
+
+<pre><code class="language-kotlin">sealed interface ApiResult&lt;out T&gt; {
+    data class Success&lt;T&gt;(val data: T) : ApiResult&lt;T&gt;
+    data class HttpError(val code: Int, val body: String?) : ApiResult&lt;Nothing&gt;
+    data class NetworkError(val cause: Throwable) : ApiResult&lt;Nothing&gt;
+}
+
+suspend inline fun &lt;T&gt; safeApiCall(crossinline call: suspend () -&gt; T): ApiResult&lt;T&gt; = try {
+    ApiResult.Success(call())
+} catch (e: HttpException) {
+    ApiResult.HttpError(e.code(), e.response()?.errorBody()?.string())
+} catch (e: IOException) {
+    ApiResult.NetworkError(e)
+} catch (e: CancellationException) {
+    throw e   // never swallow!
+} catch (e: Throwable) {
+    ApiResult.NetworkError(e)
+}
+
+// usage
+suspend fun fetchUser(id: String): ApiResult&lt;User&gt; = safeApiCall { api.user(id).toDomain() }</code></pre>
+
+<h2>7. REST patterns — pagination, idempotency, caching</h2>
+
+<h3>Cursor-based pagination (preferred)</h3>
+<pre><code class="language-kotlin">@GET("feed")
+suspend fun feed(
+    @Query("cursor") cursor: String? = null,
+    @Query("limit") limit: Int = 20
+): FeedPageDto
+
+@Serializable
+data class FeedPageDto(val items: List&lt;ItemDto&gt;, val nextCursor: String?)</code></pre>
+
+<p>Cursor pagination is stable under concurrent inserts. Page-number pagination has the "items shift" bug when inserts happen between pages.</p>
+
+<h3>Idempotency keys for retries</h3>
+<pre><code class="language-kotlin">@POST("payments")
+suspend fun pay(
+    @Header("Idempotency-Key") key: String,
+    @Body body: PaymentDto
+): PaymentResultDto
+
+// usage
+val key = UUID.randomUUID().toString()
+val result = api.pay(key, body)
+// if network drops between request sent and response received, retry with SAME key —
+// server dedupes</code></pre>
+
+<h3>HTTP cache via OkHttp</h3>
+<pre><code class="language-kotlin">.cache(Cache(File(ctx.cacheDir, "http_cache"), 50L * 1024 * 1024))   // 50MB</code></pre>
+
+<p>Honors <code>Cache-Control</code>, <code>ETag</code>, <code>Last-Modified</code>. Force re-validate per request via <code>CacheControl.Builder().noCache().build()</code> on the request.</p>
+
+<h2>8. SSL / Certificate pinning</h2>
+<pre><code class="language-kotlin">val pinner = CertificatePinner.Builder()
+    // pin to the SPKI hash of the intermediate, not the leaf — survives leaf rotation
+    .add("api.fox.com", "sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+    .add("api.fox.com", "sha256/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=")  // backup pin
+    .build()
+
+OkHttpClient.Builder()
+    .certificatePinner(pinner)
+    .build()</code></pre>
+
+<div class="callout warn">
+  <span class="label">Pinning operational burden</span>
+  <p>Pinning protects against rogue CAs / MITM but can <strong>brick your app</strong> if the cert rotates and your release lags. Always pin to <strong>multiple keys</strong> (current + backup) and have a kill-switch via Remote Config to disable pinning if needed. Senior signal: knowing this tradeoff.</p>
+</div>
+
+<h2>9. OAuth 2.0 with PKCE — full implementation</h2>
+
+<h3>Why PKCE (Proof Key for Code Exchange)</h3>
+<p>The mobile-safe flavor of OAuth 2.0. Mobile apps can't keep a static client secret safe (it ships in the APK). PKCE replaces the secret with a per-flow random "verifier" that the server only sees in the second step. Even if attackers intercept the auth code, they can't exchange it without the verifier.</p>
+
+<h3>The flow</h3>
+<pre><code>1. App generates code_verifier (random 43-128 chars).
+2. App computes code_challenge = BASE64URL(SHA256(code_verifier)).
+3. App opens Chrome Custom Tab to:
+   https://auth.example.com/authorize?
+       response_type=code
+       &amp;client_id=mobile
+       &amp;redirect_uri=myapp://callback
+       &amp;code_challenge=&lt;challenge&gt;
+       &amp;code_challenge_method=S256
+       &amp;state=&lt;random&gt;
+4. User logs in. Server redirects to: myapp://callback?code=xyz&amp;state=&lt;random&gt;
+5. App POST /token with code + code_verifier:
+   { code, code_verifier, redirect_uri, client_id }
+6. Server validates SHA256(code_verifier) == code_challenge and returns:
+   { access_token, refresh_token, expires_in }
+7. App stores tokens in EncryptedSharedPreferences.</code></pre>
+
+<h3>Code verifier + challenge generation</h3>
+<pre><code class="language-kotlin">fun generateCodeVerifier(): String {
+    val bytes = ByteArray(64).also { SecureRandom().nextBytes(it) }
+    return Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+}
+
+fun codeChallenge(verifier: String): String {
+    val sha = MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray(Charsets.US_ASCII))
+    return Base64.encodeToString(sha, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+}</code></pre>
+
+<h3>Open Chrome Custom Tab</h3>
+<pre><code class="language-kotlin">class AuthScreen(private val ctx: Context, private val tokens: TokenStore) {
+    fun startLogin() {
+        val verifier = generateCodeVerifier()
+        val challenge = codeChallenge(verifier)
+        val state = UUID.randomUUID().toString()
+        tokens.savePending(verifier, state)
+
+        val url = Uri.parse("https://auth.fox.com/authorize").buildUpon()
+            .appendQueryParameter("response_type", "code")
+            .appendQueryParameter("client_id", "mobile-android")
+            .appendQueryParameter("redirect_uri", "myapp://callback")
+            .appendQueryParameter("code_challenge", challenge)
+            .appendQueryParameter("code_challenge_method", "S256")
+            .appendQueryParameter("state", state)
+            .appendQueryParameter("scope", "openid profile offline_access")
+            .build()
+
+        CustomTabsIntent.Builder().build().launchUrl(ctx, url)
+    }
+}</code></pre>
+
+<h3>Handle redirect deep link</h3>
+<pre><code class="language-kotlin">// AndroidManifest
+&lt;activity android:name=".AuthCallbackActivity"&gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.intent.action.VIEW"/&gt;
+        &lt;category android:name="android.intent.category.DEFAULT"/&gt;
+        &lt;category android:name="android.intent.category.BROWSABLE"/&gt;
+        &lt;data android:scheme="myapp" android:host="callback"/&gt;
+    &lt;/intent-filter&gt;
+&lt;/activity&gt;
+
+@AndroidEntryPoint
+class AuthCallbackActivity : AppCompatActivity() {
+    @Inject lateinit var tokens: TokenStore
+    @Inject lateinit var authApi: AuthApi
+
+    override fun onCreate(b: Bundle?) {
+        super.onCreate(b)
+        val data = intent.data ?: run { finish(); return }
+        val code = data.getQueryParameter("code")
+        val returnedState = data.getQueryParameter("state")
+        val pending = tokens.pending() ?: run { finish(); return }
+        require(returnedState == pending.state) { "state mismatch — possible CSRF" }
+
+        lifecycleScope.launch {
+            runCatching {
+                val resp = authApi.token(
+                    TokenRequest(
+                        grantType = "authorization_code",
+                        code = code!!,
+                        codeVerifier = pending.verifier,
+                        redirectUri = "myapp://callback",
+                        clientId = "mobile-android"
+                    )
+                )
+                tokens.save(resp.accessToken, resp.refreshToken)
+                tokens.clearPending()
+            }.onSuccess { startActivity(Intent(this@AuthCallbackActivity, MainActivity::class.java)) }
+             .onFailure { showError(it) }
+            finish()
+        }
+    }
+}</code></pre>
+
+<h2>10. Secure token storage with EncryptedSharedPreferences</h2>
+
+<pre><code class="language-kotlin">class TokenStore @Inject constructor(@ApplicationContext private val ctx: Context) {
+
+    private val prefs by lazy {
+        val masterKey = MasterKey.Builder(ctx)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+        EncryptedSharedPreferences.create(
+            ctx,
+            "secure_tokens",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
+
+    suspend fun accessToken(): String? = withContext(Dispatchers.IO) { prefs.getString("access", null) }
+    suspend fun refreshToken(): String? = withContext(Dispatchers.IO) { prefs.getString("refresh", null) }
+
+    suspend fun save(access: String, refresh: String) = withContext(Dispatchers.IO) {
+        prefs.edit().putString("access", access).putString("refresh", refresh).apply()
+    }
+
+    suspend fun clear() = withContext(Dispatchers.IO) { prefs.edit().clear().apply() }
+
+    // Pending PKCE state (verifier + state) during auth
+    fun savePending(verifier: String, state: String) {
+        prefs.edit().putString("pending_v", verifier).putString("pending_s", state).apply()
+    }
+    fun pending(): Pending? {
+        val v = prefs.getString("pending_v", null) ?: return null
+        val s = prefs.getString("pending_s", null) ?: return null
+        return Pending(v, s)
+    }
+    fun clearPending() = prefs.edit().remove("pending_v").remove("pending_s").apply()
+
+    data class Pending(val verifier: String, val state: String)
+}</code></pre>
+
+<div class="callout senior">
+  <span class="label">Senior framing</span>
+  <p>"Tokens go in <span class="signal-phrase">EncryptedSharedPreferences</span> — backed by Android Keystore so the encryption key is hardware-isolated on devices that support it. <strong>Never</strong> store tokens in plain SharedPreferences or files. Refresh tokens are sensitive — if they leak, an attacker has long-lived access. <span class="signal-phrase">Refresh token rotation</span> on the server side mitigates this: each refresh issues a new refresh token and revokes the old one."</p>
+</div>
+
+<h2>11. Network Security Config (XML, declarative)</h2>
+<pre><code>&lt;!-- res/xml/network_security_config.xml --&gt;
+&lt;network-security-config&gt;
+    &lt;base-config cleartextTrafficPermitted="false"&gt;
+        &lt;trust-anchors&gt;
+            &lt;certificates src="system" /&gt;
+        &lt;/trust-anchors&gt;
+    &lt;/base-config&gt;
+    &lt;domain-config&gt;
+        &lt;domain includeSubdomains="true"&gt;api.fox.com&lt;/domain&gt;
+        &lt;pin-set expiration="2026-12-31"&gt;
+            &lt;pin digest="SHA-256"&gt;AAAAAAAAAAAA=&lt;/pin&gt;
+            &lt;pin digest="SHA-256"&gt;BBBBBBBBBBBB=&lt;/pin&gt;
+        &lt;/pin-set&gt;
+    &lt;/domain-config&gt;
+&lt;/network-security-config&gt;
+
+&lt;!-- AndroidManifest --&gt;
+&lt;application android:networkSecurityConfig="@xml/network_security_config" /&gt;</code></pre>
+
+<h2>12. Common networking gotchas</h2>
+
+<details class="qa">
+<summary>Q. Why am I getting CleartextTrafficException on Android 9+?</summary>
+<div class="qa-body"><p>API 28+ defaults to HTTPS-only. Either fix to HTTPS (correct) or override via Network Security Config <code>cleartextTrafficPermitted="true"</code> for specific dev domains. Never ship cleartext to prod.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. My HttpLoggingInterceptor is leaking tokens to logcat in release.</summary>
+<div class="qa-body"><p>Set <code>level = NONE</code> in release. Even better: gate via <code>BuildConfig.DEBUG</code>. Or use a custom interceptor that redacts the <code>Authorization</code> header.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do I retry transient 5xx but not 4xx?</summary>
+<div class="qa-body"><p>An Interceptor: catch the response, check <code>code in 500..599</code>, sleep with exponential backoff, retry up to N times. Don't retry 4xx (client error — won't fix itself). Don't retry POST without idempotency keys.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. Connection timeout vs read timeout vs write timeout?</summary>
+<div class="qa-body"><p><strong>Connect</strong>: TCP handshake. <strong>Read</strong>: time between bytes received. <strong>Write</strong>: time between bytes sent. Defaults are reasonable; tune <code>read</code> for slow APIs.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. Authenticator infinite-loops on 401.</summary>
+<div class="qa-body"><p>Check <code>response.priorResponse</code> count and bail after N attempts. Also: if refresh itself returned 401 (refresh token invalid), clear tokens and force re-login — don't retry.</p></div>
+</details>
+
+<h2>13. Senior signal phrases for networking</h2>
+<ul>
+  <li>"<span class="signal-phrase">Interceptor for cross-cutting; Authenticator for refresh-on-401</span>."</li>
+  <li>"<span class="signal-phrase">Refresh under a Mutex</span> to dedupe concurrent 401s."</li>
+  <li>"<span class="signal-phrase">PKCE for mobile OAuth</span> — no client secret in the APK."</li>
+  <li>"<span class="signal-phrase">Tokens in EncryptedSharedPreferences</span>, backed by Keystore."</li>
+  <li>"<span class="signal-phrase">Cursor pagination over page-numbers</span> — stable under concurrent inserts."</li>
+  <li>"<span class="signal-phrase">Idempotency keys for retried POSTs</span>."</li>
+  <li>"<span class="signal-phrase">Pin to SPKI of intermediate, with a backup pin</span>."</li>
+</ul>
+
+<div class="footer">Next: <a href="android-core.html">Android SDK Core →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

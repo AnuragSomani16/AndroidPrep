@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kotlin — Basics to Advanced · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Kotlin — basics to advanced</h1>
+<p class="lead">Everything from <span class="signal">null safety</span> to <span class="signal">reified generics</span>, with OOP, idiomatic patterns, and "spot the bug" drills you can practice with collapsible answers.</p>
+
+<div class="buzzwords">
+  <span>structural vs referential equality</span>
+  <span>statically dispatched extensions</span>
+  <span>declaration-site variance</span>
+  <span>reified type parameters</span>
+  <span>delegation by composition</span>
+  <span>inline functions for lambda overhead</span>
+  <span>sealed hierarchies for exhaustive when</span>
+  <span>property delegation</span>
+  <span>operator invoke for use cases</span>
+  <span>value class for type-safe wrappers</span>
+</div>
+
+<h2>1. Why Kotlin over Java (have this answer locked)</h2>
+<div class="callout senior">
+  <span class="label">Senior framing</span>
+  <p>Kotlin gives you <strong>null safety at the type system level</strong>, <strong>data classes</strong> that eliminate boilerplate, <strong>coroutines for structured async</strong>, <strong>sealed hierarchies for exhaustive state modeling</strong>, and <strong>extension functions for clean API surfaces</strong>. On the JVM it's 100% interoperable with Java; on Android it's the official language since 2019. The combined effect is roughly 30-40% less boilerplate, fewer NPEs, and significantly more expressive concurrency.</p>
+</div>
+
+<h3>Concrete differences worth saying out loud</h3>
+<ul>
+  <li><strong>Null safety</strong>: <code>String?</code> vs <code>String</code> — Java has no compile-time NPE protection. <span class="signal">Compile-time null checks</span>.</li>
+  <li><strong>Data classes</strong>: 1 line vs 50+ lines of Java POJO with equals/hashCode/toString.</li>
+  <li><strong>Coroutines</strong>: <span class="signal-phrase">structured concurrency</span> vs callback hell or RxJava's complexity.</li>
+  <li><strong>Extension functions</strong>: extend types you don't own, statically dispatched (no runtime cost).</li>
+  <li><strong>Smart casts</strong>: after a type check, the variable is auto-cast in that branch.</li>
+  <li><strong>Default + named args</strong>: kills builder pattern boilerplate.</li>
+  <li><strong>Type inference</strong>: less ceremony, same type safety.</li>
+  <li><strong>Higher-order functions + lambdas</strong>: first-class, with <code>inline</code> to avoid object allocation.</li>
+</ul>
+
+<h2>2. Variables, types, and null safety</h2>
+
+<div class="definition"><strong>Null safety</strong> = Kotlin's type system distinguishes types that <em>can</em> hold null (<code>String?</code>) from those that can't (<code>String</code>). The compiler enforces a null check before any access on a nullable. The result: most NullPointerExceptions become impossible at compile time. Operators: <code>?.</code> (safe call — returns null if receiver is null), <code>?:</code> (Elvis — fallback for null), <code>!!</code> (force-unwrap, throws if null — code smell).</div>
+
+<pre><code class="language-kotlin">val a: Int = 5            // immutable reference (still mutable object if it's mutable)
+var b: Int = 5            // mutable
+const val PI = 3.14       // compile-time constant; only top-level / object / companion
+val name: String? = null  // nullable
+val len = name?.length ?: 0   // safe call + Elvis
+name?.let { println(it) }     // scope only if non-null
+
+// Smart cast
+fun describe(x: Any) {
+    if (x is String) println(x.length)   // x auto-cast to String here
+}</code></pre>
+
+<div class="callout warn">
+  <span class="label">Avoid <code>!!</code> in production</span>
+  <p>The <code>!!</code> operator throws <code>NullPointerException</code> if null. Acceptable in tests; dangerous in app code. Better: <code>?.let { }</code>, <code>?: error("expected non-null")</code>, or <code>checkNotNull(x) { "msg" }</code> which signals intent.</p>
+</div>
+
+<h3><code>lateinit</code> vs <code>by lazy</code> — interview classic</h3>
+<table>
+<thead><tr><th></th><th><code>lateinit</code></th><th><code>by lazy</code></th></tr></thead>
+<tbody>
+<tr><td>Mutability</td><td>only <code>var</code></td><td>only <code>val</code></td></tr>
+<tr><td>Types</td><td>non-null reference types only (no primitives)</td><td>any type</td></tr>
+<tr><td>Thread safety</td><td>not enforced</td><td>SYNCHRONIZED by default</td></tr>
+<tr><td>Computed</td><td>by you, before first use</td><td>once, on first access</td></tr>
+<tr><td>Use case</td><td>DI fields, view binding, test setUp</td><td>expensive init that may not be needed</td></tr>
+<tr><td>Probe</td><td><code>::field.isInitialized</code></td><td>—</td></tr>
+</tbody>
+</table>
+
+<pre><code class="language-kotlin">class Repo {
+    @Inject lateinit var api: UserApi
+    val cache by lazy { LruCache&lt;String, User&gt;(100) }   // built only when first accessed
+}
+
+// gotcha: lateinit can't be primitive
+class Counter {
+    // lateinit var x: Int   // ❌ won't compile
+    var x: Int by Delegates.notNull()  // ✅
+}</code></pre>
+
+<h2>3. Classes, OOP, and inheritance</h2>
+
+<h3>Class basics — primary constructor, init, secondary</h3>
+<pre><code class="language-kotlin">class User(val id: String, val name: String) {       // primary constructor
+    init { require(id.isNotBlank()) { "id required" } }
+    constructor(name: String) : this(UUID.randomUUID().toString(), name)  // secondary
+}</code></pre>
+
+<h3>Visibility modifiers</h3>
+<ul>
+  <li><code>public</code> (default) — visible everywhere.</li>
+  <li><code>internal</code> — visible within the same Gradle module. <span class="signal">Module boundary</span> — useful in multi-module builds.</li>
+  <li><code>protected</code> — class + subclasses (no top-level use).</li>
+  <li><code>private</code> — file (top-level) or class (member).</li>
+</ul>
+
+<h3>Inheritance — open/final by default</h3>
+<pre><code class="language-kotlin">open class Animal(val name: String) {
+    open fun speak() = println("...")
+}
+class Dog(name: String) : Animal(name) {
+    override fun speak() = println("woof")
+}</code></pre>
+<p>Kotlin classes and functions are <strong>final by default</strong>. Mark <code>open</code> to allow inheritance. This is a deliberate design — <span class="signal-phrase">favor composition over inheritance</span> means you should rarely need <code>open</code> in app code.</p>
+
+<h3>Abstract classes vs interfaces</h3>
+<pre><code class="language-kotlin">interface Repository&lt;T&gt; {
+    fun fetch(): T
+    fun cached(): T = fetch()   // default impl OK in interface
+}
+
+abstract class BaseVm : ViewModel() {
+    abstract val state: StateFlow&lt;UiState&gt;
+    protected fun handleError(e: Throwable) { /* shared */ }
+}</code></pre>
+
+<h3>Data class — <span class="signal">structural equality</span> for free</h3>
+<pre><code class="language-kotlin">data class User(val id: String, val name: String, val email: String?)
+
+val a = User("1", "Anu", "a@x.com")
+val b = a.copy(name = "Anurag")        // generated copy()
+val (id, name, email) = a              // destructuring via componentN()
+println(a == b)                        // structural equality (false)
+println(a === a.copy())                // referential (false)</code></pre>
+
+<div class="callout warn">
+  <span class="label">Data class gotchas</span>
+  <p>(1) Must have at least one constructor parameter. (2) Cannot be <code>abstract</code>, <code>open</code>, <code>sealed</code>, or <code>inner</code>. (3) Non-constructor <code>var</code> properties are NOT included in <code>copy/equals/hashCode</code> — that's a sneaky bug source.</p>
+</div>
+
+<h3>Sealed class / sealed interface</h3>
+<pre><code class="language-kotlin">sealed interface UiState {
+    data object Loading : UiState
+    data class Success(val items: List&lt;Item&gt;) : UiState
+    data class Error(val cause: Throwable) : UiState
+}
+
+fun render(state: UiState) = when (state) {        // exhaustive — compiler enforces
+    UiState.Loading      -&gt; showSpinner()
+    is UiState.Success   -&gt; showItems(state.items)
+    is UiState.Error     -&gt; showError(state.cause)
+}</code></pre>
+<div class="code-explain">Why this pattern wins: each subclass can carry <em>different</em> data (Success has items, Error has a cause). The compiler knows the full set of subclasses and forces you to handle every case in <code>when</code> — so adding a fourth state (e.g., <code>Empty</code>) becomes a <strong>compile error</strong> in every consumer until you handle it. This is the foundation of MVI state modeling: one closed type for "what could the screen possibly be showing right now."</div>
+<p><span class="signal-phrase">Sealed hierarchies for exhaustive when</span> is the foundation of MVI state modeling.</p>
+
+<h3>Object, companion, <code>@JvmStatic</code></h3>
+<pre><code class="language-kotlin">object Singleton {                          // thread-safe lazy singleton
+    fun init() { /* ... */ }
+}
+
+class User private constructor(val id: String) {
+    companion object {                       // also a singleton, accessed via User.create()
+        @JvmStatic fun create(id: String) = User(id)
+    }
+}</code></pre>
+
+<h3>Enum vs sealed class — when to use which</h3>
+<table>
+<thead><tr><th></th><th>Enum</th><th>Sealed class</th></tr></thead>
+<tbody>
+<tr><td>Different state per instance</td><td>limited (same fields)</td><td>each subclass can have unique fields</td></tr>
+<tr><td>Members</td><td>fixed instances</td><td>arbitrary subclasses</td></tr>
+<tr><td>Use case</td><td>finite enumerations: <code>Status.LOADING</code>, <code>Direction.NORTH</code></td><td>state hierarchies with different data</td></tr>
+</tbody>
+</table>
+
+<h3>Inner vs nested class</h3>
+<pre><code class="language-kotlin">class Outer {
+    inner class Inner { fun ref() = this@Outer }   // implicit ref to Outer
+    class Nested { /* no ref to Outer */ }
+}</code></pre>
+<div class="callout warn">
+  <span class="label">Inner class memory leaks</span>
+  <p><code>inner class</code> holds an implicit reference to the outer instance. Common Android leak: an Activity's inner Handler/AsyncTask outliving the Activity. Prefer <code>class Nested</code> (default) and pass references explicitly.</p>
+</div>
+
+<h2>4. Generics — variance and reified</h2>
+
+<h3>Declaration-site variance</h3>
+<pre><code class="language-kotlin">// out — covariant: producer of T
+class Box&lt;out T&gt;(val item: T)
+val animals: Box&lt;Animal&gt; = Box&lt;Dog&gt;(Dog())   // ✅ Box&lt;Dog&gt; is-a Box&lt;Animal&gt;
+
+// in — contravariant: consumer of T
+interface Comparator&lt;in T&gt; { fun compare(a: T, b: T): Int }
+val animalCmp: Comparator&lt;Dog&gt; = AnimalComparator   // ✅</code></pre>
+
+<h3>Reified generics — only inside <code>inline</code> functions</h3>
+<pre><code class="language-kotlin">// without reified — you'd need to pass the Class&lt;T&gt;
+inline fun &lt;reified T&gt; fromJson(json: String): T = gson.fromJson(json, T::class.java)
+
+val user: User = fromJson(jsonString)   // T is known at runtime!</code></pre>
+
+<h2>5. Functions — extensions, infix, operator, default args</h2>
+
+<pre><code class="language-kotlin">// Extension function
+fun String.isEmail(): Boolean = matches(Regex("..."))
+
+// Extension property
+val Int.dp: Float get() = this * Resources.getSystem().displayMetrics.density
+
+// Infix
+infix fun Int.times(action: () -&gt; Unit) { repeat(this) { action() } }
+3 times { println("hi") }
+
+// Operator overload — invoke for use cases
+class GetUserUseCase @Inject constructor(private val repo: UserRepo) {
+    suspend operator fun invoke(id: String): User = repo.fetch(id)
+}
+// usage: getUser(id)   not getUser.execute(id)
+
+// Default + named args
+fun newRequest(
+    url: String,
+    method: String = "GET",
+    timeout: Long = 30_000,
+    retries: Int = 3
+) = Request(url, method, timeout, retries)
+newRequest("/users", retries = 5)</code></pre>
+
+<div class="callout senior">
+  <span class="label">Senior phrase</span>
+  <p>"Extension functions are <strong>statically dispatched</strong> — resolved at compile time based on the static type. A member function with the same signature wins. This is why I avoid extending sealed type hierarchies — easy to write something that looks polymorphic but isn't."</p>
+</div>
+
+<h2>6. Lambdas, higher-order, and <code>inline</code></h2>
+
+<pre><code class="language-kotlin">// Lambda
+val add: (Int, Int) -&gt; Int = { a, b -&gt; a + b }
+
+// Higher-order with single-lambda parameter — trailing lambda syntax
+fun &lt;T&gt; Iterable&lt;T&gt;.eachSafely(action: (T) -&gt; Unit) {
+    forEach { try { action(it) } catch (_: Exception) {} }
+}
+items.eachSafely { send(it) }
+
+// inline — avoids lambda object allocation; supports non-local returns
+inline fun &lt;T&gt; measureMillis(block: () -&gt; T): T {
+    val start = System.nanoTime()
+    return block().also { println((System.nanoTime() - start) / 1_000_000) }
+}
+
+// crossinline — when the lambda must NOT have a non-local return
+inline fun launchWith(crossinline action: () -&gt; Unit) {
+    Thread { action() }.start()   // can't return from outer here
+}
+
+// noinline — opt out for one parameter
+inline fun foo(crossinline a: () -&gt; Unit, noinline b: () -&gt; Unit) { /* ... */ }</code></pre>
+
+<h2>7. Scope functions cheat sheet</h2>
+<table>
+<thead><tr><th>Function</th><th>Receiver</th><th>Returns</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>let</code></td><td><code>it</code></td><td>lambda result</td><td>nullable transform</td></tr>
+<tr><td><code>run</code></td><td><code>this</code></td><td>lambda result</td><td>block on receiver, returns something</td></tr>
+<tr><td><code>with</code></td><td><code>this</code></td><td>lambda result</td><td>group calls on existing object</td></tr>
+<tr><td><code>apply</code></td><td><code>this</code></td><td>the receiver</td><td>builder-style config</td></tr>
+<tr><td><code>also</code></td><td><code>it</code></td><td>the receiver</td><td>side effects, logging</td></tr>
+</tbody>
+</table>
+
+<pre><code class="language-kotlin">val intent = Intent(ctx, Detail::class.java).apply {
+    putExtra("id", noteId)
+    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+}.also { Log.d("nav", "starting $it") }
+
+val email = userInput?.takeIf { it.isNotBlank() }?.let { it.trim().lowercase() } ?: "anon@x.com"</code></pre>
+
+<h2>8. Delegation — both flavors</h2>
+
+<h3>Class delegation — composition over inheritance</h3>
+<pre><code class="language-kotlin">interface UserRepo { suspend fun fetch(id: String): User }
+
+class CachingUserRepo(
+    private val backing: UserRepo
+) : UserRepo by backing {
+    private val cache = mutableMapOf&lt;String, User&gt;()
+    override suspend fun fetch(id: String): User =
+        cache[id] ?: backing.fetch(id).also { cache[id] = it }
+}</code></pre>
+
+<h3>Property delegation</h3>
+<pre><code class="language-kotlin">class Settings(prefs: SharedPreferences) {
+    var darkMode: Boolean by prefs.boolean("dark_mode", false)
+    val deviceId: String by lazy { generateId() }
+    var name: String by Delegates.observable("") { _, old, new -&gt;
+        log("name $old -&gt; $new")
+    }
+}</code></pre>
+
+<h2>9. Collections — Kotlin idioms</h2>
+<pre><code class="language-kotlin">val nums = listOf(1, 2, 3, 4, 5)
+nums.filter { it % 2 == 0 }.map { it * it }.sum()              // 20
+nums.fold(0) { acc, n -&gt; acc + n }                              // 15
+nums.groupBy { it % 2 }                                         // {1=[1,3,5], 0=[2,4]}
+nums.partition { it &gt; 2 }                                       // ([3,4,5], [1,2])
+nums.windowed(3, step = 1)                                      // [[1,2,3],[2,3,4],[3,4,5]]
+nums.chunked(2)                                                 // [[1,2],[3,4],[5]]
+nums.zipWithNext()                                              // [(1,2),(2,3),(3,4),(4,5)]
+nums.associate { it to it * it }                                // {1=1, 2=4, 3=9, 4=16, 5=25}
+nums.asSequence().filter { it &gt; 2 }.map { it * 2 }.toList()    // lazy chain</code></pre>
+
+<div class="callout tip">
+  <span class="label">Sequence vs Iterable</span>
+  <p><strong>Iterable</strong>: each operator allocates a new list. <strong>Sequence</strong>: lazy, terminal-driven. Use Sequences for big collections with multiple intermediate ops; for small collections, plain Iterable is faster (no overhead).</p>
+</div>
+
+<h2>10. Equality and identity</h2>
+<pre><code class="language-kotlin">data class P(val x: Int)
+val a = P(1); val b = P(1)
+a == b      // true  (calls equals)  — structural
+a === b     // false (different objects) — referential
+a == a.copy()   // true
+a === a.copy()  // false</code></pre>
+
+<h2>11. Value classes (formerly inline classes)</h2>
+<pre><code class="language-kotlin">@JvmInline
+value class UserId(val raw: String)
+
+@JvmInline
+value class Email(val raw: String) {
+    init { require(raw.contains("@")) { "invalid email" } }
+}
+
+fun fetch(id: UserId, email: Email) { /* type-safe; no boxing at runtime when erasable */ }</code></pre>
+<p>Value classes wrap a single value with <strong>no runtime overhead</strong> in most cases. Use them for type-safe primitives — preventing "<code>fetch(email, userId)</code>" mix-ups at compile time.</p>
+
+<h2>12. <code>typealias</code></h2>
+<pre><code class="language-kotlin">typealias OnUserSelected = (User) -&gt; Unit
+typealias UserMap = Map&lt;UserId, User&gt;
+
+fun render(map: UserMap, onClick: OnUserSelected) { /* ... */ }</code></pre>
+
+<h2>13. Functional patterns: <code>Result</code> and <code>runCatching</code></h2>
+<pre><code class="language-kotlin">val r: Result&lt;User&gt; = runCatching { repo.fetch(id) }
+r.onSuccess { user -&gt; bind(user) }
+ .onFailure { e -&gt; showError(e) }
+val u = r.getOrElse { fallback }</code></pre>
+<p>Don't return <code>Result&lt;T&gt;</code> from public APIs — Kotlin's official guidance is to prefer sealed classes for domain results. <code>runCatching</code> is fine internally for catching-and-mapping.</p>
+
+<h2>14. Spot the bug — drills (try first, then expand)</h2>
+
+<details class="qa">
+<summary>Drill 1 — what's wrong?</summary>
+<div class="qa-body">
+<pre><code class="language-kotlin">data class User(val id: String) {
+    var lastSeen: Long = 0
+}
+val a = User("1"); a.lastSeen = 100
+val b = User("1"); b.lastSeen = 200
+println(a == b)  // ?</code></pre>
+<p><strong>Answer:</strong> Prints <code>true</code>. <code>lastSeen</code> is a <code>var</code> body property — NOT in the primary constructor — so it's NOT included in generated <code>equals</code>/<code>hashCode</code>/<code>copy</code>. This is a notorious bug source. Fix by moving <code>lastSeen</code> into the constructor (<code>data class User(val id: String, var lastSeen: Long = 0)</code>) or making it <code>val</code> in the body if it's truly derived.</p>
+</div></details>
+
+<details class="qa">
+<summary>Drill 2 — type inference</summary>
+<div class="qa-body">
+<pre><code class="language-kotlin">val list = listOf(1, "a", 3.14)
+// what is list's type?</code></pre>
+<p><strong>Answer:</strong> <code>List&lt;Any&gt;</code>. The least-common-supertype is <code>Any</code> (or <code>Comparable&lt;*&gt; &amp; java.io.Serializable</code> in Kotlin's older inference). Avoid this — be explicit.</p>
+</div></details>
+
+<details class="qa">
+<summary>Drill 3 — null safety</summary>
+<div class="qa-body">
+<pre><code class="language-kotlin">fun greet(name: String?) {
+    if (name != null) {
+        Thread { println(name.length) }.start()  // compile error?
+    }
+}</code></pre>
+<p><strong>Answer:</strong> Compile error. Smart cast to non-null requires that the variable can't change between check and use. Inside a lambda passed to another thread, Kotlin can't prove that — <code>name</code> could be reassigned (it can't here, it's a parameter — but smart-cast is conservative across closure boundaries for <code>var</code>; for <code>val</code>/parameter it actually works in many cases). The safe form: <code>name?.let { Thread { println(it.length) }.start() }</code>.</p>
+</div></details>
+
+<details class="qa">
+<summary>Drill 4 — extension dispatch</summary>
+<div class="qa-body">
+<pre><code class="language-kotlin">open class A { open fun hi() = "A" }
+class B : A() { override fun hi() = "B" }
+fun A.greet() = "Hi from A"
+fun B.greet() = "Hi from B"
+val a: A = B()
+println(a.hi())     // ?
+println(a.greet())  // ?</code></pre>
+<p><strong>Answer:</strong> <code>"B"</code> then <code>"Hi from A"</code>. Member functions are <strong>dynamically dispatched</strong> (virtual). Extension functions are <strong>statically dispatched</strong> based on the declared type — <code>a</code> is declared <code>A</code>, so <code>A.greet()</code> wins.</p>
+</div></details>
+
+<details class="qa">
+<summary>Drill 5 — equality of nullable</summary>
+<div class="qa-body">
+<pre><code class="language-kotlin">val x: String? = null
+val y: String? = null
+println(x == y)
+println(x === y)</code></pre>
+<p><strong>Answer:</strong> Both <code>true</code>. <code>==</code> on nulls returns true (both are null). <code>===</code> on nulls returns true because there's only one <code>null</code> reference.</p>
+</div></details>
+
+<details class="qa">
+<summary>Drill 6 — lambda capture</summary>
+<div class="qa-body">
+<pre><code class="language-kotlin">fun makeCounter(): () -&gt; Int {
+    var i = 0
+    return { i++ }
+}
+val c = makeCounter()
+println(c()); println(c()); println(c())</code></pre>
+<p><strong>Answer:</strong> <code>0</code>, <code>1</code>, <code>2</code>. The lambda <strong>captures the variable by reference</strong>, not the value. In Kotlin, the var is wrapped in a <code>Ref.IntRef</code> object so the lambda mutates the shared state. (Same as Java's effectively-final closure but with mutability via the Ref wrapper.)</p>
+</div></details>
+
+<details class="qa">
+<summary>Drill 7 — apply vs also</summary>
+<div class="qa-body">
+<pre><code class="language-kotlin">val intent = Intent().apply {
+    putExtra("k", "v")
+    setAction("X")
+}.also {
+    Log.d("tag", "$it")   // it is the Intent
+}</code></pre>
+<p><strong>Answer:</strong> Compiles fine. Inside <code>apply</code>, <code>this</code> is the Intent; inside <code>also</code>, <code>it</code> is the Intent. Both return the receiver. Common pattern: <code>apply</code> for config, <code>also</code> for logging/side effects in a chain.</p>
+</div></details>
+
+<details class="qa">
+<summary>Drill 8 — when exhaustiveness</summary>
+<div class="qa-body">
+<pre><code class="language-kotlin">sealed class Result&lt;out T&gt; {
+    data class Ok&lt;T&gt;(val value: T) : Result&lt;T&gt;()
+    data class Err(val msg: String) : Result&lt;Nothing&gt;()
+}
+fun &lt;T&gt; render(r: Result&lt;T&gt;) {
+    when (r) {                  // is this exhaustive?
+        is Result.Ok -&gt; show(r.value)
+    }
+}</code></pre>
+<p><strong>Answer:</strong> NOT exhaustive — missing <code>Err</code>. Compiler will warn (or error if you assign <code>when</code> to a value). Fixing: add <code>is Result.Err -&gt; showError(r.msg)</code>. Bonus: notice <code>Err</code> uses <code>Result&lt;Nothing&gt;</code> — <code>Nothing</code> is a subtype of every type, enabling the covariant <code>out T</code>.</p>
+</div></details>
+
+<details class="qa">
+<summary>Drill 9 — companion + @JvmStatic</summary>
+<div class="qa-body">
+<pre><code class="language-kotlin">class Logger {
+    companion object {
+        fun create() = Logger()       // Java: Logger.Companion.create()
+        @JvmStatic fun build() = Logger()   // Java: Logger.build()
+    }
+}</code></pre>
+<p><strong>Answer:</strong> Without <code>@JvmStatic</code>, Java callers must go through <code>Logger.Companion</code>. With it, the function is also exposed as a true <code>static</code> method on the outer class — cleaner Java interop.</p>
+</div></details>
+
+<details class="qa">
+<summary>Drill 10 — string templates</summary>
+<div class="qa-body">
+<pre><code class="language-kotlin">val name = "Anu"
+println("Hello $name, ${name.length} chars")</code></pre>
+<p><strong>Answer:</strong> <code>Hello Anu, 3 chars</code>. <code>$x</code> for simple identifiers; <code>${expr}</code> for expressions. Note: this compiles to <code>StringBuilder.append</code>, not String concatenation — slightly more efficient than Java's <code>"Hello " + name + ...</code> for complex templates.</p>
+</div></details>
+
+<h2>15. OOP recipe — the senior way</h2>
+
+<div class="callout signal-box">
+  <span class="label">Senior framing for "design a class"</span>
+  <p><strong>(1)</strong> Start with an <em>interface</em> describing intent. <strong>(2)</strong> Implement it in a class with constructor injection. <strong>(3)</strong> Make the class <code>internal</code> if it's an impl detail. <strong>(4)</strong> Keep state immutable where possible (<code>data class</code> + <code>copy</code>). <strong>(5)</strong> Use <code>sealed</code> for closed type hierarchies, <code>open</code> sparingly.</p>
+</div>
+
+<pre><code class="language-kotlin">interface AnalyticsTracker {
+    fun screen(name: String, props: Map&lt;String, Any&gt; = emptyMap())
+    fun event(name: String, props: Map&lt;String, Any&gt; = emptyMap())
+}
+
+internal class NewRelicTracker @Inject constructor(
+    private val nrApi: NewRelicApi,
+    @IoDispatcher private val io: CoroutineDispatcher
+) : AnalyticsTracker {
+    override fun screen(name: String, props: Map&lt;String, Any&gt;) {
+        // dispatched off-main; failures logged, never thrown
+    }
+    /* ... */
+}
+
+class AnalyticsHub @Inject constructor(
+    private val trackers: Set&lt;@JvmSuppressWildcards AnalyticsTracker&gt;
+) : AnalyticsTracker {
+    override fun screen(name: String, props: Map&lt;String, Any&gt;) =
+        trackers.forEach { runCatching { it.screen(name, props) } }
+    /* ... */
+}</code></pre>
+
+<h2>16. Final senior checklist for Kotlin questions</h2>
+<ul>
+  <li>Can you explain <span class="signal">smart cast</span>, <span class="signal">extension dispatch</span>, and <span class="signal">structural vs referential equality</span> without notes?</li>
+  <li>Can you justify <span class="signal">sealed</span> over <code>enum</code>, and <code>data class</code> over plain class?</li>
+  <li>Can you sketch a <span class="signal-phrase">value class</span> wrapping a userId and explain when it boxes?</li>
+  <li>Do you have one <code>by lazy</code> example and one <code>lateinit</code> example you've actually shipped?</li>
+  <li>Can you explain why <code>!!</code> is a code smell and what to use instead?</li>
+  <li>Have you tried Drills 1, 4, and 8 above without looking at the answer?</li>
+</ul>
+
+<div class="footer">Next: <a href="coroutines.html">Coroutines & Flows →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

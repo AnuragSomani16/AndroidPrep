@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Recent Releases — Android &amp; Compose · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>Recent Releases — Android &amp; Compose</h1>
+<p class="lead">What changed in the last three Android platform releases (14 / 15 / 16) and the recent Compose BOMs. The "what does this mean in practice for a senior" framing — drop these in TR3/TR4 to signal you keep current.</p>
+
+<div class="callout warn">
+  <span class="label">Verify before quoting numbers</span>
+  <p>Specific API names, deprecation dates, and behavior gates can shift between betas and stable releases. Use this as a structural map; for an authoritative current state, check <a href="https://developer.android.com/about/versions">developer.android.com/about/versions</a> and the Compose <a href="https://developer.android.com/jetpack/androidx/releases/compose">release notes</a>.</p>
+</div>
+
+<h2>Android 14 (API 34) — released October 2023</h2>
+
+<div class="definition"><strong>Theme of the release:</strong> tightening foreground service rules, granular media access, and predictive back as a first-class developer feature.</div>
+
+<h3>Foreground service types — now mandatory</h3>
+<p>Apps targeting API 34 must declare a <code>foregroundServiceType</code> for every <code>startForeground()</code> call. Examples: <code>mediaPlayback</code>, <code>location</code>, <code>dataSync</code>, <code>connectedDevice</code>, <code>shortService</code>, <code>specialUse</code>. Each type has its own permissions and runtime restrictions.</p>
+<pre><code class="language-kotlin">// AndroidManifest
+&lt;service android:name=".PlaybackService"
+    android:foregroundServiceType="mediaPlayback" /&gt;
+
+&lt;uses-permission android:name="android.permission.FOREGROUND_SERVICE" /&gt;
+&lt;uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" /&gt;</code></pre>
+<p><strong>What this means:</strong> a music app needs <code>FOREGROUND_SERVICE_MEDIA_PLAYBACK</code>; misclassifying or omitting throws <code>SecurityException</code>. Audit every <code>startForeground</code> call.</p>
+
+<h3>Partial Photo Picker access</h3>
+<p>Users can grant access to a subset of photos rather than the whole library. New <code>READ_MEDIA_VISUAL_USER_SELECTED</code> permission flow.</p>
+<p><strong>What this means:</strong> avoid demanding full media access — use the <strong>Photo Picker</strong> system component, which doesn't need a permission at all and respects user choice automatically.</p>
+
+<h3>Predictive back gesture — opt in</h3>
+<p>Users see a peek of the underlying screen as they swipe back. Apps opt in via <code>android:enableOnBackInvokedCallback="true"</code>. The legacy <code>OnBackPressedCallback</code> works alongside but doesn't show the predictive animation.</p>
+
+<h3>Granular media permissions (carried from 13)</h3>
+<p><code>READ_MEDIA_IMAGES</code>, <code>READ_MEDIA_VIDEO</code>, <code>READ_MEDIA_AUDIO</code> instead of one <code>READ_EXTERNAL_STORAGE</code>.</p>
+
+<h3>Other notable A14 items</h3>
+<ul>
+  <li><strong>Per-app language preferences</strong> — production stable; users override the system locale per app.</li>
+  <li><strong>OpenJDK 17</strong> — apps can use Java 17 source-level features.</li>
+  <li><strong>App store rules</strong> — apps installed from store must support API 23+; lower targets blocked.</li>
+  <li><strong>Health Connect</strong> as part of the platform (no separate APK needed).</li>
+  <li><strong>Cross-profile contacts</strong> — work-profile contact merge.</li>
+</ul>
+
+<h2>Android 15 (API 35) — released October 2024</h2>
+
+<div class="definition"><strong>Theme of the release:</strong> edge-to-edge becomes default, predictive back becomes default, and stricter rules for apps that target API 35.</div>
+
+<h3>Edge-to-edge enforced</h3>
+<p>Apps targeting API 35 are <strong>edge-to-edge by default</strong>. <code>android:fitsSystemWindows</code> stops being honored automatically; the system bars don't insets your content unless you handle it.</p>
+<p><strong>What this means:</strong> every Activity must use <code>WindowCompat.setDecorFitsSystemWindows(window, false)</code> (already implicit on API 35) and apply <code>WindowInsets</code> on its root layout / Compose tree (<code>Modifier.systemBarsPadding()</code>, <code>Modifier.safeDrawingPadding()</code>, etc.). Forget this and your content goes under the status/nav bars.</p>
+
+<pre><code class="language-kotlin">// Compose — handle insets explicitly
+Column(modifier = Modifier
+    .fillMaxSize()
+    .systemBarsPadding()      // pad both top + bottom system bars
+    .imePadding()              // pad the keyboard when it's up
+) { /* content */ }</code></pre>
+
+<h3>Predictive back — default for new targets</h3>
+<p>Apps targeting API 35 get predictive back animations <strong>without opt-in</strong>. The <code>android:enableOnBackInvokedCallback="true"</code> manifest flag is the new default for these apps.</p>
+
+<h3>16 KB page size support</h3>
+<p>Android 15 supports devices with 16 KB memory page sizes (vs. the historical 4 KB). Native libraries (.so) must be aligned to 16 KB or they fail to load on these devices.</p>
+<p><strong>What this means:</strong> if you ship native code (NDK), rebuild with the AGP / NDK that produces 16 KB-aligned libs. Pure Kotlin/Java apps are unaffected.</p>
+
+<h3>Partial Screen Sharing</h3>
+<p>New <code>MediaProjection</code> APIs let users share <em>a single app</em> instead of the whole screen. Better privacy, easier integration.</p>
+
+<h3>In-app camera controls</h3>
+<p>Camera2 / CameraX gain low-light boost, in-app extension control, more precise exposure controls. Useful if your app does any camera capture.</p>
+
+<h3>Other notable A15 items</h3>
+<ul>
+  <li><strong>App archiving</strong> via the system package installer — Play can offload unused apps.</li>
+  <li><strong>Notification cooldown</strong> — system attenuates noisy notification streams.</li>
+  <li><strong>Stronger app signature</strong> requirements for v3.1+ block downgrade attacks.</li>
+  <li><strong>Foreground service</strong> launch restrictions tightened — even <code>dataSync</code> has stricter rules around starting from background.</li>
+  <li><strong>Selectable Text in Compose</strong> stabilizations (<code>SelectionContainer</code> performance).</li>
+</ul>
+
+<h3>Sample edge-to-edge migration</h3>
+<pre><code class="language-kotlin">// Before (Android &lt; 15) — content fits below status bar by default
+class MainActivity : ComponentActivity() {
+    override fun onCreate(b: Bundle?) {
+        super.onCreate(b)
+        setContent { MyApp() }
+    }
+}
+
+// After (Android 15 target) — must explicitly handle insets
+class MainActivity : ComponentActivity() {
+    override fun onCreate(b: Bundle?) {
+        super.onCreate(b)
+        WindowCompat.setDecorFitsSystemWindows(window, false)  // explicit, even though it's the default on 35
+        setContent {
+            Box(Modifier.fillMaxSize().systemBarsPadding()) {
+                MyApp()
+            }
+        }
+    }
+}</code></pre>
+
+<h2>Android 16 (API 36) — released 2025</h2>
+
+<div class="definition"><strong>Theme of the release:</strong> Material 3 Expressive — a new emphasis on motion, shape, and personality across the system. Plus continued tightening of background restrictions and adaptive performance APIs.</div>
+
+<h3>Material 3 Expressive</h3>
+<p>An expanded design language with more motion, larger shape variation, and richer typography hierarchies. Components like <code>FloatingActionButton</code>, <code>NavigationBar</code>, and dialogs gain emphasis variants.</p>
+<p><strong>What this means:</strong> Material 3 stays compatible — the Expressive variants are additive. You'll see new APIs in <code>androidx.compose.material3</code> for motion-rich containers and shape-shifting components.</p>
+
+<h3>Adaptive Refresh Rate</h3>
+<p>System more aggressively chooses display refresh rate based on content. Apps that animate at fixed rates can hint via <code>Surface</code> / <code>SurfaceView</code> APIs.</p>
+<p><strong>What this means:</strong> for video / scrolling apps, smoother on high-refresh devices; potentially more battery savings on static screens.</p>
+
+<h3>PdfRenderer enhancements</h3>
+<p>Stronger PDF rendering primitives in the platform, including form-field handling and better text extraction.</p>
+
+<h3>Foreground service restrictions continued</h3>
+<p>Each cycle tightens the rules around when an app can <em>start</em> a foreground service from the background. By API 36, apps must be in a "valid" state (recent user interaction, FCM, etc.) to start most service types. Plan WorkManager-first.</p>
+
+<h3>Other notable A16 items</h3>
+<ul>
+  <li><strong>Adaptive layouts</strong> — better support for foldables and large screens via window size class APIs.</li>
+  <li><strong>Improved auto-fill</strong> for Compose — system can fill text fields and credit-card inputs more reliably.</li>
+  <li><strong>Accessibility</strong> — more granular semantics for Compose screens; system actions for dynamic content.</li>
+</ul>
+
+<h2>Compose BOM — recent highlights</h2>
+
+<div class="definition"><strong>BOM (Bill of Materials)</strong> = a meta-package that locks all Compose artifacts to consistent versions. Bumping the BOM brings the whole stack forward together.</div>
+
+<h3>Compose BOM 2024.10 (Compose 1.7.x) — October 2024</h3>
+<ul>
+  <li><strong>Strong Skipping Mode is now the default</strong> — Compose Compiler treats more types as stable automatically (including types with stable val fields). <strong>Means less need for <code>@Stable</code> / <code>@Immutable</code> annotations</strong>; recomposition skipping is more aggressive.</li>
+  <li><strong>Drag-and-drop API stable</strong> — system-wide drag-and-drop with a Compose-friendly API.</li>
+  <li><strong>LookaheadScope improvements</strong> — for shared element transitions and bounds-aware layouts.</li>
+  <li><strong><code>Modifier.animateBounds()</code></strong> — implicit animation of size/position changes.</li>
+  <li><strong>Improved nested-scroll performance</strong>.</li>
+  <li><strong>AnimatedContent</strong> with default <code>contentTransform</code> — less ceremony for simple transitions.</li>
+</ul>
+
+<h3>Compose BOM 2024.12 — December 2024</h3>
+<ul>
+  <li><strong><code>ContextualFlowRow</code> / <code>ContextualFlowColumn</code></strong> — flow layouts that can show "+N more" overflow indicators.</li>
+  <li><strong>Performance regression fixes</strong> from 1.7.</li>
+  <li><strong>Pager</strong> stability improvements.</li>
+</ul>
+
+<h3>Compose BOM 2025.x (Compose 1.8) — early 2025</h3>
+<ul>
+  <li><strong>Auto-fill</strong> first-class API for Compose text fields.</li>
+  <li><strong>Adaptive layouts library</strong> stabilization — supports list-detail, supporting-pane, three-pane layouts that adapt to window size class.</li>
+  <li><strong>Performance</strong> — further reductions in recomposition cost; smaller bytecode generated by the compiler.</li>
+  <li><strong>Compose UI testing</strong> improvements — better semantics handling, faster test execution.</li>
+</ul>
+
+<h2>What this means for senior interviews</h2>
+
+<div class="callout senior">
+  <span class="label">Drop these naturally</span>
+  <ul>
+    <li>"Targeting Android 15 means I have to handle <span class="signal-phrase">edge-to-edge by default</span> — explicit <code>systemBarsPadding</code> on roots."</li>
+    <li>"Foreground services need <span class="signal-phrase">typed declarations</span> since 14, and starting them from background is increasingly restricted — I default to WorkManager."</li>
+    <li>"<span class="signal-phrase">Strong Skipping Mode in Compose 1.7</span> reduces the need for stability annotations — I still mark <code>@Immutable</code> for clarity but the compiler is smarter now."</li>
+    <li>"<span class="signal-phrase">16 KB page size support</span> is a quiet but important Android 15 thing — if we ship native libs we have to verify alignment."</li>
+    <li>"<span class="signal-phrase">Predictive back is default in API 35 targets</span> — old <code>onBackPressed</code> overrides should migrate to <code>OnBackPressedCallback</code>."</li>
+  </ul>
+</div>
+
+<h2>Migration checklist when bumping <code>targetSdk</code></h2>
+<ol>
+  <li>Audit every <code>startForeground()</code> — declare types, request matching permissions.</li>
+  <li>Apply edge-to-edge insets to all root layouts / Compose trees.</li>
+  <li>Migrate <code>onBackPressed</code> to <code>OnBackPressedCallback</code> + <code>enableOnBackInvokedCallback</code>.</li>
+  <li>If shipping NDK, rebuild for 16 KB page size.</li>
+  <li>Replace <code>READ_EXTERNAL_STORAGE</code> with granular media permissions or Photo Picker.</li>
+  <li>Test foreground service start from each app state (foreground / recent / cold).</li>
+  <li>Re-record Baseline Profiles — code paths that JIT'd may have changed.</li>
+  <li>Run Compose Compiler reports — Strong Skipping may surface or hide previous issues.</li>
+</ol>
+
+<h2>Compose API stabilizations worth knowing</h2>
+
+<table>
+<thead><tr><th>API</th><th>Stable since</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>collectAsStateWithLifecycle</code></td><td>lifecycle-runtime-compose 2.6+</td><td>Lifecycle-aware Flow collection in Compose</td></tr>
+<tr><td><code>animateBounds</code></td><td>Compose 1.7</td><td>Implicit size/position animation</td></tr>
+<tr><td><code>SharedTransitionLayout</code></td><td>Compose 1.7</td><td>Shared element transitions across screens</td></tr>
+<tr><td><code>ContextualFlowRow</code></td><td>Compose 1.7</td><td>Flow layouts with overflow indicators</td></tr>
+<tr><td><code>Strong Skipping Mode</code></td><td>Compose 1.7 default</td><td>Compiler skips unchanged composables more aggressively</td></tr>
+<tr><td>Type-safe Navigation</td><td>nav-compose 2.8</td><td><code>@Serializable</code> data classes as routes</td></tr>
+<tr><td><code>PaneScaffold</code> / adaptive layouts</td><td>material3-adaptive 1.0 (~2025)</td><td>List-detail, supporting-pane responsive scaffolds</td></tr>
+<tr><td><code>AsyncImage</code> Compose-native</td><td>Coil 2.x stable</td><td>Image loading with crossfade, placeholder, error</td></tr>
+</tbody>
+</table>
+
+<h2>Quick references</h2>
+<ul>
+  <li><a href="https://developer.android.com/about/versions/14/summary">Android 14 features &amp; APIs</a></li>
+  <li><a href="https://developer.android.com/about/versions/15/summary">Android 15 features &amp; APIs</a></li>
+  <li><a href="https://developer.android.com/jetpack/androidx/releases/compose">Compose release notes</a></li>
+  <li><a href="https://developer.android.com/jetpack/androidx/releases/compose-bom">Compose BOM versions</a></li>
+</ul>
+
+<div class="footer">Use this as the "I keep current with the platform" tell in TR3/TR4. <a href="index.html">← Overview</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

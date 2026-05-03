@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HLD / LLD / Architectures · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>HLD / LLD / Architectures</h1>
+<p class="lead">A senior's 6-step framework, plus full walk-throughs: <span class="signal">Tubi-style streaming app</span>, <span class="signal">Image loader (Glide-clone)</span>, <span class="signal">Offline notes</span>, <span class="signal">Chat client</span>, <span class="signal">Analytics in Compose &amp; XML</span>, <span class="signal">Full playlist DB</span>, <span class="signal">Push pipeline</span>, <span class="signal">Photo upload</span>.</p>
+
+<div class="buzzwords">
+  <span>clarify scope first</span>
+  <span>functional vs non-functional</span>
+  <span>data model + API contract</span>
+  <span>tradeoff articulation</span>
+  <span>dependency inversion at boundaries</span>
+  <span>idempotency keys</span>
+  <span>conflict resolution</span>
+  <span>cursor pagination</span>
+  <span>backpressure on producers</span>
+  <span>SDUI for layout flexibility</span>
+</div>
+
+<h2>1. The 6-step framework — never skip step 1</h2>
+
+<ol>
+  <li><strong>Clarify scope</strong> — "When you say 'X', do you mean Y or Z? Scale? Online/offline? Platforms?" (5–8 minutes)</li>
+  <li><strong>Functional + non-functional reqs</strong> — features, latency, offline, scale, accessibility.</li>
+  <li><strong>Data model + API contract</strong> — what does the input/output look like.</li>
+  <li><strong>Sketch the architecture</strong> — boxes, modules, data flow.</li>
+  <li><strong>Deep dive</strong> — pick the part the interviewer cares about, go 3 layers deep on tradeoffs.</li>
+  <li><strong>Iterate</strong> — "what if X fails?" / "how to scale 10×?"</li>
+</ol>
+
+<div class="callout senior">
+  <span class="label">Senior phrase to open every design</span>
+  <p>"Before I start drawing, can I clarify a few things? It'll change the design significantly: <strong>(1)</strong> What's the scale? <strong>(2)</strong> Online-only or offline-capable? <strong>(3)</strong> Is real-time required? <strong>(4)</strong> Platforms — phone only, or tablet/TV/web? <strong>(5)</strong> Auth — anonymous, social, full account?"</p>
+</div>
+
+<h2>2. Mobile-specific dimensions to clarify</h2>
+<ul>
+  <li>Online-only or <strong>offline-first</strong>? Offline-first changes everything (Room as source of truth, sync engine, conflict resolution).</li>
+  <li>Real-time? WebSocket / SSE / FCM push.</li>
+  <li>Multi-device sync? Phone + tablet + TV — what's authoritative?</li>
+  <li>Pagination? Cursor (preferred) vs page-number.</li>
+  <li>Caching? Cache-aside, read-through, write-through, write-behind.</li>
+  <li>Auth? OAuth (PKCE on mobile), refresh rotation, session expiry.</li>
+  <li>Background work? WorkManager, foreground service, push.</li>
+</ul>
+
+<h2>3. HLD — Tubi-style streaming app (THE one for FOX)</h2>
+
+<h3>Step 1 — clarify</h3>
+<ul>
+  <li>"Free ad-supported, like Tubi?" (Yes, AVOD).</li>
+  <li>"VOD only or live?" (mostly VOD, some live news/sports).</li>
+  <li>"Targets — phone/tablet/TV/web?" (all).</li>
+  <li>"Offline downloads?" (premium feature, optional).</li>
+  <li>"Personalization?" (yes, recommendation rows).</li>
+  <li>"Scale?" (millions DAU, 100Ks concurrent at peak).</li>
+</ul>
+
+<h3>Step 2 — requirements</h3>
+<p><strong>Functional</strong>: browse rows of categories, watch with ads (SSAI), sign-in (optional), continue-watching, search, personalized rows, captions, audio tracks.</p>
+<p><strong>Non-functional</strong>: cold start &lt; 1.5s, time-to-first-frame &lt; 2s, 60fps row scrolling on low-end TVs, offline-friendly browsing, 99.9% playback success.</p>
+
+<h3>Step 3 — module map</h3>
+<pre><code>:app                      (Hilt graph + entry activity)
+
+:feature
+   :home                  (rows, browse)
+   :player                (player + ad lifecycle)
+   :search
+   :profile               (continue-watching, settings)
+   :auth                  (OAuth + PKCE)
+
+:core
+   :ui-design-system      (theme, common composables)
+   :network               (Retrofit, OkHttp, auth interceptors)
+   :data                  (Room, DataStore)
+   :player                (ExoPlayer/Media3 wrapper, DRM, ABR)
+   :ads                   (SSAI client, beacon fire)
+   :analytics             (event ingestion + telemetry)
+   :common                (utilities)</code></pre>
+
+<h3>Step 4 — data flow</h3>
+<pre><code>┌─ App start ───────────────────────────────┐
+│  AuthInterceptor adds Bearer token        │
+│  TokenAuthenticator refreshes on 401      │
+└───────────────────────────────────────────┘
+       ↓
+┌─ Home screen ─────────────────────────────┐
+│  GET /home-layout → SDUI rows             │  ← server-driven UI, can change layout w/o release
+│  Cache: OkHttp HTTP cache + Room          │
+│  Personalized rows from /recs             │
+└───────────────────────────────────────────┘
+       ↓ user clicks an item
+┌─ Player ──────────────────────────────────┐
+│  GET /playback/{id} →                     │
+│    { manifestUrl, drmLicenseUrl, adPodUrl }│
+│  ExoPlayer + Widevine + HLS+CMAF          │
+│  SSAI: ads stitched in stream             │
+│  BeaconTracker: fire quartiles            │
+│  Continue-watching: POST /progress every 30s│
+└───────────────────────────────────────────┘</code></pre>
+
+<h3>Step 5 — deep dives interviewer might ask</h3>
+
+<h4>A. Player architecture</h4>
+<p>See the dedicated <a href="player.html">player page</a>. Wrap ExoPlayer in <code>PlayerController</code>; Widevine via <code>DrmConfiguration</code>; ABR via <code>DefaultTrackSelector</code>; SSAI ads stitched into the stream; beacons fire on quartiles.</p>
+
+<h4>B. Continue Watching</h4>
+<pre><code class="language-kotlin">// Local DB stores progress: (userId, contentId, positionMs, lastWatchedAt)
+@Entity data class WatchProgress(
+    @PrimaryKey val contentId: String,
+    val positionMs: Long,
+    val durationMs: Long,
+    val lastWatchedAt: Long,
+    val syncStatus: String   // SYNCED / PENDING
+)
+
+// Player ticks every 30s while playing → write to DB, queue sync
+class ProgressTracker(private val dao: WatchDao, private val api: ApiClient) {
+    fun track(contentId: String, currentMs: Long, durationMs: Long) {
+        scope.launch {
+            dao.upsert(WatchProgress(contentId, currentMs, durationMs, now(), "PENDING"))
+            runCatching { api.postProgress(contentId, currentMs) }
+                .onSuccess { dao.markSynced(contentId) }
+        }
+    }
+}
+// Home screen reads from DAO → continue-watching row populated even offline.</code></pre>
+
+<h4>C. Recommendations / personalized rows (SDUI)</h4>
+<pre><code class="language-kotlin">// Server returns:
+{
+  "modules": [
+    { "type": "carousel", "title": "Trending", "items": [...] },
+    { "type": "hero",     "title": "Featured",  "items": [...] },
+    { "type": "rail",     "title": "Sports",    "items": [...] }
+  ]
+}
+
+// Client renders generically:
+sealed interface HomeModule {
+    data class Carousel(val items: List&lt;Item&gt;) : HomeModule
+    data class Hero(val items: List&lt;Item&gt;) : HomeModule
+    data class Rail(val title: String, val items: List&lt;Item&gt;) : HomeModule
+}
+
+LazyColumn {
+    items(modules) { module -&gt;
+        when (module) {
+            is HomeModule.Carousel -&gt; CarouselRow(module.items)
+            is HomeModule.Hero -&gt; HeroBanner(module.items)
+            is HomeModule.Rail -&gt; RailRow(module.title, module.items)
+        }
+    }
+}</code></pre>
+
+<h4>D. Auth (OAuth 2.0 + PKCE)</h4>
+<p>See <a href="networking.html">networking page</a>. Tokens in EncryptedSharedPreferences; Authenticator dedupes refreshes via Mutex.</p>
+
+<h4>E. Analytics — event-based, batched</h4>
+<p>See section 7 on this page.</p>
+
+<h2>4. LLD — Image Loader (Glide / Coil clone)</h2>
+
+<h3>Clarify</h3>
+<ul>
+  <li>Memory + disk cache?</li>
+  <li>Cancel on view recycle?</li>
+  <li>Transformations (round, blur, resize)?</li>
+  <li>Placeholder + error?</li>
+  <li>Priority (visible items first)?</li>
+</ul>
+
+<h3>Architecture</h3>
+<pre><code>ImageRequest (url, target, transformations, placeholder)
+    ↓
+RequestQueue (dedupe by key, prioritize)
+    ↓
+Memory cache (LruCache&lt;Key, Bitmap&gt;) ── hit → bind to target
+    ↓ miss
+Disk cache (LRU on disk) ── hit → decode → bind, also store in memory
+    ↓ miss
+Network (OkHttp) → decode → store both caches → bind</code></pre>
+
+<h3>API + key</h3>
+<pre><code class="language-kotlin">data class ImageRequest(
+    val url: String,
+    val target: ImageView,
+    val width: Int,
+    val height: Int,
+    val transformations: List&lt;Transform&gt; = emptyList(),
+    val placeholder: Int? = null,
+    val error: Int? = null
+)
+
+// Cache key includes size + transforms (different sizes ≠ same cache entry)
+data class CacheKey(
+    val url: String,
+    val w: Int, val h: Int,
+    val transforms: List&lt;String&gt;
+)</code></pre>
+
+<h3>Skeleton</h3>
+<pre><code class="language-kotlin">class ImageLoader(
+    private val memoryCache: LruCache&lt;CacheKey, Bitmap&gt;,
+    private val diskCache: DiskLruCache,
+    private val client: OkHttpClient,
+    private val ioScope: CoroutineScope
+) {
+    private val activeRequests = mutableMapOf&lt;ImageView, Job&gt;()
+
+    fun load(req: ImageRequest) {
+        cancel(req.target)
+        val key = req.cacheKey()
+
+        memoryCache[key]?.let {
+            req.target.setImageBitmap(it)
+            return
+        }
+
+        req.placeholder?.let { req.target.setImageResource(it) }
+
+        activeRequests[req.target] = ioScope.launch {
+            val bitmap = diskCache.get(key)?.let(::decode)
+                ?: download(req.url)?.also { storeBoth(key, it) }
+                ?: return@launch withContext(Dispatchers.Main) {
+                    req.error?.let { req.target.setImageResource(it) }
+                }
+            withContext(Dispatchers.Main) {
+                if (req.target.tag == key) req.target.setImageBitmap(bitmap)
+            }
+        }
+        req.target.tag = key
+    }
+
+    fun cancel(target: ImageView) { activeRequests.remove(target)?.cancel() }
+}</code></pre>
+
+<h3>Sizing the LruCache</h3>
+<pre><code class="language-kotlin">val maxKb = (Runtime.getRuntime().maxMemory() / 1024 / 8).toInt()    // 1/8 of heap
+val memCache = object : LruCache&lt;CacheKey, Bitmap&gt;(maxKb) {
+    override fun sizeOf(k: CacheKey, v: Bitmap): Int = v.byteCount / 1024
+}</code></pre>
+
+<h2>5. LLD — Offline-first sync engine</h2>
+
+<p>Pattern for any offline-capable CRUD app (notes, todos, drafts).</p>
+
+<h3>Schema</h3>
+<pre><code class="language-kotlin">@Entity
+data class NoteEntity(
+    @PrimaryKey val id: String,           // client UUID
+    val serverId: String? = null,
+    val title: String,
+    val body: String,
+    val updatedAt: Long,
+    val version: Int = 0,
+    val status: String = "PENDING_CREATE"  // PENDING_CREATE / SYNCED / PENDING_UPDATE / PENDING_DELETE
+)</code></pre>
+
+<h3>Sync worker</h3>
+<pre><code class="language-kotlin">@HiltWorker
+class SyncWorker @AssistedInject constructor(
+    @Assisted ctx: Context, @Assisted params: WorkerParameters,
+    private val dao: NoteDao, private val api: NoteApi
+) : CoroutineWorker(ctx, params) {
+
+    override suspend fun doWork(): Result {
+        // Pushes
+        dao.pendingByStatus("PENDING_CREATE").forEach { entity -&gt;
+            runCatching { api.create(entity.toCreateDto()) }
+                .onSuccess { resp -&gt; dao.upsert(entity.copy(serverId = resp.id, status = "SYNCED")) }
+                .onFailure { return Result.retry() }
+        }
+        dao.pendingByStatus("PENDING_UPDATE").forEach { entity -&gt;
+            runCatching { api.update(entity.serverId!!, entity.toPatchDto(), entity.version) }
+                .onSuccess { dao.upsert(entity.copy(status = "SYNCED", version = entity.version + 1)) }
+                .onFailure { e -&gt;
+                    if (e is ConflictException) resolveConflict(entity)
+                    else return Result.retry()
+                }
+        }
+        dao.pendingByStatus("PENDING_DELETE").forEach { entity -&gt;
+            runCatching { api.delete(entity.serverId!!) }
+                .onSuccess { dao.hardDelete(entity.id) }
+                .onFailure { return Result.retry() }
+        }
+
+        // Pulls
+        val since = dao.lastSyncedAt() ?: 0L
+        runCatching { api.delta(since) }
+            .onSuccess { remote -&gt; dao.upsertAll(remote.map { it.toEntity() }); dao.setLastSyncedAt(System.currentTimeMillis()) }
+            .onFailure { return Result.retry() }
+
+        return Result.success()
+    }
+}</code></pre>
+
+<div class="callout senior">
+  <span class="label">Conflict resolution choices</span>
+  <p>Pick a strategy upfront and call it out: <strong>(a) last-write-wins</strong> (simple — server timestamp decides), <strong>(b) prompt user</strong> (good UX, complex), <strong>(c) three-way merge</strong> (Notion/Figma-level — usually overkill). Sketch the chosen one and acknowledge the others as alternatives.</p>
+</div>
+
+<h2>6. LLD — Chat client</h2>
+
+<h3>Components</h3>
+<ul>
+  <li><strong>WebSocket</strong> for real-time inbound messages.</li>
+  <li><strong>Room</strong> for local persistence; UI observes via Flow.</li>
+  <li><strong>Send queue</strong> with WorkManager; client-generated UUIDs for idempotency.</li>
+  <li><strong>Reconnection</strong> with exponential backoff; on reconnect, request "messages since lastDeliveredId."</li>
+  <li><strong>Pagination</strong> via keyset on <code>messageId DESC</code>.</li>
+</ul>
+
+<h3>Send pattern</h3>
+<pre><code class="language-kotlin">fun send(text: String) = scope.launch {
+    val clientId = UUID.randomUUID().toString()
+    val msg = MessageEntity(id = clientId, text = text, status = "PENDING", createdAt = now())
+    dao.upsert(msg)   // appears in UI immediately, marked pending
+    enqueueSendWorker(clientId)
+}
+
+class SendWorker(...) : CoroutineWorker(...) {
+    override suspend fun doWork(): Result {
+        val pending = dao.byId(clientId) ?: return Result.success()
+        return runCatching { api.send(SendDto(pending.text, clientId)) }
+            .onSuccess { resp -&gt; dao.upsert(pending.copy(serverId = resp.id, status = "SENT")) }
+            .fold(onSuccess = { Result.success() }, onFailure = { Result.retry() })
+    }
+}</code></pre>
+
+<h2>7. Analytics integration — Compose AND XML</h2>
+
+<h3>Architecture: AnalyticsHub fans out to multiple trackers</h3>
+<pre><code class="language-kotlin">interface AnalyticsTracker {
+    fun screen(name: String, props: Map&lt;String, Any&gt; = emptyMap())
+    fun event(name: String, props: Map&lt;String, Any&gt; = emptyMap())
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class AnalyticsModule {
+    @Binds @IntoSet abstract fun newRelic(impl: NewRelicTracker): AnalyticsTracker
+    @Binds @IntoSet abstract fun crashlytics(impl: CrashlyticsTracker): AnalyticsTracker
+    @Binds @IntoSet abstract fun internal(impl: InternalTracker): AnalyticsTracker
+}
+
+class AnalyticsHub @Inject constructor(
+    private val trackers: Set&lt;@JvmSuppressWildcards AnalyticsTracker&gt;,
+    @IoDispatcher private val io: CoroutineDispatcher
+) : AnalyticsTracker {
+    private val scope = CoroutineScope(SupervisorJob() + io)
+    override fun screen(name: String, props: Map&lt;String, Any&gt;) {
+        scope.launch { trackers.forEach { runCatching { it.screen(name, props) } } }
+    }
+    override fun event(name: String, props: Map&lt;String, Any&gt;) {
+        scope.launch { trackers.forEach { runCatching { it.event(name, props) } } }
+    }
+}</code></pre>
+
+<h3>Compose integration via CompositionLocal</h3>
+<pre><code class="language-kotlin">val LocalAnalytics = staticCompositionLocalOf&lt;AnalyticsTracker&gt; { error("Provide analytics") }
+
+@Composable
+fun App(analytics: AnalyticsTracker) {
+    CompositionLocalProvider(LocalAnalytics provides analytics) { /* nav graph */ }
+}
+
+@Composable
+fun HomeScreen() {
+    val analytics = LocalAnalytics.current
+    LaunchedEffect(Unit) { analytics.screen("home") }
+}
+
+// Track scroll depth
+@Composable
+fun TrackScrollDepth(listState: LazyListState, screen: String) {
+    val analytics = LocalAnalytics.current
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .filter { it &gt; 0 }
+            .distinctUntilChanged()
+            .collect { idx -&gt; analytics.event("scroll_depth", mapOf("screen" to screen, "idx" to idx)) }
+    }
+}</code></pre>
+
+<h3>XML integration via base Fragment</h3>
+<pre><code class="language-kotlin">@AndroidEntryPoint
+abstract class AnalyticsFragment : Fragment() {
+    @Inject lateinit var analytics: AnalyticsTracker
+    abstract val screenName: String
+
+    override fun onResume() {
+        super.onResume()
+        analytics.screen(screenName)
+    }
+}
+
+@AndroidEntryPoint
+class HomeFragment : AnalyticsFragment() {
+    override val screenName = "home"
+    /* ... */
+}</code></pre>
+
+<h3>Custom in-memory event engine (your Dish work)</h3>
+<pre><code class="language-kotlin">class InternalTracker @Inject constructor(
+    private val dao: AnalyticsDao,
+    private val api: AnalyticsApi,
+    private val scope: AppScope
+) : AnalyticsTracker {
+    private val channel = Channel&lt;Event&gt;(Channel.BUFFERED)
+
+    init {
+        scope.launch { drainBatched() }
+    }
+
+    override fun event(name: String, props: Map&lt;String, Any&gt;) {
+        channel.trySend(Event(name, props, System.currentTimeMillis()))
+    }
+
+    private suspend fun drainBatched() {
+        val batch = mutableListOf&lt;Event&gt;()
+        while (true) {
+            val first = channel.receive()
+            batch += first
+            // Drain available within 30s window
+            withTimeoutOrNull(30_000) {
+                while (batch.size &lt; 50) batch += channel.receive()
+            }
+            // Persist + send
+            dao.insertAll(batch.map { it.toEntity() })
+            runCatching { api.upload(batch) }
+                .onSuccess { dao.markSent(batch) }
+                .onFailure { /* will retry next drain cycle */ }
+            batch.clear()
+        }
+    }
+}</code></pre>
+
+<h2>8. LLD — Photo upload pipeline</h2>
+
+<ul>
+  <li>Pick photo → ViewModel → emit Uri.</li>
+  <li>WorkManager <strong>foreground service</strong> for upload (user-visible long work).</li>
+  <li><strong>Resumable upload</strong>: chunked PUT (S3 multipart, Tus). Persist chunk progress.</li>
+  <li>Progress: <code>setProgress(workDataOf("pct" to 50))</code>; observe via <code>workManager.getWorkInfoByIdFlow</code>.</li>
+  <li>Constraints: <code>NetworkType.UNMETERED</code> if user toggles wifi-only.</li>
+</ul>
+
+<pre><code class="language-kotlin">class UploadWorker(...) : CoroutineWorker(...) {
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        val notif = makeNotification(progress = 0)
+        return ForegroundInfo(NOTIFICATION_ID, notif)
+    }
+    override suspend fun doWork(): Result {
+        val uri = inputData.getString("uri")?.toUri() ?: return Result.failure()
+        val chunks = chunkStrategy(uri)
+        chunks.forEachIndexed { i, chunk -&gt;
+            uploadChunk(chunk)
+            setProgress(workDataOf("pct" to (i + 1) * 100 / chunks.size))
+            setForeground(ForegroundInfo(NOTIFICATION_ID, makeNotification((i + 1) * 100 / chunks.size)))
+        }
+        return Result.success()
+    }
+}</code></pre>
+
+<h2>9. LLD — Push notification pipeline</h2>
+
+<h3>Components</h3>
+<ul>
+  <li><strong>FCM token</strong> registered on app start; sent to backend.</li>
+  <li><strong>Token rotation</strong>: <code>FirebaseMessagingService.onNewToken</code> → re-register.</li>
+  <li><strong>Notification channels</strong> (Android 8+): create on app start; user-controlled importance per channel.</li>
+  <li><strong>Backstack</strong>: <code>TaskStackBuilder</code> when deep-linking from notification.</li>
+  <li><strong>Silent push</strong> for data sync — <code>priority: "high"</code>, no display.</li>
+  <li><strong>Privacy</strong>: redact sensitive content on lockscreen via <code>setVisibility</code>.</li>
+</ul>
+
+<pre><code class="language-kotlin">class FoxFcmService : FirebaseMessagingService() {
+    @Inject lateinit var tokens: TokenStore
+    override fun onNewToken(token: String) {
+        scope.launch { api.registerFcm(token) }
+    }
+    override fun onMessageReceived(msg: RemoteMessage) {
+        val type = msg.data["type"]
+        when (type) {
+            "silent_sync" -&gt; enqueueSyncWorker()
+            "new_episode" -&gt; showEpisodeNotification(msg.data)
+            else -&gt; showGenericNotification(msg)
+        }
+    }
+}</code></pre>
+
+<h2>10. LLD — Full playlist database (interview favorite)</h2>
+
+<p>See <a href="jetpack.html">Jetpack page</a> for the complete schema (Playlist + Song + Cross-ref) with @Relation, transactions, migrations. Key senior framing:</p>
+
+<ul>
+  <li><strong>Many-to-many</strong> via cross-ref table with <code>position</code> for ordering.</li>
+  <li><strong>Foreign keys with CASCADE</strong> for referential integrity.</li>
+  <li><strong>@Transaction + @Relation</strong> for joined reads as a single Flow.</li>
+  <li><strong>Indices</strong> on the non-PK side of the cross-ref for query performance.</li>
+  <li><strong>Migrations checked into Git</strong> with schema export.</li>
+</ul>
+
+<h2>11. Common HLD/LLD interview probes</h2>
+
+<details class="qa">
+<summary>Q. How do you scale this from 100K to 10M users?</summary>
+<div class="qa-body"><p>Backend scaling is the primary lever (CDN, caching, sharding) — say so. Mobile-side: more aggressive caching, batched API calls (or GraphQL with sparse fields), feature flags for risky rollouts, robust telemetry, A/B testing infra, baseline profiles for cold start at p95.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you handle a flaky network?</summary>
+<div class="qa-body"><p>Retries with exponential backoff for transient (5xx, IO). Idempotency keys for retried POSTs. Cache last successful response (OkHttp HTTP cache + app-level cache). Surface "offline mode" UI when consecutive failures exceed N. Auto-resume when network returns via <code>ConnectivityManager.NetworkCallback</code>.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. What if backend changes the home layout daily?</summary>
+<div class="qa-body"><p>SDUI (Server-Driven UI) — server returns module descriptors, client renders generically. Layout changes ship without app release. Tradeoff: client must support all module types in advance; new types require app update.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you handle two devices editing the same note offline?</summary>
+<div class="qa-body"><p>Three options: last-write-wins (simple, lossy), version-based 409 + user prompt (better UX), three-way merge (complex). Pick one and call out the alternatives. Server-generated content hash can dedupe identical edits.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you design pagination across multiple sources?</summary>
+<div class="qa-body"><p>Paging 3 with <code>RemoteMediator</code>: DB is source of truth, mediator fetches from network and writes through. Cursor-based, not page-numbered. Handle "empty page" as end-of-pagination signal.</p></div>
+</details>
+
+<details class="qa">
+<summary>Q. How do you implement deep links safely?</summary>
+<div class="qa-body"><p>Don't trust URL params. Validate IDs against current user session. Use Android App Links (verified by domain) over plain custom-scheme links — proves your domain ownership. Prefer Navigation Compose's <code>navDeepLink</code> for routing.</p></div>
+</details>
+
+<h2>12. Design-round closing tips</h2>
+
+<ul>
+  <li><strong>Always articulate tradeoffs</strong>: "I'm picking X over Y because Z; downside is W."</li>
+  <li><strong>Be honest about what you'd punt</strong>: "I'd not build the recommendation engine in V1 — start with categorical rows, add personalization in V2."</li>
+  <li><strong>Bring numbers when possible</strong>: "We targeted &lt; 1.5s cold start, P99."</li>
+  <li><strong>If asked "how would you fail this?"</strong> — engage. Senior interviewers love this question.</li>
+  <li><strong>Don't draw 50 boxes</strong>. Keep it readable; add detail only on the part being probed.</li>
+</ul>
+
+<div class="footer">Next: <a href="testing.html">Testing →</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

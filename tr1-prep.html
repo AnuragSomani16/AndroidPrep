@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TR1 Prep Revision · Android Senior Prep</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<button class="mobile-toggle" id="mobile-toggle">☰ Menu</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h1>Android Senior Prep</h1>
+  <span class="tag">FOX Corp · L2 / Senior</span>
+  <nav>
+    <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Languages & Core</div>
+    <a href="kotlin.html">Kotlin <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="coroutines.html">Coroutines & Flows <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+    <a href="android-core.html">Android SDK Core <span class="round-tag tr1">TR1</span><span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">UI</div>
+    <a href="compose.html">Jetpack Compose <span class="round-tag tr2">TR2</span></a>
+    <a href="testing.html">Testing <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Architecture & DI</div>
+    <a href="architecture.html">MVVM / MVI / Clean <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+    <a href="di-hilt.html">Hilt (DI) <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Jetpack & Data</div>
+    <a href="jetpack.html">Jetpack Libraries <span class="round-tag tr2">TR2</span></a>
+    <a href="networking.html">Networking & Auth <span class="round-tag tr2">TR2</span></a>
+
+    <div class="nav-section">Performance & Quality</div>
+    <a href="performance.html">Performance & Profiling <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Specializations</div>
+    <a href="player.html">Video Player <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+    <a href="kmp-cmp.html">KMP / CMP <span class="round-tag tr3">TR3</span></a>
+    <a href="library.html">Library Publishing <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Design Rounds</div>
+    <a href="system-design.html">HLD / LLD <span class="round-tag tr3">TR3</span></a>
+    <a href="scenarios.html">Scenario Drills <span class="round-tag tr2">TR2</span><span class="round-tag tr3">TR3</span></a>
+
+    <div class="nav-section">Reference</div>
+    <a href="glossary.html">Glossary <span class="round-tag ref">ref</span></a>
+    <a href="comparisons.html">Comparisons <span class="round-tag ref">ref</span></a>
+    <a href="recent-features.html">Recent Releases <span class="round-tag ref">ref</span></a>
+
+    <div class="nav-section">Practice & Stories</div>
+    <a href="tr1-prep.html">TR1 Prep Revision <span class="round-tag tr1">TR1</span></a>
+    <a href="mock-interview.html">Mock Interview (280 Q&A) <span class="round-tag all">all</span></a>
+    <a href="star-stories.html">STAR Stories <span class="round-tag tr3">TR3</span><span class="round-tag tr4">TR4</span></a>
+  </nav>
+</aside>
+
+<main class="main">
+<h1>TR1 Prep Revision</h1>
+<p class="lead">A focused revision sheet for the live coding round. Every topic in your TR1 list, in revision-density form: <span class="signal">what / why / when</span>, idiomatic code, and the senior framing. Plus a complete <strong>"build a movies fetcher" walkthrough</strong> in MVVM, MVI, and Clean styles.</p>
+
+<div class="callout senior">
+  <span class="label">How to use this page</span>
+  <p>Read top to bottom once the morning of the interview. Each section is short on purpose — deep dives live on the dedicated topic pages and are linked. The movies-fetcher example is the centerpiece — if you can recreate that from memory at the whiteboard, TR1 will go well.</p>
+</div>
+
+<h2>Index</h2>
+<ol>
+  <li><a href="#mvvm-mvi-clean">MVVM vs MVI vs Clean — deep dive</a></li>
+  <li><a href="#movies-fetcher">Build a movies fetcher — end-to-end (MVVM + MVI)</a></li>
+  <li><a href="#suspend">Suspend functions</a></li>
+  <li><a href="#exceptions">Exception handling</a></li>
+  <li><a href="#ui-updates">UI updates — XML (LiveData) vs Compose (StateFlow)</a></li>
+  <li><a href="#error-states">Handling error states + loading</a></li>
+  <li><a href="#lifecycle">Lifecycle awareness</a></li>
+  <li><a href="#parallel-sequential">Parallel vs sequential coroutines</a></li>
+  <li><a href="#compose-revision">Jetpack Compose — revision</a></li>
+  <li><a href="#solid">SOLID principles</a></li>
+  <li><a href="#layers">Domain layer vs data layer</a></li>
+  <li><a href="#di-overview">DI overview + samples</a></li>
+  <li><a href="#tr1-checklist">TR1 morning checklist</a></li>
+</ol>
+
+<h2 id="mvvm-mvi-clean">1. MVVM vs MVI vs Clean — the deep dive</h2>
+
+<div class="definition"><strong>MVVM</strong> = ViewModel exposes UI state via observable streams; the View observes and renders; events flow back via method calls on the ViewModel. The <em>default</em> Android pattern. <strong>MVI</strong> = a stricter MVVM with one State object, sealed Intents, and Effects on a separate channel — best for state-heavy screens. <strong>Clean Architecture</strong> = a <em>layering</em> concern (presentation / domain / data) <em>orthogonal</em> to MVVM/MVI; you compose them.</div>
+
+<h3>Side-by-side</h3>
+<table>
+<thead><tr><th></th><th>MVVM</th><th>MVI</th></tr></thead>
+<tbody>
+<tr><td>State exposure</td><td>multiple flows (notes, loading, error)</td><td>one StateFlow&lt;UiState&gt;</td></tr>
+<tr><td>Events from UI</td><td>method calls (vm.load(), vm.delete())</td><td>vm.onIntent(Intent.Load)</td></tr>
+<tr><td>One-shot events</td><td>often hacky (SingleLiveEvent, Channel)</td><td>SharedFlow&lt;Effect&gt;</td></tr>
+<tr><td>Best for</td><td>simple CRUD screens — most app screens</td><td>state-heavy: player, multi-step forms, search</td></tr>
+<tr><td>Testability</td><td>good</td><td>excellent — pure reducer</td></tr>
+<tr><td>Boilerplate</td><td>low</td><td>medium-high</td></tr>
+</tbody>
+</table>
+
+<h3>Clean Architecture — the layering</h3>
+<pre><code>┌──────────────── presentation ────────────────┐
+│  Compose / XML + ViewModel                   │
+│  Knows about Android, knows about domain     │
+└──────────────────┬───────────────────────────┘
+                   ↓ depends on
+┌──────────────── domain ──────────────────────┐  ← PURE Kotlin (no Android)
+│  Use Cases, Domain Models, Repository INTERFACES│
+└──────────────────┬───────────────────────────┘
+                   ↑ implements (dependency inversion)
+┌──────────────── data ────────────────────────┐
+│  Repository implementations, Retrofit, Room  │
+│  Knows about Android, knows about domain     │
+└──────────────────────────────────────────────┘</code></pre>
+
+<div class="callout senior">
+  <span class="label">Senior framing — say this</span>
+  <p>"I default to <span class="signal-phrase">MVVM with Clean layering</span> for most screens. I lift to <span class="signal-phrase">MVI</span> on specific screens where state interactions get complex enough that 'what's the screen showing right now' becomes hard to answer from scattered flows. The win of MVI is <span class="signal-phrase">single source of truth for screen state</span> — every UI state can be reproduced in a test or @Preview by just constructing the State object."</p>
+</div>
+
+<p>Full deep dive on the <a href="architecture.html">Architecture page</a>.</p>
+
+<h2 id="movies-fetcher">2. Build a movies fetcher — end-to-end</h2>
+
+<p>This is the centerpiece. If TR1 says "fetch movies from an API and show a list" — this is the answer.</p>
+
+<h3>2.1 — The contract (clarify scope first)</h3>
+<ul>
+  <li>Show a list of trending movies on a screen.</li>
+  <li>Loading spinner while fetching.</li>
+  <li>Error message if fetch fails, with a retry button.</li>
+  <li>Empty state if the list is empty.</li>
+  <li>Tap a movie to open detail (out of TR1 scope but architecture should support it).</li>
+</ul>
+
+<h3>2.2 — Layer-by-layer (Clean + MVVM)</h3>
+
+<p>Walk this from the API surface inward. Each layer has a clear responsibility.</p>
+
+<h4>Layer 1 — Data (network DTO + Retrofit + DataSource)</h4>
+
+<pre><code class="language-kotlin">// data/remote/MovieDto.kt — what the API returns (DTO = Data Transfer Object)
+@Serializable
+data class MovieDto(
+    val id: Int,
+    val title: String,
+    @SerialName("poster_path") val posterPath: String?,
+    @SerialName("vote_average") val voteAverage: Double,
+    @SerialName("release_date") val releaseDate: String
+)
+
+@Serializable
+data class MoviesPageDto(
+    val page: Int,
+    val results: List&lt;MovieDto&gt;,
+    @SerialName("total_pages") val totalPages: Int
+)
+
+// data/remote/MoviesApi.kt — Retrofit interface
+interface MoviesApi {
+    @GET("trending/movie/week")
+    suspend fun trending(@Query("page") page: Int = 1): MoviesPageDto
+}
+
+// data/remote/MoviesRemoteDataSource.kt — wraps Retrofit; could be swapped for fakes
+class MoviesRemoteDataSource @Inject constructor(
+    private val api: MoviesApi,
+    @IoDispatcher private val io: CoroutineDispatcher
+) {
+    suspend fun trending(page: Int = 1): List&lt;MovieDto&gt; = withContext(io) {
+        api.trending(page).results
+    }
+}</code></pre>
+
+<div class="code-explain">
+<ol>
+  <li><strong>DTO</strong> mirrors the API exactly — including the wire-format names (<code>poster_path</code>) via <code>@SerialName</code>. The rest of the app should NEVER see a DTO.</li>
+  <li><strong>Retrofit interface is <code>suspend</code></strong> — Retrofit's coroutine adapter handles the HTTP call asynchronously and resumes your coroutine when the response is ready. No callbacks, no Result wrappers needed at this layer.</li>
+  <li><strong>DataSource wraps the API</strong> — gives you a place to hook caching, logging, retries, dispatcher choice. <code>withContext(io)</code> moves the call off main even if the caller is on Main.</li>
+</ol>
+</div>
+
+<h4>Layer 2 — Data (Repository + mappers)</h4>
+
+<pre><code class="language-kotlin">// data/MovieMapper.kt — converts wire format to domain
+fun MovieDto.toDomain() = Movie(
+    id = id.toString(),
+    title = title,
+    posterUrl = posterPath?.let { "https://image.tmdb.org/t/p/w500$it" },
+    rating = voteAverage,
+    releaseDate = releaseDate.takeIf { it.isNotBlank() }?.let(LocalDate::parse)
+)
+
+// data/MoviesRepositoryImpl.kt
+class MoviesRepositoryImpl @Inject constructor(
+    private val remote: MoviesRemoteDataSource
+) : MoviesRepository {        // implements the interface from the domain layer
+    override suspend fun trending(page: Int): List&lt;Movie&gt; =
+        remote.trending(page).map { it.toDomain() }
+}</code></pre>
+
+<div class="code-explain">The repository does TWO jobs: <strong>(1)</strong> coordinates data sources (here just one — but later we could add a Room cache and choose between them), and <strong>(2)</strong> <strong>maps DTOs to domain models</strong>. After this layer, no caller can be coupled to the wire format.</div>
+
+<h4>Layer 3 — Domain (model + repository interface + use case)</h4>
+
+<pre><code class="language-kotlin">// domain/model/Movie.kt — pure Kotlin, no Android, no DTO
+data class Movie(
+    val id: String,
+    val title: String,
+    val posterUrl: String?,
+    val rating: Double,
+    val releaseDate: LocalDate?
+)
+
+// domain/repository/MoviesRepository.kt — interface only
+interface MoviesRepository {
+    suspend fun trending(page: Int = 1): List&lt;Movie&gt;
+}
+
+// domain/usecase/GetTrendingMoviesUseCase.kt
+class GetTrendingMoviesUseCase @Inject constructor(
+    private val repo: MoviesRepository
+) {
+    suspend operator fun invoke(): List&lt;Movie&gt; =
+        repo.trending().filter { it.rating &gt;= 6.0 }   // example business rule
+}</code></pre>
+
+<div class="code-explain">
+<ol>
+  <li><strong>Domain layer is pure Kotlin</strong> — no Android imports, no Retrofit, no Room. JVM unit tests run in milliseconds with no emulator.</li>
+  <li><strong>Repository INTERFACE lives here, IMPL in data</strong> — that's the dependency inversion. The data layer depends on the domain (implements its interfaces), not the other way around.</li>
+  <li><strong>Use Case has <code>operator fun invoke</code></strong> — call site reads <code>getTrendingMovies()</code>, not <code>getTrendingMovies.execute()</code>. This is the senior-Kotlin idiom.</li>
+  <li><strong>Use cases hold the business rules</strong> — here, "rating &gt;= 6.0". If multiple ViewModels need this filter, they all share one place to fix it.</li>
+</ol>
+</div>
+
+<h4>Layer 4 — Presentation (ViewModel — MVVM style)</h4>
+
+<pre><code class="language-kotlin">// presentation/MoviesUiState.kt — sealed for exhaustive when
+sealed interface MoviesUiState {
+    data object Loading : MoviesUiState
+    data class Success(val movies: List&lt;Movie&gt;) : MoviesUiState
+    data class Error(val message: String) : MoviesUiState
+}
+
+// presentation/MoviesViewModel.kt
+@HiltViewModel
+class MoviesViewModel @Inject constructor(
+    private val getTrending: GetTrendingMoviesUseCase
+) : ViewModel() {
+
+    private val _state = MutableStateFlow&lt;MoviesUiState&gt;(MoviesUiState.Loading)
+    val state: StateFlow&lt;MoviesUiState&gt; = _state.asStateFlow()
+
+    init { load() }
+
+    fun load() = viewModelScope.launch {
+        _state.value = MoviesUiState.Loading
+        runCatching { getTrending() }
+            .onSuccess { movies -&gt;
+                _state.value = if (movies.isEmpty()) MoviesUiState.Success(emptyList())
+                                else MoviesUiState.Success(movies)
+            }
+            .onFailure { e -&gt;
+                _state.value = MoviesUiState.Error(e.message ?: "Couldn't load movies")
+            }
+    }
+
+    fun retry() = load()
+}</code></pre>
+
+<div class="code-explain">
+<ol>
+  <li><strong>One <code>StateFlow&lt;UiState&gt;</code> exposes the entire screen state</strong> — Loading / Success / Error. The View renders one of three things based on which subclass is current.</li>
+  <li><strong><code>viewModelScope.launch</code></strong> — coroutine cancelled when ViewModel is cleared (configuration change, finish). No leaks.</li>
+  <li><strong><code>runCatching { } .onSuccess { } .onFailure { }</code></strong> — handles the success/error fork without nested try/catch. Internal use only — never return <code>Result</code> from a public API.</li>
+  <li><strong><code>retry()</code></strong> just calls <code>load()</code> again — the View binds its retry button to this.</li>
+</ol>
+</div>
+
+<h4>Layer 5a — UI (Compose)</h4>
+
+<pre><code class="language-kotlin">@Composable
+fun MoviesScreen(vm: MoviesViewModel = hiltViewModel()) {
+    val state by vm.state.collectAsStateWithLifecycle()
+
+    when (val s = state) {
+        is MoviesUiState.Loading -&gt; LoadingView()
+        is MoviesUiState.Error   -&gt; ErrorView(s.message, onRetry = vm::retry)
+        is MoviesUiState.Success -&gt; if (s.movies.isEmpty())
+            EmptyView() else MoviesList(s.movies)
+    }
+}
+
+@Composable
+private fun LoadingView() {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun ErrorView(msg: String, onRetry: () -&gt; Unit) {
+    Column(
+        Modifier.fillMaxSize().padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(msg, style = MaterialTheme.typography.bodyLarge)
+        Spacer(Modifier.height(16.dp))
+        Button(onClick = onRetry) { Text("Retry") }
+    }
+}
+
+@Composable
+private fun MoviesList(movies: List&lt;Movie&gt;) {
+    LazyColumn {
+        items(movies, key = { it.id }) { movie -&gt;
+            MovieRow(movie)
+        }
+    }
+}
+
+@Composable
+private fun MovieRow(movie: Movie) {
+    Row(Modifier.fillMaxWidth().padding(12.dp)) {
+        AsyncImage(
+            model = movie.posterUrl,
+            contentDescription = null,
+            modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp))
+        )
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text(movie.title, style = MaterialTheme.typography.titleMedium)
+            Text("⭐ ${movie.rating}", style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}</code></pre>
+
+<div class="code-explain">
+<ol>
+  <li><strong><code>collectAsStateWithLifecycle()</code></strong> — collects the StateFlow only while the screen is at least STARTED. No background work when the user navigates away.</li>
+  <li><strong>Exhaustive <code>when (val s = state)</code></strong> — sealed interface forces handling every state. Adding a fourth state (e.g., <code>Refreshing</code>) becomes a compile error in every consumer until you handle it.</li>
+  <li><strong><code>key = { it.id }</code></strong> on the LazyColumn — Compose uses this to identify items across data updates. Without it, scroll position jumps and animations target wrong items.</li>
+  <li><strong>Method reference <code>vm::retry</code></strong> — stable lambda equivalent. Compose can skip recomposition of <code>ErrorView</code> when nothing else changes.</li>
+</ol>
+</div>
+
+<h4>Layer 5b — UI (XML alternative)</h4>
+
+<pre><code class="language-kotlin">@AndroidEntryPoint
+class MoviesFragment : Fragment(R.layout.fragment_movies) {
+
+    private val vm: MoviesViewModel by viewModels()
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val binding = FragmentMoviesBinding.bind(view)
+        val adapter = MoviesAdapter()
+        binding.list.adapter = adapter
+        binding.btnRetry.setOnClickListener { vm.retry() }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.state.collect { state -&gt;
+                    binding.progress.isVisible = state is MoviesUiState.Loading
+                    binding.errorView.isVisible = state is MoviesUiState.Error
+                    binding.list.isVisible = state is MoviesUiState.Success
+
+                    when (state) {
+                        is MoviesUiState.Loading -&gt; { /* spinner already shown */ }
+                        is MoviesUiState.Error   -&gt; binding.errorMsg.text = state.message
+                        is MoviesUiState.Success -&gt; adapter.submitList(state.movies)
+                    }
+                }
+            }
+        }
+    }
+}</code></pre>
+
+<div class="code-explain">
+<ol>
+  <li><strong><code>viewLifecycleOwner</code> not <code>this</code></strong> — fragments outlive their views (back stack). Using <code>this</code> would leak observers when the view is destroyed.</li>
+  <li><strong><code>repeatOnLifecycle(STARTED)</code></strong> — XML equivalent of <code>collectAsStateWithLifecycle</code>. Cancels collection when the screen is no longer visible.</li>
+  <li><strong>Visibility toggles drive UI</strong> — same one StateFlow drives all three views (progress, error, list). XML doesn't have exhaustive <code>when</code> for views, so <code>isVisible</code> bools handle it.</li>
+  <li><strong>ListAdapter + DiffUtil</strong> (in MoviesAdapter, not shown) — only redraws changed rows on <code>submitList</code>.</li>
+</ol>
+</div>
+
+<h3>2.3 — Same screen in MVI style</h3>
+
+<p>If TR1 specifically asks for MVI, here's the diff vs MVVM:</p>
+
+<pre><code class="language-kotlin">// State (same as before — already a sealed UiState)
+
+// Intents — what the user can do
+sealed interface MoviesIntent {
+    data object Load : MoviesIntent
+    data object Retry : MoviesIntent
+    data class Click(val movie: Movie) : MoviesIntent
+}
+
+// Effects — one-shot events (navigation, snackbar)
+sealed interface MoviesEffect {
+    data class NavigateToDetail(val id: String) : MoviesEffect
+    data class ShowSnackbar(val msg: String) : MoviesEffect
+}
+
+@HiltViewModel
+class MoviesViewModel @Inject constructor(
+    private val getTrending: GetTrendingMoviesUseCase
+) : ViewModel() {
+
+    private val _state = MutableStateFlow&lt;MoviesUiState&gt;(MoviesUiState.Loading)
+    val state: StateFlow&lt;MoviesUiState&gt; = _state.asStateFlow()
+
+    private val _effects = MutableSharedFlow&lt;MoviesEffect&gt;(extraBufferCapacity = 1)
+    val effects: SharedFlow&lt;MoviesEffect&gt; = _effects.asSharedFlow()
+
+    init { onIntent(MoviesIntent.Load) }
+
+    fun onIntent(intent: MoviesIntent) {
+        when (intent) {
+            MoviesIntent.Load, MoviesIntent.Retry -&gt; load()
+            is MoviesIntent.Click -&gt; viewModelScope.launch {
+                _effects.emit(MoviesEffect.NavigateToDetail(intent.movie.id))
+            }
+        }
+    }
+
+    private fun load() = viewModelScope.launch {
+        _state.value = MoviesUiState.Loading
+        runCatching { getTrending() }
+            .onSuccess { _state.value = MoviesUiState.Success(it) }
+            .onFailure {
+                _state.value = MoviesUiState.Error(it.message ?: "")
+                _effects.emit(MoviesEffect.ShowSnackbar("Couldn't load — tap retry"))
+            }
+    }
+}
+
+// In the Compose screen
+@Composable
+fun MoviesScreen(vm: MoviesViewModel = hiltViewModel(), nav: NavController) {
+    val state by vm.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        vm.effects.collect { effect -&gt;
+            when (effect) {
+                is MoviesEffect.NavigateToDetail -&gt; nav.navigate("movie/${effect.id}")
+                is MoviesEffect.ShowSnackbar -&gt; { /* via SnackbarHost */ }
+            }
+        }
+    }
+
+    /* same when (state) rendering as MVVM */
+}</code></pre>
+
+<div class="code-explain">The MVI delta from MVVM: <strong>(1)</strong> a single <code>onIntent</code> entry point instead of separate methods, <strong>(2)</strong> Effects on a SharedFlow for one-shot events (navigation, snackbar) — <code>replay=0</code> means rotation doesn't replay them, <strong>(3)</strong> the View is even more passive — it dispatches Intents and renders State.</div>
+
+<h2 id="suspend">3. Suspend functions</h2>
+
+<div class="definition"><strong>Suspend function</strong> = a function that can <em>pause</em> its execution and resume later, without blocking the underlying thread. Marked with the <code>suspend</code> keyword. Only callable from another suspend function or a coroutine builder (<code>launch</code>, <code>async</code>, <code>runBlocking</code>). The compiler transforms each suspend function into a state machine that saves local state at each suspension point.</div>
+
+<pre><code class="language-kotlin">// Looks synchronous — but doesn't block the calling thread
+suspend fun fetchUser(id: String): User {
+    val response = api.user(id)        // suspends here — thread is free
+    val avatar = api.avatar(id)        // suspends again
+    return User(response, avatar)
+}</code></pre>
+
+<h3>Common interview probes</h3>
+<ul>
+  <li><strong>"Why use suspend instead of callbacks?"</strong> — sequential code, no callback hell, exceptions propagate naturally, structured concurrency.</li>
+  <li><strong>"Does <code>suspend</code> mean it runs on a background thread?"</strong> — No. It runs on whatever Dispatcher the coroutine is in. Use <code>withContext(Dispatchers.IO)</code> to actually move it.</li>
+  <li><strong>"Can you call a suspend function from a regular function?"</strong> — No. You need a coroutine builder.</li>
+</ul>
+
+<p>Full coverage on the <a href="coroutines.html">Coroutines page</a>.</p>
+
+<h2 id="exceptions">4. Exception handling</h2>
+
+<h3>4 patterns to know</h3>
+
+<pre><code class="language-kotlin">// PATTERN 1 — try/catch in a suspend function
+suspend fun fetch(): Result&lt;User&gt; = try {
+    Result.success(api.user())
+} catch (e: IOException) {
+    Result.failure(e)
+} catch (e: CancellationException) {
+    throw e                          // ALWAYS rethrow cancellation
+}
+
+// PATTERN 2 — runCatching (idiomatic for "try and convert to Result")
+suspend fun fetch(): Result&lt;User&gt; = runCatching { api.user() }
+
+// PATTERN 3 — CoroutineExceptionHandler (catches uncaught launch exceptions)
+val handler = CoroutineExceptionHandler { _, e -&gt;
+    Log.e("App", "uncaught", e)
+}
+val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + handler)
+scope.launch { /* throw IOException("x") — handler catches */ }
+
+// PATTERN 4 — async holds exception until await()
+val deferred = scope.async { throw IOException("x") }
+try { deferred.await() } catch (e: IOException) { /* handle */ }
+// CoroutineExceptionHandler does NOT catch async exceptions until awaited</code></pre>
+
+<div class="callout warn">
+  <span class="label">The cancellation trap</span>
+  <p><code>CancellationException</code> extends <code>Exception</code> — a generic <code>catch (e: Exception)</code> swallows it, breaking cooperative cancellation. <strong>Always rethrow it</strong>: <code>if (e is CancellationException) throw e</code>. Or catch only the specific exceptions you mean to handle.</p>
+</div>
+
+<h2 id="ui-updates">5. UI updates — XML (LiveData) vs Compose (StateFlow)</h2>
+
+<p>Coming from XML, the key insight: <strong>StateFlow is the modern replacement for LiveData</strong>. Same role (lifecycle-aware observable from ViewModel), different mechanics underneath.</p>
+
+<table>
+<thead><tr><th></th><th>LiveData (XML era)</th><th>StateFlow (modern)</th></tr></thead>
+<tbody>
+<tr><td>Library</td><td>androidx.lifecycle (Android-only)</td><td>kotlinx.coroutines (Kotlin Multiplatform)</td></tr>
+<tr><td>Initial value</td><td>Optional</td><td>Required</td></tr>
+<tr><td>Lifecycle-aware on its own?</td><td>Yes (auto-pauses observers off-screen)</td><td>No — needs <code>collectAsStateWithLifecycle</code> (Compose) or <code>repeatOnLifecycle</code> (XML)</td></tr>
+<tr><td>Composes with operators?</td><td>Limited (<code>map</code>, <code>switchMap</code>)</td><td>Full Flow operator suite (<code>combine</code>, <code>flatMapLatest</code>, <code>debounce</code>, etc.)</td></tr>
+<tr><td>Threading</td><td>Posts updates to main thread</td><td>Honors caller's dispatcher</td></tr>
+<tr><td>Equality dedupe</td><td>No</td><td>Yes (no emit if new equals old)</td></tr>
+<tr><td>Recommended for</td><td>Existing XML codebases</td><td>New code, especially Compose</td></tr>
+</tbody>
+</table>
+
+<h3>Same VM, two UIs</h3>
+<pre><code class="language-kotlin">// ViewModel — StateFlow style (works for both Compose AND XML)
+@HiltViewModel
+class HomeVm @Inject constructor() : ViewModel() {
+    private val _state = MutableStateFlow&lt;UiState&gt;(UiState.Loading)
+    val state: StateFlow&lt;UiState&gt; = _state.asStateFlow()
+}
+
+// Compose UI
+@Composable
+fun HomeScreen(vm: HomeVm = hiltViewModel()) {
+    val state by vm.state.collectAsStateWithLifecycle()
+    when (state) { /* render */ }
+}
+
+// XML UI
+class HomeFragment : Fragment() {
+    override fun onViewCreated(v: View, b: Bundle?) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.state.collect { /* update UI */ }
+            }
+        }
+    }
+}</code></pre>
+
+<div class="code-explain">The lifecycle-aware collection means the Flow's collector is started when the screen reaches STARTED, cancelled when it drops below. Without it, you'd have a coroutine still consuming updates in the background after the user navigated away — leaking work and possibly memory.</div>
+
+<h2 id="error-states">6. Handling error states + loading</h2>
+
+<p>Senior pattern: <strong>model loading and error as part of the state</strong>, not as separate signals. The View's <code>when</code> over the sealed UiState handles all three uniformly.</p>
+
+<pre><code class="language-kotlin">sealed interface UiState {
+    data object Loading : UiState
+    data class Success(val items: List&lt;Item&gt;) : UiState
+    data class Error(val message: String, val canRetry: Boolean = true) : UiState
+}
+
+// In the View
+when (val s = state) {
+    UiState.Loading      -&gt; CircularProgressIndicator()
+    is UiState.Success   -&gt; if (s.items.isEmpty()) EmptyView() else List(s.items)
+    is UiState.Error     -&gt; ErrorView(s.message, onRetry = if (s.canRetry) vm::retry else null)
+}</code></pre>
+
+<h3>For partial states (data + refreshing simultaneously)</h3>
+
+<pre><code class="language-kotlin">// When you want to show STALE data with a refresh spinner on top
+data class UiState(
+    val items: List&lt;Item&gt; = emptyList(),
+    val isRefreshing: Boolean = false,
+    val error: String? = null
+)
+// Now Loading is just isRefreshing = true; data stays visible underneath</code></pre>
+
+<div class="callout senior">
+  <span class="label">Senior framing</span>
+  <p>"For pure-fetch screens I use a <span class="signal-phrase">sealed UiState (Loading / Success / Error)</span> — one type, three branches, exhaustive. For screens that show <em>cached</em> data and refresh in the background (offline-first), I use a <span class="signal-phrase">data class with isRefreshing + items + error fields</span> so I can show the existing data with a refresh indicator on top. The choice depends on whether the user benefits from seeing previous data."</p>
+</div>
+
+<h2 id="lifecycle">7. Lifecycle awareness</h2>
+
+<div class="definition"><strong>Lifecycle-aware</strong> = an observer or component that automatically starts/stops its work in sync with an Activity/Fragment lifecycle. Prevents leaks (long-running work after destroy) and wasted CPU (observers running while screen is hidden).</div>
+
+<h3>The toolkit</h3>
+<table>
+<thead><tr><th>API</th><th>Behavior</th></tr></thead>
+<tbody>
+<tr><td><code>viewModelScope</code></td><td>cancelled when ViewModel.onCleared (config change OR screen finished)</td></tr>
+<tr><td><code>lifecycleScope</code></td><td>cancelled when Lifecycle DESTROYED. Use <code>viewLifecycleOwner.lifecycleScope</code> in Fragments</td></tr>
+<tr><td><code>repeatOnLifecycle(STARTED) { }</code></td><td>(re)starts/cancels at STARTED — for Flow collection in XML</td></tr>
+<tr><td><code>collectAsStateWithLifecycle()</code></td><td>Compose equivalent — same behavior</td></tr>
+<tr><td><code>DefaultLifecycleObserver</code></td><td>Old-school onStart/onStop hooks — rarely needed in modern code</td></tr>
+</tbody>
+</table>
+
+<h3>The view-vs-fragment lifecycle gotcha</h3>
+
+<pre><code class="language-kotlin">// WRONG — fragment outlives view in the back stack; this leaks observers
+viewModel.state.observe(this) { /* ... */ }
+
+// RIGHT — observer dies with the view
+viewModel.state.observe(viewLifecycleOwner) { /* ... */ }</code></pre>
+
+<div class="code-explain">A fragment can outlive its view (back stack). The fragment instance persists, but its view (and all its bindings) is destroyed. Using <code>this</code> as LifecycleOwner ties observers to the fragment's longer lifecycle — but the view they reference is gone. Always use <code>viewLifecycleOwner</code> for UI-bound observers.</div>
+
+<h2 id="parallel-sequential">8. Parallel vs sequential coroutines</h2>
+
+<pre><code class="language-kotlin">// SEQUENTIAL — second call starts only after first returns. Total time = sum.
+suspend fun loadSequential(): Dashboard {
+    val user = api.user()           // wait...
+    val notifications = api.notifications()  // ...wait again
+    val feed = api.feed()           // ...and again
+    return Dashboard(user, notifications, feed)
+}
+
+// PARALLEL — all three run at once. Total time = max of the three.
+suspend fun loadParallel(): Dashboard = coroutineScope {
+    val user = async { api.user() }
+    val notifications = async { api.notifications() }
+    val feed = async { api.feed() }
+    Dashboard(user.await(), notifications.await(), feed.await())
+}
+
+// PARALLEL with partial failures tolerated — feed is optional
+suspend fun loadResilient(): Dashboard = coroutineScope {
+    val user = async { api.user() }
+    val notifications = async { api.notifications() }
+    val feed = async { runCatching { api.feed() }.getOrDefault(emptyList()) }
+    Dashboard(user.await(), notifications.await(), feed.await())
+}</code></pre>
+
+<div class="code-explain">
+<ol>
+  <li><strong>Sequential</strong> when each call <em>depends on</em> the previous one's result. <code>val token = login(); val data = fetch(token)</code> — <code>fetch</code> needs <code>token</code>.</li>
+  <li><strong>Parallel</strong> with <code>async</code> + <code>await</code> when calls are independent. Use <code>coroutineScope { }</code> as the parent so any failure cancels siblings (atomic group).</li>
+  <li><strong>Resilient parallel</strong> with <code>supervisorScope</code> or per-call <code>runCatching</code> when partial failure is acceptable.</li>
+</ol>
+</div>
+
+<div class="callout warn">
+  <span class="label">Common bug</span>
+  <p><code>val a = async { ... }.await(); val b = async { ... }.await()</code> is <strong>secretly sequential</strong> — the first <code>.await()</code> blocks before the second <code>async</code> starts. Always declare both <code>async</code>s first, then <code>await</code> at the end.</p>
+</div>
+
+<h2 id="compose-revision">9. Jetpack Compose — revision</h2>
+
+<h3>The 6 things you'll be quizzed on</h3>
+<ol>
+  <li><strong>Recomposition</strong>: re-running composables when state inputs change. Skip happens when all inputs are <em>stable</em> and unchanged.</li>
+  <li><strong>Stability</strong>: a type Compose can trust to mean "if equal to before, output is unchanged." Mark data classes <code>@Immutable</code> when they have <code>List</code> / <code>Map</code> fields.</li>
+  <li><strong><code>remember</code> vs <code>rememberSaveable</code></strong>: remember survives recomposition; rememberSaveable additionally survives configuration change AND process death (Bundle).</li>
+  <li><strong>Side effects</strong>: <code>LaunchedEffect(key)</code> for coroutines, <code>DisposableEffect(key)</code> for cleanup-required resources, <code>SideEffect</code> for "sync to non-Compose" after each composition, <code>derivedStateOf</code> for "only recompose when result changes."</li>
+  <li><strong>State hoisting</strong>: push state up; pass <code>state</code> + <code>onEvent</code> down. Stateless leaves are easier to test/preview/reuse.</li>
+  <li><strong><code>LazyColumn</code> with <code>key = { it.id }</code></strong> — always. Without it, scroll position jumps on data updates.</li>
+</ol>
+
+<h3>Quick reference — building a Compose screen from scratch</h3>
+
+<pre><code class="language-kotlin">@Composable
+fun MyScreen(vm: MyVm = hiltViewModel()) {
+    val state by vm.state.collectAsStateWithLifecycle()
+
+    // Coroutine triggered ONCE on enter
+    LaunchedEffect(Unit) { vm.load() }
+
+    // Cleanup pattern
+    DisposableEffect(Unit) {
+        val listener = SomeListener { /* ... */ }
+        someService.register(listener)
+        onDispose { someService.unregister(listener) }
+    }
+
+    // Render based on state
+    when (state) { /* ... */ }
+}</code></pre>
+
+<p>Full coverage on the <a href="compose.html">Compose page</a>.</p>
+
+<h2 id="solid">10. SOLID principles in Android — with code</h2>
+
+<div class="definition"><strong>SOLID</strong> = five OOP principles that guide design toward code that's easier to change, test, and extend. Coined by Robert Martin. They're <em>heuristics</em>, not laws — apply them where they pay off, skip them where they'd add ceremony for nothing.</div>
+
+<h3>S — Single Responsibility Principle</h3>
+<p><strong>"A class should have one reason to change."</strong></p>
+
+<div class="code-compare">
+<div>
+<h4>Bad — VM does everything</h4>
+<pre><code class="language-kotlin">class MoviesVm : ViewModel() {
+    private val _state = MutableStateFlow&lt;UiState&gt;(...)
+    val state = _state.asStateFlow()
+
+    private val client = OkHttpClient()       // network
+    private val gson = Gson()                  // parsing
+    private val cache = HashMap&lt;Int, Movie&gt;()  // caching
+    private val analytics = FirebaseAnalytics  // telemetry
+
+    fun load() {
+        // ...does network call, parses JSON, caches, logs analytics, updates state
+    }
+}</code></pre>
+</div>
+<div>
+<h4>Good — split by responsibility</h4>
+<pre><code class="language-kotlin">class MoviesApi { /* HTTP only */ }
+class MoviesCache { /* LRU only */ }
+class Analytics { /* events only */ }
+
+class MoviesRepository @Inject constructor(
+    private val api: MoviesApi,
+    private val cache: MoviesCache
+) { /* coordinates only */ }
+
+@HiltViewModel
+class MoviesVm @Inject constructor(
+    private val repo: MoviesRepository,
+    private val analytics: Analytics
+) : ViewModel() { /* UI state only */ }</code></pre>
+</div>
+</div>
+
+<p><strong>Senior framing:</strong> "VM holds UI state and orchestrates intents — it doesn't know HTTP. Repository coordinates data sources — it doesn't know UI. Each class can be tested with one fake."</p>
+
+<h3>O — Open/Closed Principle</h3>
+<p><strong>"Open for extension, closed for modification."</strong> Adding new behavior shouldn't require editing existing code.</p>
+
+<div class="code-compare">
+<div>
+<h4>Bad — must edit when adding states</h4>
+<pre><code class="language-kotlin">// Every new state requires changing MoviesUiState
+class MoviesUiState {
+    var isLoading: Boolean = false
+    var movies: List&lt;Movie&gt; = emptyList()
+    var error: String? = null
+    var isOffline: Boolean = false      // new — added this
+    var isRefreshing: Boolean = false   // new — added this
+}
+
+// And every consumer's render() needs new branches:
+when {
+    state.isLoading -&gt; ...
+    state.isOffline -&gt; ...    // edited
+    state.isRefreshing -&gt; ... // edited
+    state.error != null -&gt; ...
+    else -&gt; ...
+}</code></pre>
+</div>
+<div>
+<h4>Good — sealed, extend by adding subclass</h4>
+<pre><code class="language-kotlin">sealed interface MoviesUiState {
+    data object Loading : MoviesUiState
+    data object Refreshing : MoviesUiState     // added; no edits to siblings
+    data object Offline : MoviesUiState         // added; no edits to siblings
+    data class Success(val movies: List&lt;Movie&gt;) : MoviesUiState
+    data class Error(val msg: String) : MoviesUiState
+}
+
+// when (state) — compiler enforces all branches handled
+// adding a new state forces every consumer to handle it</code></pre>
+</div>
+</div>
+
+<p><strong>Senior framing:</strong> "Sealed hierarchies + exhaustive <code>when</code> = OCP made concrete. The new <code>UiState</code> subclass requires no edit to siblings; it requires consumers to acknowledge it (which is a feature, not a bug)."</p>
+
+<h3>L — Liskov Substitution Principle</h3>
+<p><strong>"Subtypes must be substitutable for their base type without surprising callers."</strong> An impl that violates the interface contract violates LSP.</p>
+
+<div class="code-compare">
+<div>
+<h4>Bad — fake violates contract</h4>
+<pre><code class="language-kotlin">interface UserRepo {
+    /** @throws IOException on network failure */
+    suspend fun fetchUser(id: String): User
+}
+
+class FakeUserRepo : UserRepo {
+    override suspend fun fetchUser(id: String): User {
+        // Returns null wrapped in unchecked cast — caller crashes with ClassCastException
+        return null as User
+    }
+}</code></pre>
+</div>
+<div>
+<h4>Good — fake honors the contract</h4>
+<pre><code class="language-kotlin">class FakeUserRepo(
+    private val users: Map&lt;String, User&gt; = emptyMap(),
+    private val shouldFail: Boolean = false
+) : UserRepo {
+    override suspend fun fetchUser(id: String): User {
+        if (shouldFail) throw IOException("fake network error")
+        return users[id] ?: throw NoSuchElementException("user $id")
+    }
+}</code></pre>
+</div>
+</div>
+
+<p><strong>Senior framing:</strong> "LSP is most often violated by fakes that return defaults instead of throwing the contract's documented exceptions. Then the real impl crashes the app where the test passed."</p>
+
+<h3>I — Interface Segregation Principle</h3>
+<p><strong>"Don't force consumers to depend on methods they don't use."</strong> Many small interfaces beat one fat one.</p>
+
+<div class="code-compare">
+<div>
+<h4>Bad — fat interface</h4>
+<pre><code class="language-kotlin">interface UserRepo {
+    suspend fun fetch(id: String): User
+    suspend fun search(q: String): List&lt;User&gt;
+    suspend fun create(u: User)
+    suspend fun update(u: User)
+    suspend fun delete(id: String)
+    suspend fun listAll(): List&lt;User&gt;
+    suspend fun count(): Int
+    fun observeChanges(): Flow&lt;UserEvent&gt;
+}
+
+// Profile screen only needs fetch — but its test must
+// fake the entire interface (or use a half-implemented mock).</code></pre>
+</div>
+<div>
+<h4>Good — segregate</h4>
+<pre><code class="language-kotlin">interface UserReader {
+    suspend fun fetch(id: String): User
+    suspend fun search(q: String): List&lt;User&gt;
+}
+
+interface UserWriter {
+    suspend fun create(u: User)
+    suspend fun update(u: User)
+    suspend fun delete(id: String)
+}
+
+interface UserObserver {
+    fun observeChanges(): Flow&lt;UserEvent&gt;
+}
+
+// Real impl can implement all three; consumers depend on only what they need.
+class UserRepoImpl @Inject constructor(...) : UserReader, UserWriter, UserObserver { /*...*/ }
+
+class ProfileVm @Inject constructor(private val reader: UserReader) : ViewModel()</code></pre>
+</div>
+</div>
+
+<p><strong>Senior framing:</strong> "Don't shotgun this — most repos can stay one interface. Split when the consumers truly only need a slice (read-only screens, write-heavy workers) AND your test surface is suffering. Premature splitting is its own anti-pattern."</p>
+
+<h3>D — Dependency Inversion Principle</h3>
+<p><strong>"High-level modules should not depend on low-level modules. Both should depend on abstractions."</strong> The data layer is "low-level" (network, DB); the domain is "high-level" (business rules). The domain shouldn't depend on Retrofit or Room.</p>
+
+<div class="code-compare">
+<div>
+<h4>Bad — domain knows about Retrofit</h4>
+<pre><code class="language-kotlin">// in domain layer
+class GetMoviesUseCase(
+    private val retrofit: Retrofit       // ← couples domain to network impl
+) {
+    suspend operator fun invoke(): List&lt;Movie&gt; {
+        val api = retrofit.create(MoviesApi::class.java)
+        return api.trending().results.map { it.toDomain() }
+    }
+}</code></pre>
+</div>
+<div>
+<h4>Good — domain depends on its own interface</h4>
+<pre><code class="language-kotlin">// in domain layer (pure Kotlin)
+interface MoviesRepository {
+    suspend fun trending(): List&lt;Movie&gt;
+}
+
+class GetTrendingMoviesUseCase @Inject constructor(
+    private val repo: MoviesRepository    // domain interface
+) {
+    suspend operator fun invoke(): List&lt;Movie&gt; = repo.trending()
+}
+
+// in data layer (Android, Retrofit)
+class MoviesRepositoryImpl @Inject constructor(
+    private val api: MoviesApi
+) : MoviesRepository {
+    override suspend fun trending(): List&lt;Movie&gt; =
+        api.trending().results.map { it.toDomain() }
+}
+
+// Hilt wires the impl
+@Module @InstallIn(SingletonComponent::class)
+abstract class RepoModule {
+    @Binds abstract fun bind(impl: MoviesRepositoryImpl): MoviesRepository
+}</code></pre>
+</div>
+</div>
+
+<p><strong>Senior framing:</strong> "DIP is what makes <span class="signal-phrase">Clean Architecture's domain layer pure</span> — JVM unit tests, no emulator, no mocks of Retrofit. The arrow points <em>inward</em>: data depends on domain, not the reverse."</p>
+
+<h3>SOLID quick decision tree</h3>
+<ul>
+  <li><strong>Class is &gt; 300 lines or hard to describe in one sentence?</strong> SRP violation — split it.</li>
+  <li><strong>Adding a new state forces edits in 5+ places?</strong> OCP violation — sealed hierarchy + exhaustive when.</li>
+  <li><strong>Fake/mock crashes where real impl works?</strong> LSP violation — match the contract.</li>
+  <li><strong>Test must implement 20 methods to fake one usage?</strong> ISP violation — split the interface.</li>
+  <li><strong>Domain code imports <code>retrofit2.*</code> or <code>androidx.*</code>?</strong> DIP violation — flip the dependency via an interface.</li>
+</ul>
+
+<div class="callout senior">
+  <span class="label">Senior framing — say this</span>
+  <p>"SOLID isn't dogma — it's a heuristic. The rule I actually follow: <span class="signal-phrase">depend on interfaces at module boundaries, keep classes focused enough you can describe them in one sentence, and don't optimize for an extension point you don't need yet</span>. Premature interface explosion is its own anti-pattern. The principles I lean on hardest in Android are <strong>SRP</strong> (split fat ViewModels) and <strong>DIP</strong> (interfaces in domain, impls in data) — those two pay for themselves immediately in testability."</p>
+</div>
+
+<h2 id="layers">11. Domain layer vs Data layer</h2>
+
+<table>
+<thead><tr><th></th><th>Domain layer</th><th>Data layer</th></tr></thead>
+<tbody>
+<tr><td>Contains</td><td>Models (Movie, User), Use Cases, Repository <em>interfaces</em></td><td>Repository <em>implementations</em>, Retrofit/Room/DataStore, mappers, DTOs/Entities</td></tr>
+<tr><td>Android dependencies</td><td><strong>None</strong> — pure Kotlin</td><td>Yes — full Android SDK</td></tr>
+<tr><td>Test speed</td><td>Microseconds (JVM unit tests, no emulator)</td><td>Milliseconds-seconds (in-memory Room, fake APIs)</td></tr>
+<tr><td>Knows about</td><td>Domain models, business rules</td><td>Wire format (JSON), local schema (SQL), domain models (translates to)</td></tr>
+<tr><td>Changes when</td><td>Business rules change</td><td>API or DB schema changes</td></tr>
+</tbody>
+</table>
+
+<div class="callout senior">
+  <span class="label">Why split them — say this</span>
+  <p>"<span class="signal-phrase">Pure domain layer</span> means I can run business-logic unit tests in milliseconds — no emulator, no mocks of Android types. Swap the data implementation (network → local file → mock) without touching domain. The DTO/Entity types stay confined to data; the rest of the app sees only domain models. <span class="signal-phrase">Mappers at the boundary</span> are where format translation happens."</p>
+</div>
+
+<h2 id="di-overview">12. Dependency Injection — overview + samples</h2>
+
+<div class="definition"><strong>Dependency Injection (DI)</strong> = a class receives its collaborators from <em>outside</em> (constructor, setter, field) rather than constructing them itself. <strong>Hilt</strong> = Android's official DI library, built on Dagger 2. The graph is verified at <em>compile time</em> — missing bindings fail the build, not the app at runtime.</div>
+
+<h3>The 4 patterns to know cold</h3>
+
+<pre><code class="language-kotlin">// PATTERN 1 — @Inject constructor: Hilt knows how to build this class
+class GetMoviesUseCase @Inject constructor(
+    private val repo: MoviesRepository
+)
+
+// PATTERN 2 — @Provides for third-party / configured types
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
+    @Provides @Singleton
+    fun retrofit(): Retrofit = Retrofit.Builder()
+        .baseUrl("https://api.tmdb.org/3/")
+        .addConverterFactory(/* ... */)
+        .build()
+
+    @Provides @Singleton
+    fun moviesApi(r: Retrofit): MoviesApi = r.create()
+}
+
+// PATTERN 3 — @Binds for interface → impl (more efficient than @Provides)
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class RepositoryModule {
+    @Binds abstract fun bindMoviesRepo(impl: MoviesRepositoryImpl): MoviesRepository
+}
+
+// PATTERN 4 — @Qualifier for disambiguating same-type bindings
+@Qualifier annotation class IoDispatcher
+@Qualifier annotation class MainDispatcher
+
+@Module @InstallIn(SingletonComponent::class)
+object DispatchersModule {
+    @IoDispatcher @Provides fun io(): CoroutineDispatcher = Dispatchers.IO
+    @MainDispatcher @Provides fun main(): CoroutineDispatcher = Dispatchers.Main
+}
+
+// usage
+class Repo @Inject constructor(
+    @IoDispatcher private val io: CoroutineDispatcher
+)</code></pre>
+
+<h3>Constructor injection vs field injection</h3>
+
+<pre><code class="language-kotlin">// CONSTRUCTOR INJECTION — preferred for everything you control
+class Repo @Inject constructor(private val api: Api)         // immutable, testable
+
+// FIELD INJECTION — only for Android components Hilt can't construct (Activity, Fragment, View)
+@AndroidEntryPoint
+class HomeFragment : Fragment() {
+    @Inject lateinit var analytics: AnalyticsTracker         // injected after construction
+}</code></pre>
+
+<div class="callout senior">
+  <span class="label">Why constructor &gt; field</span>
+  <p>(1) Immutable — dependencies are <code>val</code>, can't be reassigned. (2) Easier unit tests — pass fakes directly, no Hilt setup. (3) Compile-time guarantee a dep was provided. (4) Explicit dependency surface — reading the constructor tells you exactly what the class needs. Use field injection only when you have to.</p>
+</div>
+
+<p>Full deep dive on the <a href="di-hilt.html">Hilt page</a>.</p>
+
+<h2 id="tr1-checklist">TR1 morning checklist</h2>
+
+<ul>
+  <li>Test your dev env 1 hour before — IDE, emulator, scratch file ready.</li>
+  <li>Open this page + <a href="kotlin.html">Kotlin</a> + <a href="coroutines.html">Coroutines</a> in three tabs.</li>
+  <li>Re-read sections 2 (movies fetcher) and 5 (UI updates) once.</li>
+  <li>Have water nearby. Bathroom done.</li>
+  <li>If asked to live-code: <strong>narrate as you go</strong>. "I'm thinking sealed UiState. Loading, Success, Error. Let me write the VM first…" Never go silent for more than 10 seconds.</li>
+  <li>If you blank: switch to brute-force / pseudo-code first, then refactor.</li>
+  <li>Don't over-engineer the test problem. If they ask for a list with 5 items, don't go straight to multi-module Clean Architecture. Match the complexity.</li>
+</ul>
+
+<div class="callout senior">
+  <span class="label">The opening line for any "build me X" prompt</span>
+  <p>"Before I start coding, can I clarify a couple things? Does this need offline support? Is the data static or paginated? And do you want me in MVVM or MVI style?" Then code with the framing they confirm. <strong>Asking questions is itself a senior signal</strong> — juniors dive in; seniors clarify scope.</p>
+</div>
+
+<h2>What's covered on other pages (so you know where to dig deeper)</h2>
+
+<ul>
+  <li><strong>Kotlin idioms</strong> (scope functions, sealed/data, generics, inline) — <a href="kotlin.html">Kotlin page</a></li>
+  <li><strong>Every coroutine + Flow detail</strong> (every dispatcher, scope, exception handler, operator) — <a href="coroutines.html">Coroutines page</a></li>
+  <li><strong>Every Compose internal</strong> (slot table, stability, all 6 effect APIs) — <a href="compose.html">Compose page</a></li>
+  <li><strong>Hilt deep dive</strong> (every annotation, scope hierarchy, multibinding, assisted) — <a href="di-hilt.html">Hilt page</a></li>
+  <li><strong>Activity/Fragment lifecycle, launch modes, services</strong> — <a href="android-core.html">Android Core page</a></li>
+  <li><strong>Testing patterns</strong> (fakes vs mocks, runTest, Compose UI tests) — <a href="testing.html">Testing page</a></li>
+  <li><strong>Real interview questions</strong> (280 of them, filterable by difficulty) — <a href="mock-interview.html">Mock Interview</a></li>
+  <li><strong>Senior-level scenarios</strong> (offline-first end-to-end, view restoration, ANRs) — <a href="scenarios.html">Scenario Drills</a></li>
+</ul>
+
+<div class="footer">Good luck on TR1. <a href="index.html">← Overview</a></div>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
