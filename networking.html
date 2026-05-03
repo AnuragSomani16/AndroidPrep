@@ -12,7 +12,6 @@
 <div class="layout">
 <aside class="sidebar" id="sidebar">
   <h1>Android Senior Prep</h1>
-  <span class="tag">FOX Corp · L2 / Senior</span>
   <nav>
     <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
 
@@ -142,7 +141,7 @@ object NetworkModule {
 
     @Provides @Singleton
     fun retrofit(client: OkHttpClient, json: Json): Retrofit = Retrofit.Builder()
-        .baseUrl("https://api.fox.com/")
+        .baseUrl("https://api.example.com/")
         .client(client)
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
@@ -322,8 +321,8 @@ val result = api.pay(key, body)
 <h2>8. SSL / Certificate pinning</h2>
 <pre><code class="language-kotlin">val pinner = CertificatePinner.Builder()
     // pin to the SPKI hash of the intermediate, not the leaf — survives leaf rotation
-    .add("api.fox.com", "sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
-    .add("api.fox.com", "sha256/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=")  // backup pin
+    .add("api.example.com", "sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+    .add("api.example.com", "sha256/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=")  // backup pin
     .build()
 
 OkHttpClient.Builder()
@@ -377,7 +376,7 @@ fun codeChallenge(verifier: String): String {
         val state = UUID.randomUUID().toString()
         tokens.savePending(verifier, state)
 
-        val url = Uri.parse("https://auth.fox.com/authorize").buildUpon()
+        val url = Uri.parse("https://auth.example.com/authorize").buildUpon()
             .appendQueryParameter("response_type", "code")
             .appendQueryParameter("client_id", "mobile-android")
             .appendQueryParameter("redirect_uri", "myapp://callback")
@@ -490,7 +489,7 @@ class AuthCallbackActivity : AppCompatActivity() {
         &lt;/trust-anchors&gt;
     &lt;/base-config&gt;
     &lt;domain-config&gt;
-        &lt;domain includeSubdomains="true"&gt;api.fox.com&lt;/domain&gt;
+        &lt;domain includeSubdomains="true"&gt;api.example.com&lt;/domain&gt;
         &lt;pin-set expiration="2026-12-31"&gt;
             &lt;pin digest="SHA-256"&gt;AAAAAAAAAAAA=&lt;/pin&gt;
             &lt;pin digest="SHA-256"&gt;BBBBBBBBBBBB=&lt;/pin&gt;

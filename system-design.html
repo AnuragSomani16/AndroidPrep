@@ -12,7 +12,6 @@
 <div class="layout">
 <aside class="sidebar" id="sidebar">
   <h1>Android Senior Prep</h1>
-  <span class="tag">FOX Corp · L2 / Senior</span>
   <nav>
     <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
 
@@ -101,7 +100,7 @@
   <li>Background work? WorkManager, foreground service, push.</li>
 </ul>
 
-<h2>3. HLD — Tubi-style streaming app (THE one for FOX)</h2>
+<h2>3. HLD — Streaming app (Primary focus)</h2>
 
 <h3>Step 1 — clarify</h3>
 <ul>
@@ -533,7 +532,7 @@ class HomeFragment : AnalyticsFragment() {
   <li><strong>Privacy</strong>: redact sensitive content on lockscreen via <code>setVisibility</code>.</li>
 </ul>
 
-<pre><code class="language-kotlin">class FoxFcmService : FirebaseMessagingService() {
+<pre><code class="language-kotlin">class ExampleFcmService : FirebaseMessagingService() {
     @Inject lateinit var tokens: TokenStore
     override fun onNewToken(token: String) {
         scope.launch { api.registerFcm(token) }

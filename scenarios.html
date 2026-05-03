@@ -12,7 +12,6 @@
 <div class="layout">
 <aside class="sidebar" id="sidebar">
   <h1>Android Senior Prep</h1>
-  <span class="tag">FOX Corp · L2 / Senior</span>
   <nav>
     <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
 
@@ -431,7 +430,7 @@ prefs.edit().putString("access_token", token).apply()</code></pre>
 
 <h3>Common keep rules you'll write</h3>
 <pre><code># For reflection-heavy libs (Gson, Moshi, Retrofit @SerializedName)
--keep class com.fox.app.dto.** { *; }
+-keep class com.example.app.dto.** { *; }
 -keepattributes Signature
 -keepattributes RuntimeVisibleAnnotations
 
@@ -440,10 +439,10 @@ prefs.edit().putString("access_token", token).apply()</code></pre>
 -dontnote kotlinx.serialization.AnnotationsKt
 
 # Keep your Retrofit interface
--keep,allowobfuscation,allowshrinking interface com.fox.app.api.**
+-keep,allowobfuscation,allowshrinking interface com.example.app.api.**
 
 # Don't strip data classes serialized by Gson
--keepclassmembers class com.fox.app.dto.** {
+-keepclassmembers class com.example.app.dto.** {
     &lt;fields&gt;;
     &lt;init&gt;(...);
 }</code></pre>

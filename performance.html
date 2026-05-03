@@ -12,7 +12,6 @@
 <div class="layout">
 <aside class="sidebar" id="sidebar">
   <h1>Android Senior Prep</h1>
-  <span class="tag">FOX Corp · L2 / Senior</span>
   <nav>
     <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
 
@@ -88,7 +87,7 @@
 </table>
 
 <h3>Measure</h3>
-<pre><code>adb shell am start -W -n com.fox.app/.MainActivity
+<pre><code>adb shell am start -W -n com.example.app/.MainActivity
 # WaitTime, ThisTime, TotalTime
 # TotalTime = time until first frame fully drawn</code></pre>
 
@@ -111,7 +110,7 @@
 @RunWith(AndroidJUnit4::class)
 class BaselineProfileGenerator {
     @get:Rule val rule = BaselineProfileRule()
-    @Test fun generate() = rule.collect(packageName = "com.fox.app") {
+    @Test fun generate() = rule.collect(packageName = "com.example.app") {
         pressHome()
         startActivityAndWait()
         // simulate critical user journey:
@@ -292,7 +291,7 @@ unzip apks.apks
   <p>"For perf I work top-down: <span class="signal-phrase">measure first, never assume</span>. <span class="signal-phrase">Macrobenchmark for repeatable startup numbers</span> in CI. <span class="signal-phrase">Baseline Profiles + R8</span> are the highest-leverage knobs for cold start. <span class="signal-phrase">JankStats in production-like builds</span> for frame health. <span class="signal-phrase">Compose Compiler reports</span> for recomposition smell. <span class="signal-phrase">LeakCanary in debug</span> for memory. <span class="signal-phrase">StrictMode</span> catches main-thread I/O before it ANRs."</p>
 </div>
 
-<h2>11. Past project — what to say at FOX</h2>
+<h2>11. Past project — what to say at interviews</h2>
 
 <p>You actually shipped this. From your Dish work:</p>
 

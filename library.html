@@ -12,7 +12,6 @@
 <div class="layout">
 <aside class="sidebar" id="sidebar">
   <h1>Android Senior Prep</h1>
-  <span class="tag">FOX Corp · L2 / Senior</span>
   <nav>
     <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
 
@@ -104,7 +103,7 @@ plugins {
 }
 
 android {
-    namespace = "com.fox.player"             // unique package — used to generate R class
+    namespace = "com.example.player"        // unique package — used to generate R class
     compileSdk = 34
 
     defaultConfig {
@@ -173,13 +172,13 @@ class PlayerInternals { /* ... */ }                     // public bytecode, but 
 
 <pre><code># consumer-rules.pro — ships INSIDE the AAR; consumers auto-apply when minifying
 # Keep your public API
--keep public class com.fox.player.PlayerController { public *; }
+-keep public class com.example.player.PlayerController { public *; }
 
 # Keep classes referenced from XML (custom views, attrs)
--keep public class com.fox.player.ui.** extends android.view.View { public &lt;init&gt;(...); }
+-keep public class com.example.player.ui.** extends android.view.View { public <init>(...); }
 
 # If you ship Retrofit interfaces or @Serializable types
--keep,allowobfuscation,allowshrinking interface com.fox.player.api.**
+-keep,allowobfuscation,allowshrinking interface com.example.player.api.**
 -keepclassmembers @kotlinx.serialization.Serializable class * { *; }</code></pre>
 
 <div class="callout warn">
@@ -211,10 +210,10 @@ class PlayerInternals { /* ... */ }                     // public bytecode, but 
 <h3>3.5 — Resource prefix to avoid collisions</h3>
 
 <pre><code class="language-kotlin">android {
-    resourcePrefix = "fox_player_"          // every res/ name must start with this prefix
+    resourcePrefix = "player_"              // every res/ name must start with this prefix
 }</code></pre>
 
-<p>Without a prefix, <code>colors.xml</code> defining <code>primary</code> would clobber the consumer's <code>primary</code> on resource merge. With <code>fox_player_primary</code>, no collision possible.</p>
+<p>Without a prefix, <code>colors.xml</code> defining <code>primary</code> would clobber the consumer's <code>primary</code> on resource merge. With <code>player_primary</code>, no collision possible.</p>
 
 <h3>3.6 — minSdk and version compatibility</h3>
 
@@ -277,7 +276,7 @@ class PlayerInternals { /* ... */ }                     // public bytecode, but 
 publishing {
     publications {
         create&lt;MavenPublication&gt;("release") {
-            groupId = "com.fox"
+            groupId = "com.example"
             artifactId = "player-core"
             version = "1.2.0"
 
@@ -286,9 +285,9 @@ publishing {
             }
 
             pom {
-                name.set("FOX Player Core")
+                name.set("Example Player Core")
                 description.set("Player abstraction over ExoPlayer / Bitmovin")
-                url.set("https://github.com/fox/android-player")
+                url.set("https://github.com/example/android-player")
                 licenses {
                     license {
                         name.set("Apache-2.0")
@@ -299,8 +298,8 @@ publishing {
                     developer { id.set("anurag"); name.set("Anurag Somani") }
                 }
                 scm {
-                    url.set("https://github.com/fox/android-player")
-                    connection.set("scm:git:git://github.com/fox/android-player.git")
+                    url.set("https://github.com/example/android-player")
+                    connection.set("scm:git:git://github.com/example/android-player.git")
                 }
             }
         }
@@ -320,7 +319,7 @@ publishing {
         // Or internal Artifactory
         maven {
             name = "internal"
-            url = uri("https://artifactory.fox.com/repo")
+            url = uri("https://artifactory.example.com/repo")
             credentials { /* ... */ }
         }
     }
@@ -370,7 +369,7 @@ dependencyResolutionManagement {
 }
 
 // app build.gradle.kts (consumer)
-implementation("com.github.fox:android-player:1.2.0")</code></pre>
+implementation("com.github.example:android-player:1.2.0")</code></pre>
 
 <p>Trade-offs: zero ops; first build can be slow as JitPack compiles; GPL on free tier (private repos cost). Good for OSS / internal experiments; not great for production-grade SLA.</p>
 
@@ -410,7 +409,7 @@ implementation("com.github.fox:android-player:1.2.0")</code></pre>
 
 <details class="qa">
 <summary>Q. How do you avoid resource name collisions?</summary>
-<div class="qa-body"><p><code>android { resourcePrefix = "fox_player_" }</code>. Then every <code>R.color</code>, <code>R.drawable</code>, <code>R.string</code> in your library must start with that prefix — Gradle enforces it. Consumers can't accidentally clobber your resources.</p></div>
+<div class="qa-body"><p><code>android { resourcePrefix = "player_" }</code>. Then every <code>R.color</code>, <code>R.drawable</code>, <code>R.string</code> in your library must start with that prefix — Gradle enforces it. Consumers can't accidentally clobber your resources.</p></div>
 </details>
 
 <details class="qa">

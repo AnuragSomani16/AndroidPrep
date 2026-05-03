@@ -12,7 +12,6 @@
 <div class="layout">
 <aside class="sidebar" id="sidebar">
   <h1>Android Senior Prep</h1>
-  <span class="tag">FOX Corp · L2 / Senior</span>
   <nav>
     <a href="index.html">Overview <span class="round-tag ref">ref</span></a>
 
@@ -59,7 +58,7 @@
 
 <main class="main">
 <h1>Video Player — your moat</h1>
-<p class="lead">FOX is a streaming company; this is what they're hiring for. Own this page: <span class="signal">ExoPlayer / Media3</span>, <span class="signal">HLS vs DASH</span>, <span class="signal">ABR</span>, <span class="signal">Widevine DRM</span>, <span class="signal">CSAI vs SSAI</span>, <span class="signal">beacons</span>, <span class="signal">MediaSession</span>, <span class="signal">PiP</span>.</p>
+<p class="lead">Streaming is central to modern platforms; own this deeply. Master ExoPlayer / Media3, HLS vs DASH, ABR, Widevine DRM, CSAI vs SSAI, beacons, MediaSession, PiP.</p>
 
 <div class="callout senior">
   <span class="label">Why this page matters most</span>
@@ -244,7 +243,7 @@ val player = ExoPlayer.Builder(ctx).setTrackSelector(trackSelector).build()</cod
 
 <h3>Online DRM playback</h3>
 <pre><code class="language-kotlin">val drmConfig = MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
-    .setLicenseUri("https://license.fox.com/widevine")
+    .setLicenseUri("https://license.example.com/widevine")
     .setLicenseRequestHeaders(mapOf("Authorization" to "Bearer $token"))
     .setMultiSession(false)
     .build()
@@ -260,7 +259,7 @@ player.prepare()</code></pre>
 <h3>Offline DRM (download-and-watch-later)</h3>
 <pre><code class="language-kotlin">// Download license alongside the stream
 val helper = OfflineLicenseHelper.newWidevineInstance(
-    licenseUri = "https://license.fox.com/widevine",
+    licenseUri = "https://license.example.com/widevine",
     forceDefaultLicenseUri = false,
     dataSourceFactory = httpDataSourceFactory,
     licenseRequestHeaders = mapOf("Authorization" to "Bearer $token"),
